@@ -5,6 +5,7 @@ export type ButtonSize = "large" | "medium" | "small";
 export type ButtonScheme = "primary" | "alert";
 export type LayoutWidth = "large" | "medium" | "small";
 export type Font = "default" | "contents" | "title";
+export type FontWeight = "light" | "normal" | "bold";
 
 interface Theme{
     color: Record<ColorKey, string>;
@@ -36,9 +37,7 @@ interface Theme{
     font: {
         family: Record<Font, string>;
         weight: {
-            light: number;
-            normal: number;
-            bold: number;
+            [key in FontWeight]: number;
         };
     };
 };
