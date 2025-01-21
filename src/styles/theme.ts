@@ -4,6 +4,8 @@ export type HeadingSize = "large" | "medium" | "small";
 export type ButtonSize = "large" | "medium" | "small";
 export type ButtonScheme = "primary" | "alert";
 export type LayoutWidth = "large" | "medium" | "small";
+export type Font = "default" | "contents" | "title";
+export type FontWeight = "light" | "normal" | "bold";
 
 interface Theme{
     color: Record<ColorKey, string>;
@@ -32,6 +34,12 @@ interface Theme{
             [key in LayoutWidth]: string;
         },
     }
+    font: {
+        family: Record<Font, string>;
+        weight: {
+            [key in FontWeight]: number;
+        };
+    };
 };
 
 export const theme : Theme = {
@@ -92,4 +100,16 @@ export const theme : Theme = {
             small : "320px",
         },
     },
+    font: {
+        family: {
+            default: "'BMJUA', sans-serif",
+            contents: "'JalnanGothic', sans-serif",
+            title: "'SBAggroB', sans-serif",
+        },
+        weight: {
+            light: 300,
+            normal: 400,
+            bold: 700,
+        }
+    }
 };
