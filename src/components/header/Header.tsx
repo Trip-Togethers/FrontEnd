@@ -16,7 +16,9 @@ const Header: React.FC = () => {
   return (
     <>
       <HeaderStyle>
+        <Link to='/trips'>
           <Logo className='logo'/>
+        </Link>
           <div className='nav'>
             <Bell className='bell'/>
             <Avatar_1 className='avatar' onClick = {toggleDropdown}/>
