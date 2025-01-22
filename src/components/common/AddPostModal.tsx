@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import Input from './Input';
+import ModalInput from './ModalInput';
 import Button from './Button';
 import '../../styles/font.css'
+import DropDown from './DropDown';
 
-interface PlanCardModalProps {
+interface AddPostModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (plan: {
@@ -16,32 +17,23 @@ interface PlanCardModalProps {
   }) => void;
 }
 
-const PlanCardModal: React.FC<PlanCardModalProps> = ({ isOpen, onClose, onSave }) => {
+const AddPostModal: React.FC<AddPostModalProps> = ({ isOpen, onClose, onSave }) => {
   const today = new Date();
   const currentYear = today.getFullYear();
   const [form, setForm] = useState({
     title: '',
     destination: '',
-    startYear: currentYear,
-    startMonth: today.getMonth() + 1,
-    startDay: today.getDate(),
-    endYear: currentYear,
-    endMonth: today.getMonth() + 1,
-    endDay: today.getDate(),
+    startDate: new Date(),  
+    endDate: new Date(),    
     imageUrl: '',
   });
   const [error, setError] = useState({
     title: '',
     destination: '',
+     date: '',
   });
 
-  const yearOptions = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i);
-  const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1);
-  const dayOptions = (year: number, month: number) => {
-    const daysInMonth = new Date(year, month, 0).getDate();
-    return Array.from({ length: daysInMonth }, (_, i) => i + 1);
-  };
-
+  
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -78,25 +70,32 @@ const PlanCardModal: React.FC<PlanCardModalProps> = ({ isOpen, onClose, onSave }
     return isValid;
   };
 
+  const validateDates = (start: Date, end: Date) => {
+    if (start > end) {
+      setError(prev => ({ ...prev, date: '종료일이 시작일보다 빠를 수 없습니다.' }));
+      return false;
+    }
+    setError(prev => ({ ...prev, date: '' }));
+    return true;
+  };
+
   const handleSave = () => {
-    if (validateForm()) {
-      const startDate = `${form.startYear}-${String(form.startMonth).padStart(2, '0')}-${String(
-        form.startDay
-      ).padStart(2, '0')}`;
-      const endDate = `${form.endYear}-${String(form.endMonth).padStart(2, '0')}-${String(
-        form.endDay
-      ).padStart(2, '0')}`;
-      onSave({ ...form, startDate, endDate });
+    if (validateForm() && validateDates(form.startDate, form.endDate)) {
+      const startDate = form.startDate.toISOString().split('T')[0];
+      const endDate = form.endDate.toISOString().split('T')[0];
+      onSave({
+        title: form.title,
+        destination: form.destination,
+        startDate,
+        endDate,
+        imageUrl: form.imageUrl
+      });
       onClose();
       setForm({
         title: '',
         destination: '',
-        startYear: currentYear,
-        startMonth: today.getMonth() + 1,
-        startDay: today.getDate(),
-        endYear: currentYear,
-        endMonth: today.getMonth() + 1,
-        endDay: today.getDate(),
+        startDate: new Date(),
+        endDate: new Date(),
         imageUrl: '',
       });
     }
@@ -125,74 +124,43 @@ const PlanCardModal: React.FC<PlanCardModalProps> = ({ isOpen, onClose, onSave }
         />
 
         <h2>새 계획 생성</h2>
-        <Input
+        <ModalInput
           label="제목"
           name="title"
-          value={form.title}
+          value={form.title || ''}
           onChange={handleChange}
           error={error.title}
         />
-        <Input
+        <ModalInput
           label="목적지"
           name="destination"
-          value={form.destination}
+          value={form.destination || ''}
           onChange={handleChange}
           error={error.destination}
         />
 
         <DatePickerRow>
-          <label>시작 날짜</label>
-          <div>
-            <Dropdown name="startYear" value={form.startYear} onChange={handleChange}>
-              {yearOptions.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </Dropdown>
-            <Dropdown name="startMonth" value={form.startMonth} onChange={handleChange}>
-              {monthOptions.map((month) => (
-                <option key={month} value={month}>
-                  {month}
-                </option>
-              ))}
-            </Dropdown>
-            <Dropdown name="startDay" value={form.startDay} onChange={handleChange}>
-              {dayOptions(form.startYear, form.startMonth).map((day) => (
-                <option key={day} value={day}>
-                  {day}
-                </option>
-              ))}
-            </Dropdown>
-          </div>
+        <label>시작 날짜</label>
+            <DropDown
+              value={form.startDate}
+              onChange={(date) => {
+                setForm(prev => ({ ...prev, startDate: date }));
+                validateDates(date, form.endDate);
+              }}
+            />
         </DatePickerRow>
 
         <DatePickerRow>
-          <label>종료 날짜</label>
-          <div>
-            <Dropdown name="endYear" value={form.endYear} onChange={handleChange}>
-              {yearOptions.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </Dropdown>
-            <Dropdown name="endMonth" value={form.endMonth} onChange={handleChange}>
-              {monthOptions.map((month) => (
-                <option key={month} value={month}>
-                  {month}
-                </option>
-              ))}
-            </Dropdown>
-            <Dropdown name="endDay" value={form.endDay} onChange={handleChange}>
-              {dayOptions(form.endYear, form.endMonth).map((day) => (
-                <option key={day} value={day}>
-                  {day}
-                </option>
-              ))}
-            </Dropdown>
-          </div>
+        <label>종료 날짜</label>
+            <DropDown
+              value={form.endDate}
+              onChange={(date) => {
+                setForm(prev => ({ ...prev, endDate: date }));
+                validateDates(form.startDate, date);
+              }}
+            />
         </DatePickerRow>
+        {error.date && <ErrorText>{error.date}</ErrorText>}
 
         <Button size='medium' scheme='primary' onClick={handleSave} disabled={!form.title || !form.destination}>
           일정 생성하기
@@ -202,7 +170,7 @@ const PlanCardModal: React.FC<PlanCardModalProps> = ({ isOpen, onClose, onSave }
   );
 };
 
-export default PlanCardModal;
+export default AddPostModal;
 
 const Modal = styled.div`
   font-family: 'BMJUA';
@@ -273,50 +241,26 @@ const ImageUploadBox = styled.div`
   }
 `;
 
-const Dropdown = styled.select`
-  font-family: 'JalnanGothic';
-  padding: clamp(0.3rem, 1vw, 0.5rem);  // 반응형 패딩
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: clamp(0.875rem, 1vw, 1rem);  // 반응형 폰트 크기
-  margin-right: clamp(0.3rem, 1vw, 0.5rem);  // 반응형 마진
-  min-width: 80px;  // 최소 너비 설정
-  width: min(30%, 120px);  // 반응형 너비
-  
-  // 모바일에서도 터치하기 쉽도록
-  @media (max-width: 768px) {
-    min-height: 35px;
-  }
-`;
-
 const DatePickerRow = styled.div`
   font-family: 'SBAggroB';
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: clamp(0.8rem, 2vh, 1rem);  // 반응형 마진
-  width: 100%;  // 부모 컨테이너의 전체 너비 사용
+  margin-bottom: clamp(0.8rem, 2vh, 1rem);
+  width: 100%;
   
   label {
     flex: 1;
-    font-size: clamp(0.875rem, 1vw, 1rem);  // 반응형 폰트 크기
-    margin-right: clamp(0.5rem, 2vw, 1rem);  // 반응형 마진
-    white-space: nowrap;  // 라벨 텍스트 줄바꿈 방지
+    font-size: clamp(0.875rem, 1vw, 1rem);
+    margin-right: clamp(0.5rem, 2vw, 1rem);
+    white-space: nowrap;
   }
 
-  div {
+  // DropDown 컴포넌트를 위한 컨테이너
+  & > :last-child {
     flex: 3;
-    display: flex;
-    justify-content: space-between;
-    gap: clamp(0.3rem, 1vw, 0.5rem);  // 드롭다운 사이 간격
-
-    // 모바일 화면에서 레이아웃 조정
-    @media (max-width: 768px) {
-      flex: 2;  // 모바일에서는 라벨과 드롭다운 영역 비율 조정
-    }
   }
 
-  // 모바일 화면에서 세로 레이아웃으로 변경 (선택적)
   @media (max-width: 480px) {
     flex-direction: column;
     align-items: flex-start;
@@ -326,8 +270,17 @@ const DatePickerRow = styled.div`
       margin-bottom: 0.3rem;
     }
 
-    div {
+    & > :last-child {
       width: 100%;
     }
   }
 `;
+
+  const ErrorText = styled.p`
+    color: #FF0000;
+    font-size: 14px;
+    margin-top: -0.5rem;
+    margin-bottom: 1rem;
+    width: 100%;
+    text-align: left;
+  `;

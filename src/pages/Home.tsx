@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../store/planReducer";
 import { addPlan, deletePlan } from "../store/planReducer";
 import Button from "../components/common/Button";
-import PlanCardModal from "../components/common/PlanCardModal";
+import AddPostModal from "../components/common/AddPostModal";
 import "../styles/font.css"
 
 function Home() {
@@ -105,7 +105,7 @@ function Home() {
         </NewPlanButton>
      
 
-      <PlanCardModal
+      <AddPostModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={handleSavePlan}
