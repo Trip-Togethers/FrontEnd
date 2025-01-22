@@ -71,6 +71,33 @@ const router = createBrowserRouter([
       ),
       errorElement: <Error />,
     },
+    {//커뮤니티-글작성
+      path: " /posts/:post_id",
+      element: (
+        <Layout>
+          <Post/>
+        </Layout>
+      ),
+      errorElement: <Error />,
+    },
+    {//커뮤니티
+      path: "/posts",
+      element: (
+        <Layout>
+          <Post/>
+        </Layout>
+      ),
+      errorElement: <Error />,
+    },
+      {//달력
+        path: "/calendar/:user_id",
+        element: (
+          <Layout>
+            <Calendar/>
+          </Layout>
+        ),
+        errorElement: <Error />,
+      },
 ]);
 
 function App() {

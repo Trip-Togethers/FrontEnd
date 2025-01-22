@@ -1,6 +1,7 @@
 import React, {useRef, useEffect} from 'react'
 import styled from 'styled-components'
 import Avatar_1 from "@assets/svg/Avatar1.tsx"
+import { Link } from 'react-router-dom';
 
 type Props = {
     isOpen: boolean;
@@ -40,10 +41,18 @@ const Sidebar: React.FC<Props> = ({isOpen, onClose}) => {
             <hr/>
             <div className='list'>
                 <ul>
-                    <li>내 정보</li>
-                    <li>커뮤니티</li>
-                    <li>지도</li>
-                    <li>내 캘린더</li>
+                    <StyledLink to = '/users/:user_id'>
+                        <li>내 정보</li>
+                    </StyledLink>
+                    <StyledLink to = '/posts'>
+                        <li>커뮤니티</li>
+                    </StyledLink>
+                    <StyledLink to = '/maps'>
+                        <li>지도</li>
+                    </StyledLink>
+                    <StyledLink to = '/calendar/:user_id'>
+                        <li>내 캘린더</li>
+                    </StyledLink>
                 </ul>
                 <span className='logout'>로그아웃</span>
             </div>  
@@ -101,8 +110,9 @@ const SidebarStyle = styled.div`
         font-family: ${({theme}) => theme.font.family.title};
         font-weight: ${({theme}) => theme.font.weight.light};
         li{
+            text-decoration: none;
             margin-bottom:1rem;
-            opacity: 0.5;s
+            opacity: 0.5;
             font-family: ${({theme}) => theme.font.family.title};
             font-weight: ${({theme}) => theme.font.weight.light};
             &:hover{
@@ -122,6 +132,11 @@ const SidebarStyle = styled.div`
                 }
             }
     }
+`;
+
+const StyledLink = styled(Link)`
+    text-decoration: none;
+    color: inherit; 
 `;
 
 export default Sidebar;
