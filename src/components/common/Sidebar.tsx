@@ -2,10 +2,73 @@ import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 
+
+interface SidebarProps {
+  $isOpen: boolean;
+  onClose: () => void;
+  content: 'user' | 'notifications';
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, content }) => {
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const sidebar = document.getElementById('sidebar');
+      if (sidebar && !sidebar.contains(event.target as Node)) {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen, onClose]);
+
+  return (
+    <>
+      <Overlay $isOpen={isOpen} onClick={onClose} />
+      <SidebarContainer id="sidebar" $isOpen={isOpen}>
+        <Header>{content === 'user' ? 'user' : 'Notifications'}</Header>
+        <Content>
+          {content === 'user' ? (
+            <>
+              <MenuItem to="/" className="active">
+                Home
+              </MenuItem>
+              <MenuItem to="/user">내 정보</MenuItem>
+              <MenuItem to="/settings">Settings</MenuItem>
+            </>
+          ) : (
+            <>
+              <NotificationItem>
+                <div className="icon">🔔</div>
+                <div className="content">
+                  <div className="title">New Message</div>
+                  <div className="description">You have a new message from John.</div>
+                </div>
+              </NotificationItem>
+              <NotificationItem>
+                <div className="icon">🔔</div>
+                <div className="content">
+                  <div className="title">System Update</div>
+                  <div className="description">System update is scheduled at midnight.</div>
+                </div>
+              </NotificationItem>
+            </>
+          )}
+        </Content>
+      </SidebarContainer>
+    </>
+  );
+};
+
 const SidebarContainer = styled.div<{ isOpen: boolean }>`
   position: fixed;
   top: 0;
-  right: ${({ isOpen }) => (isOpen ? '0' : '-320px')};
+  right: ${({ $isOpen }) => ($isOpen ? '0' : '-320px')};
   width: 320px;
   height: 100%;
   background-color: #ffffff;
@@ -17,7 +80,7 @@ const SidebarContainer = styled.div<{ isOpen: boolean }>`
 `;
 
 const Overlay = styled.div<{ isOpen: boolean }>`
-  display: ${({ isOpen }) => (isOpen ? 'block' : 'none')};
+  display: ${({ $isOpen }) => ($isOpen ? 'block' : 'none')};
   position: fixed;
   top: 0;
   left: 0;
@@ -99,66 +162,5 @@ const NotificationItem = styled.div`
   }
 `;
 
-interface SidebarProps {
-  isOpen: boolean;
-  onClose: () => void;
-  content: 'profile' | 'notifications';
-}
-
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, content }) => {
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const sidebar = document.getElementById('sidebar');
-      if (sidebar && !sidebar.contains(event.target as Node)) {
-        onClose();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen, onClose]);
-
-  return (
-    <>
-      <Overlay isOpen={isOpen} onClick={onClose} />
-      <SidebarContainer id="sidebar" isOpen={isOpen}>
-        <Header>{content === 'profile' ? 'Profile' : 'Notifications'}</Header>
-        <Content>
-          {content === 'profile' ? (
-            <>
-              <MenuItem to="/" className="active">
-                Home
-              </MenuItem>
-              <MenuItem to="/profile">Profile</MenuItem>
-              <MenuItem to="/settings">Settings</MenuItem>
-            </>
-          ) : (
-            <>
-              <NotificationItem>
-                <div className="icon">🔔</div>
-                <div className="content">
-                  <div className="title">New Message</div>
-                  <div className="description">You have a new message from John.</div>
-                </div>
-              </NotificationItem>
-              <NotificationItem>
-                <div className="icon">🔔</div>
-                <div className="content">
-                  <div className="title">System Update</div>
-                  <div className="description">System update is scheduled at midnight.</div>
-                </div>
-              </NotificationItem>
-            </>
-          )}
-        </Content>
-      </SidebarContainer>
-    </>
-  );
-};
 
 export default Sidebar;

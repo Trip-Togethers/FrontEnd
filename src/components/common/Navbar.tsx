@@ -1,8 +1,8 @@
 import React from 'react';
 import styled from 'styled-components';
 import { FaBell, FaUserCircle } from 'react-icons/fa';
-import { ReactComponent as LogoIcon } from '@/assets/header/trip_together_logo.svg';
-import LogoSrc from '@/assets/header/trip_together_logo.svg';
+import { ReactComponent as LogoIcon } from '../../../public/svg/trip_together_logo.svg';
+import LogoSrc from '../../../public/svg/trip_together_logo.svg';
 
 
 const NavbarContainer = styled.nav`
@@ -10,9 +10,10 @@ const NavbarContainer = styled.nav`
   justify-content: space-between;
   align-items: center;
   padding: 0.5rem 1rem;
-  background-color: rgb(23, 236, 16);
+  background-color: #006D24;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  height: 60px;
+  height:40px;
+  width:100%;
 `;
 
 
@@ -38,7 +39,7 @@ const NavIcons = styled.div`
 `;
 
 interface NavbarProps {
-  onToggleSidebar: (content: 'profile' | 'notifications') => void;
+  onToggleSidebar: (content: 'user' | 'notifications') => void;
 }
 
 const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
@@ -49,7 +50,7 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
       </Logo>
       <NavIcons>
         <FaBell className="icon" onClick={() => onToggleSidebar('notifications')} />
-        <FaUserCircle className="icon" onClick={() => onToggleSidebar('profile')} />
+        <FaUserCircle className="icon" onClick={() => onToggleSidebar('user')} />
       </NavIcons>
     </NavbarContainer>
   );

@@ -1,5 +1,6 @@
 import styled from "styled-components"
 import { ButtonScheme, ButtonSize } from "../../styles/theme";
+import '../../styles/font.css'
 
 interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     children: React.ReactNode;
@@ -31,6 +32,7 @@ function Button({children, size, scheme, disabled,
 }
 
 const ButtonStyle = styled.button<StyledButtonProps>`
+    font-family: 'JalnanGothic';
     font-size: ${({ theme, $size }) => theme.button[$size].fontSize};
     padding: ${({ theme, $size }) => theme.button[$size].padding};
     color: ${({ theme, $scheme }) => theme.buttonScheme[$scheme].color};

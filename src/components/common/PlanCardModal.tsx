@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import Input from './Input';
 import Button from './Button';
+import '../../styles/font.css'
 
 interface PlanCardModalProps {
   isOpen: boolean;
@@ -204,6 +205,7 @@ const PlanCardModal: React.FC<PlanCardModalProps> = ({ isOpen, onClose, onSave }
 export default PlanCardModal;
 
 const Modal = styled.div`
+  font-family: 'BMJUA';
   position: fixed;
   top: 50%;
   left: 50%;
@@ -213,8 +215,17 @@ const Modal = styled.div`
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   border-radius: 12px;
   z-index: 1000;
-  width: 90%;
-  max-width: 600px;
+  
+  // 반응형 크기 조절을 위한 수정
+  width: min(90%, 500px);       // 90%와 500px 중 작은 값 사용
+  height: min(70vh, 800px);     // 뷰포트 높이의 70%와 800px 중 작은 값 사용
+  min-height: 400px;            // 최소 높이 설정
+  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+  overflow-y: auto;
 
   h2 {
     margin-bottom: 1rem;
@@ -223,6 +234,7 @@ const Modal = styled.div`
 `;
 
 const Overlay = styled.div`
+  font-family: 'BMJUA';  
   position: fixed;
   top: 0;
   left: 0;
@@ -233,18 +245,24 @@ const Overlay = styled.div`
 `;
 
 const ImageUploadBox = styled.div`
+  font-family: 'JalnanGothic';
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  height: 150px;
-  margin-bottom: 1rem;
+  
+  // 반응형 크기 조절
+  width: min(90%, 300px);         // 부모 요소의 90%와 300px 중 작은 값
+  height: min(30vh, 200px);       // 뷰포트 높이의 30%와 200px 중 작은 값
+  min-width: 200px;               // 최소 너비
+  min-height: 150px;              // 최소 높이
+  
+  margin: 0 auto 1rem auto;
   border: 2px dashed #ccc;
   border-radius: 8px;
   background-color: #f9f9f9;
   cursor: pointer;
   text-align: center;
-  font-size: 1rem;
+  font-size: clamp(0.875rem, 1vw, 1rem);  // 반응형 폰트 크기
   color: #666;
 
   img {
@@ -256,28 +274,60 @@ const ImageUploadBox = styled.div`
 `;
 
 const Dropdown = styled.select`
-  padding: 0.5rem;
+  font-family: 'JalnanGothic';
+  padding: clamp(0.3rem, 1vw, 0.5rem);  // 반응형 패딩
   border: 1px solid #ccc;
   border-radius: 8px;
-  font-size: 1rem;
-  margin-right: 0.5rem;
+  font-size: clamp(0.875rem, 1vw, 1rem);  // 반응형 폰트 크기
+  margin-right: clamp(0.3rem, 1vw, 0.5rem);  // 반응형 마진
+  min-width: 80px;  // 최소 너비 설정
+  width: min(30%, 120px);  // 반응형 너비
+  
+  // 모바일에서도 터치하기 쉽도록
+  @media (max-width: 768px) {
+    min-height: 35px;
+  }
 `;
 
 const DatePickerRow = styled.div`
+  font-family: 'SBAggroB';
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
-
+  margin-bottom: clamp(0.8rem, 2vh, 1rem);  // 반응형 마진
+  width: 100%;  // 부모 컨테이너의 전체 너비 사용
+  
   label {
     flex: 1;
-    font-size: 1rem;
-    margin-right: 1rem;
+    font-size: clamp(0.875rem, 1vw, 1rem);  // 반응형 폰트 크기
+    margin-right: clamp(0.5rem, 2vw, 1rem);  // 반응형 마진
+    white-space: nowrap;  // 라벨 텍스트 줄바꿈 방지
   }
 
   div {
     flex: 3;
     display: flex;
     justify-content: space-between;
+    gap: clamp(0.3rem, 1vw, 0.5rem);  // 드롭다운 사이 간격
+
+    // 모바일 화면에서 레이아웃 조정
+    @media (max-width: 768px) {
+      flex: 2;  // 모바일에서는 라벨과 드롭다운 영역 비율 조정
+    }
+  }
+
+  // 모바일 화면에서 세로 레이아웃으로 변경 (선택적)
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+
+    label {
+      margin-bottom: 0.3rem;
+    }
+
+    div {
+      width: 100%;
+    }
   }
 `;

@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import '../../styles/font.css'
 
 interface InputProps {
   label?: string;
@@ -23,6 +24,7 @@ const Label = styled.label`
   display: block;
   margin-bottom: 0.5rem;
   font-weight: bold;
+  font-family: 'BMJUA';
 `;
 
 const StyledInput = styled.input<StyledInputProps>`
@@ -31,6 +33,7 @@ const StyledInput = styled.input<StyledInputProps>`
   border: 2px solid ${({ $error }) => ($error ? '#ff4d4d' : '#ccc')};
   border-radius: 8px;
   outline: none;
+  font-family: 'BMJUA';
 
   &:focus {
     border-color: ${({ $error }) => ($error ? '#ff4d4d' : '#007bff')};
@@ -41,6 +44,7 @@ const ErrorText = styled.div`
   color: #ff4d4d;
   font-size: 0.875rem;
   margin-top: 0.25rem;
+  font-family: 'SBAggroB';
 `;
 
 const Input: React.FC<InputProps> = ({ 
