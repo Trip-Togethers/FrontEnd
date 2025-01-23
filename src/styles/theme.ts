@@ -1,3 +1,5 @@
+import "./font.css";
+
 export type ColorKey = "primary_green"| "primary_black" | "primary_white" | "primary_red" | "input_text" |
 "input_background" | "card_background" | "name_gray" | "calender_schedule" | "schedule_focus" ;
 export type HeadingSize = "large" | "medium" | "small";

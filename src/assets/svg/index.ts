@@ -15,3 +15,5 @@ export { default as Smartphone } from "./Smartphone";
 export { default as TriangleStreamlineUnicons } from "./TriangleStreamlineUnicons";
 export { default as TripleDots } from "./TripleDots";
 export { default as User } from "./User";
+export { default as Bookmark } from "./Bookmark";
+export { default as Search } from "./Search";
