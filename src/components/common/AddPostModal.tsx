@@ -186,7 +186,7 @@ const Modal = styled.div`
   
   // 반응형 크기 조절을 위한 수정
   width: min(90%, 500px);       // 90%와 500px 중 작은 값 사용
-  height: min(70vh, 800px);     // 뷰포트 높이의 70%와 800px 중 작은 값 사용
+  height: min(70%, 800px);     // 뷰포트 높이의 70%와 800px 중 작은 값 사용
   min-height: 400px;            // 최소 높이 설정
   
   display: flex;
@@ -220,7 +220,7 @@ const ImageUploadBox = styled.div`
   
   // 반응형 크기 조절
   width: min(90%, 300px);         // 부모 요소의 90%와 300px 중 작은 값
-  height: min(30vh, 200px);       // 뷰포트 높이의 30%와 200px 중 작은 값
+  height: min(30%, 200px);       // 뷰포트 높이의 30%와 200px 중 작은 값
   min-width: 200px;               // 최소 너비
   min-height: 150px;              // 최소 높이
   
@@ -246,7 +246,7 @@ const DatePickerRow = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: clamp(0.8rem, 2vh, 1rem);
+  margin-bottom: clamp(0.8rem, 2rem, 1rem);
   width: 100%;
   
   label {
