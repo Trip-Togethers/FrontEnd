@@ -8,8 +8,9 @@ export type ButtonScheme = "primary" | "alert";
 export type LayoutWidth = "large" | "medium" | "small";
 export type Font = "default" | "contents" | "title";
 export type FontWeight = "light" | "normal" | "bold";
+export type Shadow = "default";
 
-interface Theme{
+export interface Theme{
     color: Record<ColorKey, string>;
     heading : {
         [key in HeadingSize] : {
@@ -42,6 +43,7 @@ interface Theme{
             [key in FontWeight]: number;
         };
     };
+    shadow: Record<Shadow, string>;
 };
 
 export const theme : Theme = {
@@ -113,5 +115,8 @@ export const theme : Theme = {
             normal: 400,
             bold: 700,
         }
-    }
+    },
+    shadow: {
+        default: "0 4px 4px 0 #000000"
+    },
 };
