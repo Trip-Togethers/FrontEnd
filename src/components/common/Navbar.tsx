@@ -5,8 +5,6 @@ import { ReactComponent as LogoIcon } from '../../../public/svg/trip_together_lo
 import LogoSrc from '../../../public/svg/trip_together_logo.svg';
 
 
-
-
 interface NavbarProps {
   onToggleSidebar: (content: 'user' | 'notifications') => void;
 }
@@ -42,7 +40,7 @@ const NavbarContainer = styled.nav`
   height: 40px;
   width: 100%;
   top: 0;
-  z-index: 1000;
+  z-index: 30;
   left: 0;
   padding: 0 20px;
 `;

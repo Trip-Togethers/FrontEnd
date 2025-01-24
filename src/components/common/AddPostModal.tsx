@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
-import styled from 'styled-components';
 import ModalInput from './ModalInput';
 import Button from './Button';
 import '../../styles/font.css'
 import DropDown from './DropDown';
+import styled, { createGlobalStyle } from "styled-components";
+const GlobalStyle = createGlobalStyle`
+  * {
+    font-family: 'JalnanGothic'; 
+  }`
 
 interface AddPostModalProps {
   isOpen: boolean;
@@ -106,6 +110,7 @@ const AddPostModal: React.FC<AddPostModalProps> = ({ isOpen, onClose, onSave }) 
 
   return (
     <>
+    <GlobalStyle />
       <Overlay onClick={onClose} />
       <Modal>
         <ImageUploadBox onClick={() => document.getElementById('image-upload')?.click()}>
@@ -173,27 +178,28 @@ const AddPostModal: React.FC<AddPostModalProps> = ({ isOpen, onClose, onSave }) 
 export default AddPostModal;
 
 const Modal = styled.div`
-  font-family: 'BMJUA';
+  
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   background-color: white;
-  padding: 2rem;
+  padding: 1.5rem;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   border-radius: 12px;
   z-index: 1000;
   
   // 반응형 크기 조절을 위한 수정
-  width: min(90%, 500px);       // 90%와 500px 중 작은 값 사용
-  height: min(70%, 800px);     // 뷰포트 높이의 70%와 800px 중 작은 값 사용
-  min-height: 400px;            // 최소 높이 설정
+  width: 500px; 
+  height: 450px; 
+  max-height: 70vh; /* 화면의 70%까지만 높이 설정 */
   
   display: flex;
   flex-direction: column;
   align-items: center;
   box-sizing: border-box;
-  overflow-y: auto;
+  overflow: visible; /* 스크롤 제거 */
+
 
   h2 {
     margin-bottom: 1rem;
@@ -202,7 +208,7 @@ const Modal = styled.div`
 `;
 
 const Overlay = styled.div`
-  font-family: 'BMJUA';  
+   
   position: fixed;
   top: 0;
   left: 0;
@@ -213,17 +219,13 @@ const Overlay = styled.div`
 `;
 
 const ImageUploadBox = styled.div`
-  font-family: 'JalnanGothic';
+  
   display: flex;
   align-items: center;
   justify-content: center;
-  
-  // 반응형 크기 조절
-  width: min(90%, 300px);         // 부모 요소의 90%와 300px 중 작은 값
-  height: min(30%, 200px);       // 뷰포트 높이의 30%와 200px 중 작은 값
-  min-width: 200px;               // 최소 너비
-  min-height: 150px;              // 최소 높이
-  
+  width: 400px;         
+  height: 400px;       
+  position: relative;
   margin: 0 auto 1rem auto;
   border: 2px dashed #ccc;
   border-radius: 8px;
@@ -232,17 +234,19 @@ const ImageUploadBox = styled.div`
   text-align: center;
   font-size: clamp(0.875rem, 1vw, 1rem);  // 반응형 폰트 크기
   color: #666;
+  position: relative;
 
   img {
     max-width: 100%;
     max-height: 100%;
     object-fit: cover;
     border-radius: 8px;
+    position: absolute;
   }
 `;
 
 const DatePickerRow = styled.div`
-  font-family: 'SBAggroB';
+  
   display: flex;
   justify-content: space-between;
   align-items: center;

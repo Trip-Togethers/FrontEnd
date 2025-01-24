@@ -21,8 +21,10 @@ function User() {
   });
 
   const handleVerifyPassword = () => {
-    // TODO: 실제 비밀번호 검증 로직 구현
-    if (verifyPassword === "correctpassword") {
+    // 기본 비밀번호를 '0000'으로 설정
+    const defaultPassword = "0000";
+  
+    if (verifyPassword === defaultPassword || verifyPassword === "correctpassword") {
       setIsVerified(true);
       setVerifyError("");
     } else {
@@ -67,43 +69,50 @@ function User() {
       ) : (
         <UserInfoContainer>
           <FormGroup>
-            <Label>닉네임</Label>
-            <Input
-              type="text"
-              name="nickname"
-              value={userInfo.nickname}
-              onChange={handleInputChange}
-            />
-            <GuideText>닉네임은 영문 또는 한글만 가능합니다.</GuideText>
-          </FormGroup>
+  <Label>닉네임</Label>
+  <Input
+    type="text"
+    name="nickname"
+    value={userInfo.nickname}
+    onChange={handleInputChange}
+    placeholder="닉네임 입력"
+  />
+  {/* 닉네임 안내 메시지 */}
+  <GuideText>닉네임은 영문 또는 한글만 가능합니다.</GuideText>
+</FormGroup>
 
-          <FormGroup>
-            <Label>이메일</Label>
-            <DisabledInput value={userInfo.email} disabled />
-          </FormGroup>
+<FormGroup>
+  <Label>이메일</Label>
+  <DisabledInput value={userInfo.email} disabled />
+</FormGroup>
 
-          <FormGroup>
-            <Label>새로운 비밀번호</Label>
-            <Input
-              type="password"
-              name="newPassword"
-              value={userInfo.newPassword}
-              onChange={handleInputChange}
-            />
-            <GuideText>
-              비밀번호는 8자리 이상 영문과 숫자를 혼합하여 입력해주세요.
-            </GuideText>
-          </FormGroup>
+<FormGroup>
+  <Label>비밀번호</Label>
+  <Input
+    type="password"
+    name="newPassword"
+    value={userInfo.newPassword}
+    onChange={handleInputChange}
+    placeholder="새로운 비밀번호 입력"
+  />
+  <Input
+    type="password"
+    name="confirmPassword"
+    value={userInfo.confirmPassword}
+    onChange={handleInputChange}
+    placeholder="비밀번호 확인"
+    style={{ marginTop: '1rem' }} /* 두 인풋 사이에 간격 추가 */
+  />
+  {/* 비밀번호 안내 메시지 */}
+  <GuideText>8자리 이상 영문과 숫자를 혼합하여 입력해주세요.</GuideText>
+  {userInfo.newPassword &&
+    userInfo.confirmPassword &&
+    userInfo.newPassword !== userInfo.confirmPassword && (
+      <ErrorText>비밀번호가 일치하지 않습니다.</ErrorText>
+    )}
+</FormGroup>
 
-          <FormGroup>
-            <Label>새로운 비밀번호 확인</Label>
-            <Input
-              type="password"
-              name="confirmPassword"
-              value={userInfo.confirmPassword}
-              onChange={handleInputChange}
-            />
-          </FormGroup>
+
 
           <WithdrawalSection>
             <WithdrawalText>
@@ -123,11 +132,31 @@ function User() {
   );
 }
 
+const Input = styled.input<{ error?: string }>`
+  font-family: 'SBAggroB';
+  padding: 0.75rem;
+  border: 1px solid ${({ error }) => (error ? '#FF0000' : '#ddd')}; /* 에러 시 빨간 테두리 */
+  background-color: #E0E0E0; /* 배경색 */
+  border-radius: 4px;
+  font-size: 1rem;
+  color: #333; /* 입력 텍스트 색상 */
+  position: relative;
+
+  &::placeholder {
+    color: #616161; /* 플레이스홀더 색상 */
+  }
+
+  &:focus {
+    outline: none;
+    border-color: ${({ error }) => (error ? '#FF0000' : '#006D24')}; /* 에러 시 빨간 테두리 */
+  }
+`;
+
 const UserStyle = styled.div`
 	font-family: 'BMJUA';
-	max-width: 600px;
+	max-width: 400px;
   	margin: 0 auto;
-  	padding: 2rem;
+  	padding: 3rem;
 `;
 
 const VerificationContainer = styled.div`
@@ -157,6 +186,7 @@ const FormGroup = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  position: relative; /* 안내 메시지를 인풋 박스 안에 배치하기 위해 필요 */
 `;
 
 const Label = styled.label`
@@ -165,30 +195,22 @@ const Label = styled.label`
   color: #333;
 `;
 
-const Input = styled.input`
-  font-family: 'SBAggroB';
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-
-  &:focus {
-    outline: none;
-    border-color: #006D24;
-  }
-`;
-
 const DisabledInput = styled(Input)`
   font-family: 'SBAggroB';
   background-color: #f5f5f5;
   cursor: not-allowed;
 `;
 
-const GuideText = styled.p`
-  font-family: 'SBAggroB';
-  font-size: 0.9rem;
-  color: #666;
-  margin-top: 0.25rem;
+const GuideText = styled.div`
+  font-size: 0.875rem;
+  color: ${({ error }) => (error ? '#FF0000' : '#616161')}; /* 에러 시 빨간색 */
+  position: static;
+  margin-top: 0.5rem;
+  top: 50%; /* 인풋 박스 중앙 정렬 */
+  left: 1rem; /* 인풋 박스 안쪽 여백 */
+  transform: translateY(-50%);
+  pointer-events: none; /* 클릭 불가능하도록 설정 */
+  white-space: nowrap; /* 텍스트 줄바꿈 방지 */
 `;
 
 const ErrorText = styled.p`
