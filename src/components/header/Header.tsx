@@ -3,7 +3,7 @@ import Logo from "@assets/svg/Logo.tsx";
 import Bell from '@assets/svg/Bell.tsx';
 import styled from 'styled-components';
 import Sidebar from './Sidebar';
-import Avatar_1 from "@assets/svg/Avatar1.tsx"
+import Avatar from "@assets/svg/Avatar.tsx"
 import { Link } from 'react-router-dom';
 
 const Header: React.FC = () => {
@@ -21,7 +21,7 @@ const Header: React.FC = () => {
         </Link>
           <div className='nav'>
             <Bell className='bell'/>
-            <Avatar_1 className='avatar' onClick = {toggleDropdown}/>
+            <Avatar className='avatar' onClick = {toggleDropdown}/>
           </div>
       </HeaderStyle>
       <Sidebar isOpen = {isOpen} onClose = {() => setIsOpen(false)}/>
@@ -44,6 +44,7 @@ const HeaderStyle = styled.header`
   .logo{
     height: 1.7rem;
     margin: 0.8rem 1.5rem;
+    fill: #ffffff;
   }
   
   .nav{
