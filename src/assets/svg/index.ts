@@ -1,7 +1,9 @@
+export { default as Avatar1 } from "./Avatar1";
 export { default as Arrow } from "./Arrow";
 export { default as ArrowUploadReady } from "./ArrowUploadReady";
 export { default as Bell } from "./Bell";
 export { default as Copy } from "./Copy";
+export { default as KakaoLogo } from "./KakaoLogo";
 export { default as Lock } from "./Lock";
 export { default as Logo } from "./Logo";
 export { default as Mail } from "./Mail";
