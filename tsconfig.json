@@ -6,7 +6,8 @@
   ],
     "compilerOptions": {
       "strict": true,
-      "forceConsistentCasingInFileNames": true
+      "forceConsistentCasingInFileNames": true,
+      "jsx": "react-jsx"
     }
 }
 

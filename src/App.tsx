@@ -8,7 +8,7 @@ import Join from "./pages/Join"
 import Map from "./pages/map"
 import Post from "./pages/Post"
 import User from "./pages/User"
-import Error from "@/components/common/Error"
+import Error from "@components/common/Error"
 import { ThemeProvider } from 'styled-components';
 import { theme } from "./styles/theme"
 import { GlobalStyle } from './styles/global';

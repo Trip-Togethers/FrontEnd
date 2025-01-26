@@ -1,6 +1,5 @@
-import React, {useRef, useEffect} from 'react'
 import styled from 'styled-components'
-import Avatar_1 from "@assets/svg/Avatar1.tsx"
+import Avatar from "@assets/svg/Avatar.tsx"
 import { Link } from 'react-router-dom';
 
 type Props = {
@@ -9,33 +8,13 @@ type Props = {
 }
 
 const Sidebar: React.FC<Props> = ({isOpen, onClose}) => {
-    // const sidebarRef = useRef<HTMLDivElement>(null);
-
-    // useEffect(() => {
-    //     const handleClickOutside = (event: MouseEvent) => {
-    //     if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
-    //         onClose(); // 바깥 클릭 시 드롭다운 닫기
-    //     }
-    //     };
-
-    //     if (isOpen) {
-    //     document.addEventListener("mousedown", handleClickOutside);
-    //     } else {
-    //     document.removeEventListener("mousedown", handleClickOutside);
-    //     }
-
-    //     return () => {
-    //     document.removeEventListener("mousedown", handleClickOutside);
-    //     };
-    // }, [isOpen, onClose]);
-
     if (!isOpen) return null; // 드롭다운이 닫혀 있으면 렌더링 안 함.
 
     return (
         <>
         <SidebarStyle>
             <div className='user'>
-                <Avatar_1 className='avatar'/>
+                <Avatar className='avatar'/>
                 <span>참가자1</span>
             </div>
             <hr/>
