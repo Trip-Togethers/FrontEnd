@@ -1,6 +1,5 @@
-import * as React from "react";
 import type { SVGProps } from "react";
-const ArrowUploadReady = (props: SVGProps<SVGSVGElement>) => (
+const SvgArrowUploadReady = (props: SVGProps<SVGSVGElement>) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     fill="none"
@@ -28,4 +27,4 @@ const ArrowUploadReady = (props: SVGProps<SVGSVGElement>) => (
     </g>
   </svg>
 );
-export default ArrowUploadReady;
+export default SvgArrowUploadReady;

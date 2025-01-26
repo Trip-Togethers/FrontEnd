@@ -1,66 +1,114 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useState } from "react";
-import { ThemeProvider } from "styled-components";
-import Login from "./pages/Login";
-import AddPost from "./pages/AddPost";
-import Board from "./pages/Board";
-import Calendar from "./pages/Calendar";
-import Detail from "./pages/Detail";
-import Home from "@/pages/Home";
-import Join from "./pages/Join";
-import Map from "./pages/Map";
-import Post from "./pages/Post";
-import User from "./pages/User";
-import Navbar from "./components/common/Navbar";
-import Sidebar from "./components/common/Sidebar";
-import { GlobalStyle } from "@/styles/global.ts"
+import Login from "./pages/Login"
+import AddPost from "./pages/AddPost"
+import Board from "./pages/Board"
+import Calendar from "./pages/Calendar"
+import Detail from "./pages/Detail"
+import Home from "./pages/Home"
+import Join from "./pages/Join"
+import Map from "./pages/map"
+import Post from "./pages/Post"
+import User from "./pages/User"
+import Error from "@components/common/Error"
+import { ThemeProvider } from 'styled-components';
+import { theme } from "./styles/theme"
+import { GlobalStyle } from './styles/global';
+import Layout from '@components/layout/Layout';
+import { createBrowserRouter, RouterProvider } from "react-router-dom"
 
+const router = createBrowserRouter([
+  {//로그인
+    path: "/users/login",
+    element: <Login/>,
+    errorElement: <Error />,
+  },
+  {//회원가입
+    path: "/users/register",
+    element: <Join/>,
+    errorElement: <Error />,
+  },
+  {//메인페이지
+    path: "/trips",
+    element: (
+      <Layout>
+        <Home/>
+      </Layout>
+    ),
+    errorElement: <Error />,
+  },
+  {//상세페이지
+    path: "/trips/:trip_id/activities",
+    element: (
+      <Layout>
+        <Detail/>
+      </Layout>
+    ),
+    errorElement: <Error />,
+  },
+  {//지도
+    path: "/maps",
+    element: (
+      <Layout>
+        <Map/>
+      </Layout>
+    ),
+    errorElement: <Error />,
+  },
+  {//마이페이지
+    path: "/users/:user_id",
+    element: (
+      <Layout>
+        <User/>
+      </Layout>
+    ),
+    errorElement: <Error />,
+  },
+  {//커뮤니티
+      path: "/posts",
+      element: (
+        <Layout>
+          <Post/>
+        </Layout>
+      ),
+      errorElement: <Error />,
+    },
+    {//커뮤니티-글작성
+      path: " /posts/:post_id",
+      element: (
+        <Layout>
+          <Post/>
+        </Layout>
+      ),
+      errorElement: <Error />,
+    },
+    {//커뮤니티
+      path: "/posts",
+      element: (
+        <Layout>
+          <Post/>
+        </Layout>
+      ),
+      errorElement: <Error />,
+    },
+      {//달력
+        path: "/calendar/:user_id",
+        element: (
+          <Layout>
+            <Calendar/>
+          </Layout>
+        ),
+        errorElement: <Error />,
+      },
+]);
 
 function App() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarContent, setSidebarContent] = useState<"user" | "notifications">("user");
-
-  const handleToggleSidebar = (content: "user" | "notifications") => {
-    if (sidebarOpen && sidebarContent === content) {
-      setSidebarOpen(false);
-    } else {
-      setSidebarContent(content);
-      setSidebarOpen(true);
-    }
-  };
-
   return (
-    <BrowserRouter>
-      <>
-        {/* Global Styles */}
-        <GlobalStyle />
-       
-       {/* Navbar with Sidebar Toggle */}
-        <Navbar onToggleSidebar={handleToggleSidebar} />
-
-        {/* Sidebar */}
-        <Sidebar
-          $isOpen={sidebarOpen} // 수정: Sidebar 컴포넌트와 Props 이름 일치
-          onClose={() => setSidebarOpen(false)}
-          content={sidebarContent}
-        />
-
-        {/* Routes */}
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/join" element={<Join />} />
-          <Route path="/user" element={<User />} />
-          <Route path="/board" element={<Board />} />
-          <Route path="/post" element={<Post />} />
-          <Route path="/add-post" element={<AddPost />} />
-          <Route path="/detail" element={<Detail />} />
-          <Route path="/calendar" element={<Calendar />} />
-          <Route path="/map" element={<Map />} />
-        </Routes>
-      </>
-    </BrowserRouter>
-  );
+    <>
+      <ThemeProvider theme = {theme}>
+        <GlobalStyle/>
+          <RouterProvider router = {router}/>
+      </ThemeProvider>
+    </>
+  )
 }
 
 export default App;

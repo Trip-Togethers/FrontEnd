@@ -1,6 +1,5 @@
-import * as React from "react";
 import type { SVGProps } from "react";
-const RadioButtonUnchecked = (props: SVGProps<SVGSVGElement>) => (
+const SvgRadioButtonUnchecked = (props: SVGProps<SVGSVGElement>) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     fill="none"
@@ -28,4 +27,4 @@ const RadioButtonUnchecked = (props: SVGProps<SVGSVGElement>) => (
     </g>
   </svg>
 );
-export default RadioButtonUnchecked;
+export default SvgRadioButtonUnchecked;
