@@ -279,4 +279,3 @@ export default Button;
         transform: scale(0.98);
     }
    `;
-
