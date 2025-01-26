@@ -4,6 +4,7 @@ import Button from './Button';
 import '../../styles/font.css'
 import DropDown from './DropDown';
 import styled, { createGlobalStyle } from "styled-components";
+
 const GlobalStyle = createGlobalStyle`
   * {
     font-family: 'JalnanGothic'; 

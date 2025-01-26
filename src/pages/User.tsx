@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { styled } from "styled-components";
 import '../styles/font.css'
+import { GlobalStyle2 } from "../styles/global";
 
 interface UserInfo {
   nickname: string;
@@ -51,6 +52,9 @@ function User() {
   };
 
   return (
+    <>
+    <GlobalStyle2 />
+    <PageContainer>
     <UserStyle>
       {!isVerified ? (
         <VerificationContainer>
@@ -129,11 +133,13 @@ function User() {
         </UserInfoContainer>
       )}
     </UserStyle>
+    </PageContainer>
+    </>
   );
 }
 
 const Input = styled.input<{ error?: string }>`
-  font-family: 'SBAggroB';
+
   padding: 0.75rem;
   border: 1px solid ${({ error }) => (error ? '#FF0000' : '#ddd')}; /* 에러 시 빨간 테두리 */
   background-color: #E0E0E0; /* 배경색 */
@@ -152,15 +158,27 @@ const Input = styled.input<{ error?: string }>`
   }
 `;
 
+const PageContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; /* 화면 전체 높이 */
+  width: 100vw; /* 화면 전체 너비 */
+  overflow: hidden; /* 스크롤 제거 */
+  padding: 0; /* 여백 제거 */
+  box-sizing: border-box;
+`;
+
 const UserStyle = styled.div`
-	font-family: 'BMJUA';
-	max-width: 400px;
-  	margin: 0 auto;
-  	padding: 3rem;
+	  max-width: 90%; /* 화면의 90%까지만 너비 사용 */
+    max-height: 90vh;
+  	margin: auto;
+  	padding: 2rem;
+    overflow: hidden; /* 내용 초과 시 스크롤 제거 */
+  box-sizing: border-box; /* padding 포함한 전체 크기 계산 */
 `;
 
 const VerificationContainer = styled.div`
-  font-family: 'BMJUA';
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -169,20 +187,19 @@ const VerificationContainer = styled.div`
 `;
 
 const VerificationText = styled.p`
-  font-family: 'JalnanGothic';
   font-size: 1.1rem;
   color: #333;
 `;
 
 const UserInfoContainer = styled.div`
-  font-family: 'JalnanGothic';
+  width: 80%;
+  height: 75%;
   display: flex;
   flex-direction: column;
   gap: 2rem;
 `;
 
 const FormGroup = styled.div`
-  font-family: 'JalnanGothic';
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -190,13 +207,13 @@ const FormGroup = styled.div`
 `;
 
 const Label = styled.label`
-  font-family: 'JalnanGothic';
+  
   font-weight: bold;
   color: #333;
 `;
 
 const DisabledInput = styled(Input)`
-  font-family: 'SBAggroB';
+  
   background-color: #f5f5f5;
   cursor: not-allowed;
 `;
@@ -214,13 +231,13 @@ const GuideText = styled.div`
 `;
 
 const ErrorText = styled.p`
-  font-family: 'BMJUA';
+  
   color: #ff0000;
   font-size: 0.9rem;
 `;
 
 const Button = styled.button`
-  font-family: 'BMJUA';
+  
   padding: 0.75rem 2rem;
   background-color: #006D24;
   color: white;
@@ -235,7 +252,7 @@ const Button = styled.button`
 `;
 
 const WithdrawalSection = styled.div`
-  font-family: 'BMJUA';
+  
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -244,7 +261,7 @@ const WithdrawalSection = styled.div`
 `;
 
 const WithdrawalText = styled.p`
-  font-family: 'JalnanGothic';
+  
   color: #666;
   text-decoration: underline;
 
@@ -255,7 +272,7 @@ const WithdrawalText = styled.p`
 `;
 
 const WithdrawalButton = styled(Button)`
-  font-family: 'JalnanGothic';
+  
   background-color: #dc3545;
 
   &:hover {
@@ -264,7 +281,7 @@ const WithdrawalButton = styled(Button)`
 `;
 
 const UpdateButton = styled(Button)`
-  font-family: 'JalnanGothic';
+  
   margin-top: 2rem;
 `;
 

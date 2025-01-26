@@ -17,14 +17,6 @@ const GlobalStyle = createGlobalStyle`
     padding: 0;
     width: 100%;
     height: 100%;
-    overflow: hidden; /* 외부 스크롤 방지 */
-    display: flex;
-    flex-direction: column;
-  }
-
-  #root {
-    width: 100%;
-    height: 100%;
     display: flex;
     flex-direction: column;
   }

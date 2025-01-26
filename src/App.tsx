@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useState } from "react";
+import { ThemeProvider } from "styled-components";
 import Login from "./pages/Login";
 import AddPost from "./pages/AddPost";
 import Board from "./pages/Board";
@@ -12,6 +13,8 @@ import Post from "./pages/Post";
 import User from "./pages/User";
 import Navbar from "./components/common/Navbar";
 import Sidebar from "./components/common/Sidebar";
+import { GlobalStyle } from "@/styles/global.ts"
+
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -29,7 +32,10 @@ function App() {
   return (
     <BrowserRouter>
       <>
-        {/* Navbar with Sidebar Toggle */}
+        {/* Global Styles */}
+        <GlobalStyle />
+       
+       {/* Navbar with Sidebar Toggle */}
         <Navbar onToggleSidebar={handleToggleSidebar} />
 
         {/* Sidebar */}
