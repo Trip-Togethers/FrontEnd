@@ -8,4 +8,20 @@ export default defineConfig({
     react(),
     svgr()
   ],
+  resolve: {
+    alias: {
+      '@': '/src',
+      '@api': '/src/api',
+      '@assets':'/src/assets',
+      '@components': '/src/components',
+      '@common': '/src/components/common',
+      '@constants/*': '/src/constants',
+      '@hooks/*':'/src/hooks',
+      '@models/*':  '/src/models',
+      '@pages/*': '/src/pages',
+      '@store/*': '/src/store',
+      '@styles/*': '/src/styles',
+      '@utils/*': '/src/utils',
+    },
+  },
 });

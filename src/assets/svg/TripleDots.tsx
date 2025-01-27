@@ -1,6 +1,5 @@
-import * as React from "react";
 import type { SVGProps } from "react";
-const TripleDots = (props: SVGProps<SVGSVGElement>) => (
+const SvgTripleDots = (props: SVGProps<SVGSVGElement>) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     fill="none"
@@ -28,4 +27,4 @@ const TripleDots = (props: SVGProps<SVGSVGElement>) => (
     </g>
   </svg>
 );
-export default TripleDots;
+export default SvgTripleDots;
