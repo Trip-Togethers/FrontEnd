@@ -6,18 +6,7 @@ import svgr from 'vite-plugin-svgr';
 export default defineConfig({
   plugins: [
     react(),
-    svgr({
-      svgrOptions: {
-        icon: true,
-        replaceAttrValues: { "#000": "currentColor" },
-        svgoConfig: {
-          plugins: [
-            { name: "removeViewBox", active: false },
-            { name: "removeXMLNS", active: true },
-          ],
-        },
-      },
-      }),
+    svgr()
   ],
   resolve: {
     alias: {
