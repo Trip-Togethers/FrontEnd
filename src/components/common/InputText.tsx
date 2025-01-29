@@ -42,10 +42,10 @@ export const EmailInput = styled(InputText).attrs({
 })``;
 
 // 비밀번호 Input
-export const PasswordInput = styled(InputText).attrs({
+export const PasswordInput = styled(InputText).attrs(props => ({
   inputType: "password",
-  placeholder: "비밀번호",
-})``;
+  placeholder: props.placeholder || "비밀번호",
+}))``;
 
 // 닉네임 Input
 export const NicknameInput: React.FC = () => {
