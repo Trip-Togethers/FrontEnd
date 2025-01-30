@@ -11,6 +11,7 @@
     "svgr": "npx @svgr/cli -d src/assets/svg --ignore-existing --typescript --no-dimensions public/svg"
   },
   "dependencies": {
+    "@hookform/error-message": "^2.0.1",
     "axios": "^1.7.9",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -19,7 +20,8 @@
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.1.3",
     "sanitize.css": "^13.0.0",
-    "styled-components": "^6.1.14"
+    "styled-components": "^6.1.14",
+    "zustand": "^5.0.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.13.0",
