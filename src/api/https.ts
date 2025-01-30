@@ -22,12 +22,12 @@ export const createClient = (config?: AxiosRequestConfig) => {
 			return response;
 		},
 		(error) => {
-			// // 로그인 만료 처리
-			// if (error.response.this.status === 401) {
-			// 	removeToken();
-			// 	window.location.href = "/login";
-			// 	return;
-			// }
+			// 로그인 만료 처리
+			if (error.response.this.status === 401) {
+				removeToken();
+				window.location.href = "users/login";
+				return;
+			}
 			return Promise.reject(error);
 		}
 	)
