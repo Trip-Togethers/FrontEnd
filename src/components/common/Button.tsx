@@ -1,5 +1,5 @@
 import styled from "styled-components"
-import { ButtonScheme } from "@styles/theme";
+import { ButtonScheme } from "@/styles/theme"
 import '@/styles/font.css'
 
 interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -9,8 +9,8 @@ interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     isLoading?: boolean;
 }
 
-function Button({children, scheme, disabled, 
-    isLoading, ...props}: Props) {
+const Button = ({children, scheme, disabled, 
+    isLoading, ...props}: Props) =>{
     return <ButtonStyle 
         scheme={scheme}
         disabled={disabled} 
