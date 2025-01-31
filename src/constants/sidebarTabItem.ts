@@ -1,4 +1,4 @@
-export const SIDEBAR_TAB_CONTENTS = {
+export const SIDEBAR_TAB_TEXT = {
 	search: {
 		id: "search",
 		text: "검색",

@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { SIDEBAR_TAB_CONTENTS } from "../../../constants/sidebarTabItem";
+import { SIDEBAR_TAB_TEXT } from "../../../constants/sidebarTabItem";
 
 import DetailBookmark from "../detail/DetailBookmark";
 import DetailSearch from "../detail/DetailSearch";
@@ -13,8 +13,8 @@ function SidebarDetail({ isOpen, tab }: Props){
 
   return (
     <SidebarDetailContainer isOpen={isOpen}>
-			{tab === SIDEBAR_TAB_CONTENTS.search.id && <DetailSearch />}
-      {tab === SIDEBAR_TAB_CONTENTS.bookmark.id && <DetailBookmark />}
+			{tab === SIDEBAR_TAB_TEXT.search.id && <DetailSearch />}
+      {tab === SIDEBAR_TAB_TEXT.bookmark.id && <DetailBookmark />}
     </SidebarDetailContainer>
   );
 };
@@ -26,7 +26,7 @@ const SidebarDetailContainer = styled.div<{ isOpen: boolean }>`
 	position: absolute;
 	left: ${({ isOpen }) => (isOpen ? "75px" : "-400px")};
   width: 310px;
-  height: 100%;	
+  height: 100%;
   background-color: #fff;
   padding: 10px 0;
 	box-shadow: ${({ theme }) => theme.shadow.default};

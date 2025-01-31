@@ -4,7 +4,7 @@ function DetailSearch(){
 
   return (
     <DetailSearchContainer>
-			검색창
+			<PlaceInput id="place-input" type="text" placeholder="Search for a place" />
     </DetailSearchContainer>
   );
 };
@@ -12,4 +12,13 @@ function DetailSearch(){
 export default DetailSearch;
 
 const DetailSearchContainer = styled.div`
+`;
+
+const PlaceInput = styled.input`
+  padding: 8px;
+  font-size: 16px;
+  width: 300px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 `;

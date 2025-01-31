@@ -1,40 +1,35 @@
-import { useState, useCallback } from "react";
 import styled from "styled-components";
 import SidebarButton from "./sidebar/SidebarButton";
-import SidebarDetail from "./sidebar/SidebarDetail";
-import { SIDEBAR_TAB_CONTENTS } from "../../constants/sidebarTabItem";
+import { SIDEBAR_TAB_TEXT } from "../../constants/sidebarTabItem";
 
-import { Bookmark } from "../../assets/svg";
-import { Search } from "../../assets/svg";
+import { Bookmark } from "@assets/svg";
+import { Search } from "@assets/svg";
 
 const sidebarTabContents = [
   {
-    id: SIDEBAR_TAB_CONTENTS.search.id,
+    id: SIDEBAR_TAB_TEXT.search.id,
     icon: <Search />,
-    text: SIDEBAR_TAB_CONTENTS.search.text,
+    text: SIDEBAR_TAB_TEXT.search.text,
   },
   {
-    id: SIDEBAR_TAB_CONTENTS.bookmark.id,
+    id: SIDEBAR_TAB_TEXT.bookmark.id,
     icon: <Bookmark />,
-    text: SIDEBAR_TAB_CONTENTS.bookmark.text,
+    text: SIDEBAR_TAB_TEXT.bookmark.text,
   },
 ];
 
-function Sidebar() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [currentTab, setCurrentTab] = useState<string | null>(null);
+interface Props {
+  // children: any;
+  isSidebarOpen: boolean;
+  currentTab: string | null;
+  handleSidebarClick: (id: string) => void;
+}
 
-  const handleSidebarClick = useCallback(
-    (id: string) => {
-      if (currentTab === id) {
-        setIsSidebarOpen(!isSidebarOpen);
-      } else {
-        setCurrentTab(id);
-        setIsSidebarOpen(true);
-      }
-    },
-    [currentTab, isSidebarOpen]
-  );
+function SidebarTab({ 
+  isSidebarOpen, 
+  currentTab,
+  handleSidebarClick,
+}: Props) {
 
   return (
     <>
@@ -50,12 +45,11 @@ function Sidebar() {
           />
         ))}
       </SidebarContainer>
-      <SidebarDetail isOpen={isSidebarOpen} tab={currentTab} />
     </>
   );
 }
 
-export default Sidebar;
+export default SidebarTab;
 
 const SidebarContainer = styled.div`
   z-index: 10;

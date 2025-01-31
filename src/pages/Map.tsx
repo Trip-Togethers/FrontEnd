@@ -1,15 +1,15 @@
 import { styled } from "styled-components";
 import GoogleMapComponent from "../components/maps/GoogleMap";
-import Sidebar from "../components/maps/Sidebar";
+// import Sidebar from "../components/maps/Sidebar";
 import { DEFAULT_LOCATION } from "../constants/location";
 
 function Map() {
+
 	return (
 		<MapStyle>
 				{/* 사이드바 */}
-				<Sidebar />
+				{/* <Sidebar /> */}
 
-				{/* 사이드바 상세 */}
 				{/* 검색 카테고리 */}
 
 				{/* 지도 */}
@@ -23,8 +23,8 @@ function Map() {
 
 const MapStyle = styled.div`
 	display: flex;
-	width: 100vw;
-	height: 100vh;
+	width: 100%;
+	height: 100%;
 `;
 
 export default Map;

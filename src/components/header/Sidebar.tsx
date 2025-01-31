@@ -110,7 +110,7 @@ const SidebarStyle = styled.div`
                 opacity: 1;
                 }
             }
-    }
+
 `;
 
 const StyledLink = styled(Link)`

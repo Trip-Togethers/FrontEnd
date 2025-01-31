@@ -17,7 +17,8 @@ function Layout({children}: LayoutProps){
 }
 
 const LayoutStyle = styled.main`
-    width : 100%;
+    width : 100vw;
+    height: 100vh;
     margin: 0 auto;
     padding-top: 2.7rem;
 `;

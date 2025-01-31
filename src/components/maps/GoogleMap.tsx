@@ -1,13 +1,43 @@
-import React, { useState } from "react";
-import { GoogleMap, LoadScript, Marker, Autocomplete } from "@react-google-maps/api";
+import { useState, useCallback } from "react";
+import {
+  GoogleMap,
+  LoadScript,
+  Marker,
+  Autocomplete,
+} from "@react-google-maps/api";
 import styled from "styled-components";
+import SidebarTab from "./Sidebar";
+import { SIDEBAR_TAB_TEXT } from "@/constants/sidebarTabItem";
+
+import { Plus, Search } from "@/assets/svg";
+
+
 
 interface GoogleMapProps {
   latitude: number;
   longitude: number;
 }
 
-const GoogleMapComponent: React.FC<GoogleMapProps> = ({ latitude, longitude }) => {
+function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
+
+  // 사이드바 관련 코드
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [currentTab, setCurrentTab] = useState<string | null>(null);
+
+  const handleSidebarClick = useCallback(
+    (id: string) => {
+      if (currentTab === id) {
+        setIsSidebarOpen(!isSidebarOpen);
+        setCurrentTab(null);
+      } else {
+        setCurrentTab(id);
+        setIsSidebarOpen(true);
+      }
+    },
+    [currentTab, isSidebarOpen]
+  );
+
+  // 지도 관련 코드
   const [map, setMap] = useState<any>(null);
   const [place, setPlace] = useState<any>(null);
 
@@ -43,8 +73,45 @@ const GoogleMapComponent: React.FC<GoogleMapProps> = ({ latitude, longitude }) =
 
   //VITE_GOOGLE_MAPS_API_KEY 환경변수 키 네임 -> api호출 회수 제한으로 레이아웃 제작시 사용x
   return (
-    <LoadScript googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API} libraries={['places']}>
+    <LoadScript
+      googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API}
+      libraries={["places"]}
+    >
       <MapContainer>
+        <SidebarContainer>
+          <SidebarTab
+            isSidebarOpen={isSidebarOpen}
+            currentTab={currentTab}
+            handleSidebarClick={handleSidebarClick}
+          >
+          </SidebarTab>
+          { isSidebarOpen && (<SidebarDetailContainer>
+              { currentTab === SIDEBAR_TAB_TEXT.search.id && 
+              (<InputContainer>
+                <div className="search">
+                  <Search />
+                </div>
+                <Autocomplete
+                  onPlaceChanged={() =>
+                    setPlace(
+                      (document.getElementById("place-input") as HTMLInputElement)
+                        .value
+                    )
+                  }
+                >
+                  <input
+                    id="place-input"
+                    type="text"
+                    placeholder="검색어를 입력해주세요"
+                  />
+                </Autocomplete>
+                <div className="clear">
+                  <Plus />
+                </div>                
+              </InputContainer>)}            
+            </SidebarDetailContainer>)}
+        </SidebarContainer>
+
         <GoogleMap
           mapContainerStyle={mapContainerStyle}
           center={center}
@@ -53,16 +120,10 @@ const GoogleMapComponent: React.FC<GoogleMapProps> = ({ latitude, longitude }) =
         >
           <Marker position={center} />
         </GoogleMap>
-        {/* <InputWrapper>
-          <Autocomplete onPlaceChanged={() => setPlace((document.getElementById("place-input") as HTMLInputElement).value)}>
-            <PlaceInput id="place-input" type="text" placeholder="Search for a place" />
-          </Autocomplete>
-          <SearchButton onClick={searchPlace}>Search Place</SearchButton>
-        </InputWrapper> */}
       </MapContainer>
     </LoadScript>
   );
-};
+}
 
 export default GoogleMapComponent;
 
@@ -70,35 +131,69 @@ const MapContainer = styled.div`
   width: 100%;
   height: 100%;
   display: flex;
-  flex-direction: column;
-  align-items: center;
 `;
 
-const InputWrapper = styled.div`
-  margin-top: 20px;
+const SidebarContainer = styled.div`
+  z-index: 5;
+  left: 0;
+  display: flex;
+  position: fixed;
+  height: 100%;
+`
+
+const SidebarDetailContainer = styled.div`
+  width: 310px;
+  height: 100%;
+  background-color: #fff;
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: 10px 0;
+	box-shadow: ${({ theme }) => theme.shadow.default};
 `;
 
-const PlaceInput = styled.input`
-  padding: 8px;
-  font-size: 16px;
-  width: 300px;
-  margin-bottom: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-`;
+const InputContainer = styled.div`
+  width: 260px;
+  height: 40px;
+  margin-top: 20px;
+  border: 1px solid ${({ theme }) => theme.color.primary_green };
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
 
-const SearchButton = styled.button`
-  padding: 10px 20px;
-  background-color: #4caf50;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+  svg {
+    width: 24px;
+    height: 24px;
+  }
 
-  &:hover {
-    background-color: #45a049;
+  input {
+    font-size: 13px;
+    border: none;
+    font-family: ${({ theme }) => theme.font.family.title };
+    width: 180px;
+  }
+
+  input:focus {
+    outline: none;
+  }
+
+  div.search {
+    svg {
+      path {
+        fill: ${({ theme }) => theme.color.primary_green };
+      }
+    }
+  }
+
+  div.clear {
+    rotate: 45deg;
+
+    svg {
+      path {
+        fill: ${({ theme }) => theme.color.input_background };
+      }
+    }
   }
 `;
