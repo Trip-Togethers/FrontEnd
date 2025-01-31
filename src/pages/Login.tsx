@@ -11,6 +11,8 @@ import { useForm } from "react-hook-form";
 import { ErrorMessage } from "@hookform/error-message";
 import { login } from "@api/auth.api";
 import { useAuthstore } from "@/store/authStore";
+import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import {app} from "../firebase.ts"
 
 export interface LoginProps{
 	email: string;
@@ -28,7 +30,6 @@ function Login() {
 	const showAlert = useAlert();
 	const {isLoggedIn, storeLogin, storeLogout} = useAuthstore();
 
-
 	const onSubmit = (data: LoginProps) => {
 		login(data).then((res) => {
 			storeLogin(res.token);
@@ -37,6 +38,16 @@ function Login() {
 			showAlert("로그인이 실패했습니다.");
 		})
 	};
+
+	const auth = getAuth(app);
+	const provider = new GoogleAuthProvider();
+
+	const handleLogin = () => {
+		signInWithPopup(auth, provider)
+		.then(userCredential => {
+			console.log(userCredential);
+		})
+	}
 
 	return (
 		<LoginStyle>
@@ -76,7 +87,7 @@ function Login() {
 				<Button type="submit" scheme="primary">로그인</Button>
 				<div>
 					<div className="hr-sect">또는 다음으로 로그인</div>
-					<Google className="google"/>
+					<Google className="google" onClick={handleLogin}/>
 				</div>
 					<StyledLink to = '/users/register'>
 						회원가입
