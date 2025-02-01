@@ -178,8 +178,8 @@ export const PostTitleInput = styled(InputText).attrs({
 export const PostContentInput = styled.textarea.attrs({
   placeholder: "내용을 입력해 주세요.",
 })`
-  width: 548px;
-  height: 543px;
+  width: 35rem;
+  height: 20rem;
   padding: 1rem;
   border: 1px solid ${({ theme }) => theme.color.primary_black};
   border-radius: ${({ theme }) => theme.borderRadius.default};

@@ -3,6 +3,7 @@ import { styled } from "styled-components";
 import { PasswordInput,EmailInput, NicknameInput } from "@/components/common/InputText";
 import Button from "@/components/common/Button";
 import Avatar from "@assets/svg/Avatar.tsx";
+import { useParams } from 'react-router-dom';
 
 
 interface UserInfo {
@@ -22,6 +23,9 @@ function User() {
     currentPassword: "",
     newPassword: "",
   });
+
+  const { user_id } = useParams();
+  console.log("Current user_id:", user_id);
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPassword(e.target.value);

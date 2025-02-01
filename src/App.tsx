@@ -5,7 +5,7 @@ import Calendar from "./pages/Calendar"
 import Detail from "./pages/Detail"
 import Home from "./pages/Home"
 import Join from "./pages/Join"
-import Map from "./pages/map"
+import Map from "./pages/Map"
 import Post from "./pages/Post"
 import User from "./pages/User"
 import Error from "@components/common/Error"
@@ -14,6 +14,8 @@ import { theme } from "./styles/theme"
 import { GlobalStyle } from './styles/global';
 import Layout from '@components/layout/Layout';
 import { createBrowserRouter, RouterProvider } from "react-router-dom"
+import { Provider } from 'react-redux';
+import store from './store/store'
 
 const router = createBrowserRouter([
   {//로그인
@@ -66,13 +68,22 @@ const router = createBrowserRouter([
       path: "/posts",
       element: (
         <Layout>
-          <Post/>
+          <Board/>
         </Layout>
       ),
       errorElement: <Error />,
     },
     {//커뮤니티-글작성
-      path: " /posts/:post_id",
+      path: "/posts/new",
+      element: (
+        <Layout>
+          <AddPost/>
+        </Layout>
+      ),
+      errorElement: <Error />,
+    },
+    {//커뮤니티 게시글 상세목록
+      path: "/posts/:post_id",
       element: (
         <Layout>
           <Post/>
@@ -80,11 +91,11 @@ const router = createBrowserRouter([
       ),
       errorElement: <Error />,
     },
-    {//커뮤니티
-      path: "/posts",
+    { // 커뮤니티 게시글 수정
+      path: "/posts/edit/:post_id",
       element: (
         <Layout>
-          <Post/>
+          <AddPost isEdit={true} />
         </Layout>
       ),
       errorElement: <Error />,
@@ -103,10 +114,12 @@ const router = createBrowserRouter([
 function App() {
   return (
     <>
+    <Provider store={store}>
       <ThemeProvider theme = {theme}>
         <GlobalStyle/>
           <RouterProvider router = {router}/>
       </ThemeProvider>
+      </Provider>
     </>
   )
 }
