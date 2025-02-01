@@ -8,3 +8,4 @@ export const checkEmail = async (email: string) => {
     throw new Error("이메일 확인 중 오류가 발생했습니다.");
   }
 };
+

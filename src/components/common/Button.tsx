@@ -48,4 +48,3 @@ const ButtonStyle = styled.button<Omit<Props, "children">>`
 `;
 
 export default Button;
-

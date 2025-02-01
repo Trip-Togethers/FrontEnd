@@ -71,3 +71,4 @@ const LabelStyle = styled.label`
 `;
 
 export default InputText;
+
