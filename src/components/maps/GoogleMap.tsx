@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   GoogleMap,
   LoadScript,
@@ -46,10 +46,10 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
   const [currentTab, setCurrentTab] = useState<string | null>(null);
 
   const [map, setMap] = useState<any>(null);
-  const [place, setPlace] = useState<any>(null);
   const [center, setCenter] = useState({ lat: latitude, lng: longitude });
   const [searchResults, setSearchResults] = useState<any>(null);
   const [selectedPlace, setSelectedPlace] = useState<any>(null);
+  const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
 
   // 사이드바 관련 코드
   const handleSidebarClick = useCallback(
@@ -70,11 +70,17 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
       setCurrentTab(SIDEBAR_TAB_TEXT.search.id);
       setIsSidebarOpen(true);
       (document.getElementById("place-input") as HTMLInputElement).value = name;
-      setPlace(name);
       searchCategory(type);
     },
     [currentTab, isSidebarOpen]
   );
+
+  useEffect(() => {
+    if (!isSidebarOpen) {
+      setSearchResults(null);
+      setSelectedPlace(null);
+    }
+  }, [isSidebarOpen])
 
   // 지도 관련 코드
   const mapContainerStyle = {
@@ -112,22 +118,24 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
     });
   };
 
-  const searchPlace = () => {
-    if (!map) return;
+  const handleAutocompleteLoad = (autocompleteInstance: google.maps.places.Autocomplete) => {
+    setAutocomplete(autocompleteInstance);
+  };
 
-    const currentCenter = map.getCenter();
-    const service = new google.maps.places.PlacesService(map);
-    const request = {
-      location: currentCenter,
-      radius: 1000,
-      query: place,
-    };
+  const handlePlaceChanged = () => {
+    if (autocomplete !== null) {
+      const place = autocomplete.getPlace();
+      if (place.geometry && place.geometry.location) {
+        const currentCenter = place.geometry.location
 
-    service.textSearch(request, (results, status) => {
-      if (status === google.maps.places.PlacesServiceStatus.OK) {
-        console.log(results); // 검색된 장소 출력
+        setSearchResults([place]);
+        setSelectedPlace(place);
+        setCurrentTab(SIDEBAR_TAB_TEXT.search.id);
+        setCenter({ lat: currentCenter.lat(), lng: currentCenter.lng() })
+        map?.panTo(currentCenter);
+        map?.setZoom(18);
       }
-    });
+    }
   };
 
   const searchCategory = (type: string) => {
@@ -173,45 +181,40 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
           {isSidebarOpen && (
             <SidebarDetailContainer>
               {currentTab === SIDEBAR_TAB_TEXT.search.id && (
-                <InputContainer>
-                  <div className="search">
-                    <Search />
-                  </div>
-                  <Autocomplete
-                    onPlaceChanged={() =>
-                      setPlace(
-                        (
+                <>
+                  <InputContainer>
+                    <div className="search">
+                      <Search />
+                    </div>
+                    <Autocomplete
+                      onLoad={handleAutocompleteLoad} 
+                      onPlaceChanged={handlePlaceChanged}
+                    >
+                      <input
+                        id="place-input"
+                        type="text"
+                        placeholder="검색어를 입력해주세요"
+                      />
+                    </Autocomplete>
+                    <div
+                      className="clear"
+                      onClick={() =>
+                        ((
                           document.getElementById(
                             "place-input"
                           ) as HTMLInputElement
-                        ).value
-                      )
-                    }
-                  >
-                    <input
-                      id="place-input"
-                      type="text"
-                      placeholder="검색어를 입력해주세요"
-                    />
-                  </Autocomplete>
-                  <div
-                    className="clear"
-                    onClick={() =>
-                      ((
-                        document.getElementById(
-                          "place-input"
-                        ) as HTMLInputElement
-                      ).value = "")
-                    }
-                  >
-                    <Plus />
-                  </div>
-                </InputContainer>
+                        ).value = "")
+                      }
+                    >
+                      <Plus />
+                    </div>
+                  </InputContainer>
+                  <DetailSearch selectedPlace={selectedPlace} />                
+                </>
               )}
-              <DetailSearch selectedPlace={selectedPlace} />
             </SidebarDetailContainer>
           )}
-          <CategoryContainer>
+          <CategoryContainer isOpen={isSidebarOpen}>
             {Category.map((item) => (
               <SearchCategoryButton
                 icon={item.icon}
@@ -335,7 +338,9 @@ const InputContainer = styled.div`
   }
 `;
 
-const CategoryContainer = styled.div`
+const CategoryContainer = styled.div<{ isOpen: boolean }>`
+  position: absolute;
+  left: ${({ isOpen }) => isOpen? "385px" : "75px"};
   margin: 10px 0 0 20px;
   height: 40px;
   display: flex;
