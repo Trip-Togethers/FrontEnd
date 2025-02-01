@@ -19,12 +19,12 @@ function Board() {
   const postsPerPage = 10;
 
   const displayedPosts = useMemo(() => {
-    console.log("📌 Redux에서 변경된 posts:", posts);
+    console.log("Redux에서 변경된 posts:", posts);
     return posts.map(post => ({ ...post })).reverse(); // 불변성 유지
   }, [posts]);
   
 
-  // ✅ 새 게시글이 추가될 때 첫 페이지로 이동
+  // 새 게시글이 추가될 때 첫 페이지로 이동
   useEffect(() => {
     setCurrentPage(1);
   }, [posts]);
@@ -66,7 +66,7 @@ function Board() {
               <Td>{post.title}</Td>
               <Td>{post.author}</Td>
               <Td>{new Date(post.createdAt).toLocaleDateString()}</Td>
-              <Td>❤️ {post.likes}</Td>
+              <Td>👍 {post.likes}</Td>
             </Tr>
           ))}
         </tbody>

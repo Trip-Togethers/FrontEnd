@@ -6,6 +6,11 @@ interface Comment {
   createdAt: string;
 }
 
+interface ImageInfo {
+  url: string;
+  originalName?: string;
+}
+
 interface Post {
   id: string;
   title: string;
@@ -14,6 +19,8 @@ interface Post {
   createdAt: string;
   likes: number;
   comments: Comment[];
+  hasLiked?: boolean;
+  images?: ImageInfo[];
 }
 
 interface PostState {
@@ -67,7 +74,11 @@ const postReducer = (state = loadState(), action: any): PostState => {
     case ADD_POST:
       newState = {
         ...state,
-        posts: [{ ...action.payload, comments: action.payload.comments ?? [] }, ...state.posts],
+        posts: [{
+          ...action.payload,
+          comments: action.payload.comments ?? [],
+          hasLiked: false // 새 게시글은 항상 좋아요 안 된 상태로 시작
+        }, ...state.posts],
       };
       break;
 
@@ -84,14 +95,21 @@ const postReducer = (state = loadState(), action: any): PostState => {
         };
         break; }
 
-      case LIKE_POST:
-      newState = {
-        ...state,
-        posts: state.posts.map(post =>
-          post.id === action.payload ? { ...post, likes: post.likes + 1 } : post
-        ),
-      };
-      break;
+        case LIKE_POST:
+          newState = {
+            ...state,
+            posts: state.posts.map(post =>
+              post.id === action.payload
+                ? {
+                    ...post,
+                    likes: post.hasLiked ? post.likes - 1 : post.likes + 1,
+                    hasLiked: !post.hasLiked
+                  }
+                : post
+            ),
+          };
+          break;
+        
 
     case ADD_COMMENT:
       newState = {
