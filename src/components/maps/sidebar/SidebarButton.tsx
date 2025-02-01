@@ -55,6 +55,10 @@ const SidebarButtonStyle = styled.div<{ active: boolean }>`
         active ? theme.color.primary_green : theme.color.name_gray};
       font-family: ${({ theme }) => theme.font.family.default};
     }
+
+    &:hover {
+      cursor: pointer;
+    }
   }
 `;
 
