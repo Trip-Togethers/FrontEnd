@@ -1,9 +1,16 @@
 import { styled } from "styled-components";
-import { useState } from "react";
 import Plane from "@assets/svg/Plane";
 import Logo from "@assets/svg/Logo";
-import KakaoLogo from "@assets/svg/KakaoLogo";
+import { Google } from "@/assets/svg";
 import { Link } from "react-router-dom";
+import Button from "@/components/common/Button";
+import InputText from "@/components/common/InputText";
+import { useAlert } from "@/hooks/useAlert";
+import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { ErrorMessage } from "@hookform/error-message";
+import { login } from "@api/auth.api";
+import { useAuthstore } from "@/store/authStore";
 
 export interface LoginProps{
 	email: string;
@@ -11,35 +18,73 @@ export interface LoginProps{
 }
 
 function Login() {
-	const [email, setEmail] = useState("");
-	const [password, setPassword] = useState("");
+	const {
+		  register,
+		  formState: { errors },
+		  handleSubmit,
+		} = useForm<LoginProps>()
+	
+	const navigate = useNavigate();
+	const showAlert = useAlert();
+	const {isLoggedIn, storeLogin, storeLogout} = useAuthstore();
+
+
+	const onSubmit = (data: LoginProps) => {
+		login(data).then((res) => {
+			storeLogin(res.token);
+			navigate("/trips");
+		},(error) => {
+			showAlert("로그인이 실패했습니다.");
+		})
+	};
 
 	return (
 		<LoginStyle>
 			<Plane className="background-svg"/>
-			<form>
-				<fieldset>
-					<Logo className="logo"/>
-					<input type = "email" 
-							placeholder = "이메일"
-							value = {email}/>
-					<input type = "password" 
-							placeholder = "비밀번호"
-							value = {password}/>
-					<button type = "submit">로그인</button>
-					<div>
-						<div className="hr-sect">또는 다음으로 로그인</div>
-						<KakaoLogo className="kakao"/>
-					</div>
-					<span className="join">
-						<StyledLink to = '/users/join'>
-							회원가입
-						</StyledLink>
-					</span>
+		<form onSubmit={handleSubmit(onSubmit)}>
+			<fieldset>
+				<Logo className="logo"/>
+				<div className="input">
+					<InputText 
+						scheme="login" 
+						type="email" 
+						placeholder="이메일" 
+						{...register("email", { 
+							required: "이메일을 입력해주세요.",
+							pattern: {
+								value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+								message: "유효한 이메일 형식을 입력해주세요."
+							}
+						})}/>
+
+					<ErrorMessage errors={errors} name="email" as={ErrorTextStyle} />
+
+					<InputText 
+						scheme="login" 
+						type="password"
+						placeholder="비밀번호"
+						{...register("password", { 
+							required: "비밀번호를 입력해주세요.",
+							pattern: {
+								value: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/,
+								message: "비밀번호는 8자리 이상의 영문과 숫자 조합이어야 합니다."
+							}
+						})}
+					/>
+					<ErrorMessage errors={errors} name="password" as={ErrorTextStyle} />
+				</div>
+				<Button type="submit" scheme="primary">로그인</Button>
+				<div>
+					<div className="hr-sect">또는 다음으로 로그인</div>
+					<Google className="google"/>
+				</div>
+					<StyledLink to = '/users/register'>
+						회원가입
+					</StyledLink>
 				</fieldset>
-			</form>
-		</LoginStyle>
-	);
+				</form>
+			</LoginStyle>
+		)
 }
 
 const LoginStyle = styled.div`
@@ -53,18 +98,19 @@ const LoginStyle = styled.div`
 	display: flex;
 	flex-direction: column;
 	background-color: ${({theme}) => theme.color.primary_green};
-	z-index: -2;
+	z-index: 0;
 
 	.background-svg {
 		position: absolute;
 		top: 0;
 		left: 0;
 		z-index: -1; 
-		object-fit: fill;
+		object-fit: cover;
 	}
 
-	fieldset{
-		width: 530px;
+	form{
+		position: relative;
+		width: 570px;
 		height: 580px;
 		border-radius: 14px;
 		border: none;
@@ -74,19 +120,30 @@ const LoginStyle = styled.div`
 		background-color: ${({theme}) => theme.color.primary_white};
 		box-shadow: rgba(0, 0, 0, 0.25) 0px 4px 5px 0px;
 	}
+	
+	fieldset{
+		margin: 0 auto;
+		border: none;
+	}
 
 	.logo{
 		height: 42px;
 		fill : ${({theme}) => theme.color.primary_green};
-		margin: 40px auto 30px;
+		margin: 40px auto 40px;
+	}
+
+	.input{
+		margin-bottom: 25px;
 	}
 
 	.hr-sect {
 		display: flex;
 		align-items: center;
 		color: ${({theme}) => theme.color.input_text};
-		font: ${({theme}) => theme.font.title};
+		font-family: ${({theme}) => theme.font.family.title};
+		font-weight: ${({ theme }) => theme.font.weight.light};
 		opacity: 0.4;
+		margin: 25px 0 10px;
 	}
 
 	.hr-sect::before,
@@ -100,13 +157,26 @@ const LoginStyle = styled.div`
 		margin: 0px 16px;
 	}
 
-	.kakao{
-		height: 50px;
+	.google{
+		height: 45px;
+		margin-bottom: 40px;
 	}
 `;
 
+const ErrorTextStyle = styled.p`
+	margin: 0 10px;
+	font-family: ${({ theme }) => theme.font.family.title};
+	font-weight: ${({ theme }) => theme.font.weight.light};
+  	font-size: 0.63rem;
+  	color: ${({ theme }) => theme.color.primary_red};
+  	opacity: 0.7;
+	text-align:left;
+`;
+
 const StyledLink = styled(Link)`
+	font-family: ${({theme}) => theme.font.family.contents};
     color: ${({theme}) => theme.color.primary_green};
+	font-weight: ${({ theme }) => theme.font.weight.normal};
 `;
 
 export default Login;

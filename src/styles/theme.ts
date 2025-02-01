@@ -2,21 +2,15 @@ import "./font.css";
 
 export type ColorKey = "primary_green"| "primary_black" | "primary_white" | "primary_red" | "input_text" |
 "input_background" | "card_background" | "name_gray" | "calender_schedule" | "schedule_focus" ;
-export type HeadingSize = "large" | "medium" | "small";
 export type ButtonSize = "default";
 export type ButtonScheme = "primary" | "alert" | "not_active";
-export type LayoutWidth = "large" | "medium" | "small";
 export type Font = "default" | "contents" | "title";
 export type FontWeight = "light" | "normal" | "bold";
 export type Shadow = "default";
+export type InputScheme = "login" | "mypage";
 
 export interface Theme{
     color: Record<ColorKey, string>;
-    heading : {
-        [key in HeadingSize] : {
-            fontSize: string;
-        };
-    };
     button : {
         [key in ButtonSize]: {
             fontSize : string;
@@ -32,11 +26,6 @@ export interface Theme{
     borderRadius: {
         default : string;
     }
-    layout: {
-        width : {
-            [key in LayoutWidth]: string;
-        },
-    }
     font: {
         family: Record<Font, string>;
         weight: {
@@ -44,6 +33,13 @@ export interface Theme{
         };
     };
     shadow: Record<Shadow, string>;
+    inputScheme: {
+        [key in InputScheme]: {
+            width: string;
+            height: string;
+            fontSize: string;
+        }
+    }
 };
 
 export const theme : Theme = {
@@ -58,17 +54,6 @@ export const theme : Theme = {
         "name_gray" : "#545454",
         "calender_schedule" : "#D9EFCE",
         "schedule_focus" : "#63C647"
-    },
-    heading : {
-        large : {
-            fontSize: "2rem"
-        },
-        medium : {
-            fontSize : "1.5rem"
-        },
-        small : {
-            fontSize : "1rem"
-        }
     },
     button: {
         default : {
@@ -93,13 +78,6 @@ export const theme : Theme = {
     borderRadius: {
         default : "5px",
     },
-    layout: {
-        width: {
-            large : "1020px",
-            medium : "760px",
-            small : "320px",
-        },
-    },
     font: {
         family: {
             default: "'BMJUA', sans-serif",
@@ -115,4 +93,16 @@ export const theme : Theme = {
     shadow: {
         default: "0 4px 4px 0 #000000"
     },
+    inputScheme: {
+        login: {
+            width: "340px",
+            height: "42px",
+            fontSize: "20px"
+        },
+        mypage: {
+            width:"260px",
+            height: "35px",
+            fontSize: "16px"
+        }
+    }
 };
