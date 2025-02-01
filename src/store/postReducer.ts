@@ -1,3 +1,5 @@
+import { Plan } from './planReducer';
+
 interface Comment {
   id: string;
   postId: string;
@@ -21,6 +23,8 @@ interface Post {
   comments: Comment[];
   hasLiked?: boolean;
   images?: ImageInfo[];
+  planId?: string;      
+  planInfo?: Plan;      
 }
 
 interface PostState {

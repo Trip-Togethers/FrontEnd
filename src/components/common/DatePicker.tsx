@@ -8,13 +8,15 @@ interface DatePickerProps {
   value?: Date;
   onChange?: (date: Date) => void;
   error?: string;
+  minDate?: Date; 
 }
 
 const DatePicker: React.FC<DatePickerProps> = ({
   label,
   value,
   onChange,
-  error
+  error,
+  minDate, 
 }) => {
   const [selectedDate, setSelectedDate] = useState(value || new Date());
   const currentYear = new Date().getFullYear();
@@ -34,9 +36,11 @@ const DatePicker: React.FC<DatePickerProps> = ({
     if (type === 'year') newDate.setFullYear(value);
     if (type === 'month') newDate.setMonth(value);
     if (type === 'day') newDate.setDate(value);
-    
-    setSelectedDate(newDate);
-    onChange?.(newDate);
+
+    if (!minDate || newDate >= minDate) {
+      setSelectedDate(newDate);
+      onChange?.(newDate);
+    }
   };
 
   return (
@@ -75,6 +79,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
     </DatePickerContainer>
   );
 };
+
 
 export default DatePicker;
 
@@ -117,6 +122,21 @@ const Select = styled.select`
   option {
     background-color: ${theme.color.primary_white};
     color: ${theme.color.primary_black};
+  }
+
+    &::-webkit-scrollbar {
+    width: 8px; /* 스크롤바 너비 */
+  }
+
+  &::-webkit-scrollbar-track {
+    background: ${theme.color.input_background}; /* 스크롤바 트랙 색상 */
+    border-radius: 10px; /* 트랙 둥글게 */
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: ${theme.color.primary_green}; /* 스크롤바 색상 */
+    border-radius: 10px; /* 스크롤바 둥글게 */
+    border: 2px solid ${theme.color.input_background}; /* 스크롤바 테두리 */
   }
 `;
 

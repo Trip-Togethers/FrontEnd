@@ -467,4 +467,3 @@ const PostImage = styled.img`
     transform: scale(1.05);
   }
 `;
-

@@ -3,26 +3,45 @@ import { styled } from "styled-components";
 import Modal from "@/components/common/Modal";
 import { theme } from "@/styles/theme";
 import Button from "@/components/common/Button"
-import minus from "../../public/svg/minus.svg"
+import { connect } from 'react-redux';
+import { RootState } from '@/store/store';
+import { addPlan, deletePlan } from '@/store/planReducer';
 
-function Home() {
-  const [plans, setPlans] = useState([]);
+interface HomeProps {
+  plans: any[];
+  addPlan: (plan: any) => void;
+  deletePlan: (id: string) => void;
+}
+
+// 2. props 받아서 사용하는 방식으로 변경
+function Home({ plans, addPlan, deletePlan }: HomeProps) {
+  // useSelector와 dispatch 제거
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6; // 페이지당 6개 항목
+  const itemsPerPage = 6;
   const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
+  const sortedPlans = [...plans].sort(
+    (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+  );
 
-  const addPlan = (plan) => {
-    // 새 계획을 추가하고 startDate 기준으로 정렬
-    const updatedPlans = [...plans, plan].sort((a, b) => 
-      new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
-    );
-    setPlans(updatedPlans);
+   const indexOfLastPlan = currentPage * itemsPerPage;
+   const indexOfFirstPlan = indexOfLastPlan - itemsPerPage;
+   const currentPlans = sortedPlans.slice(indexOfFirstPlan, indexOfLastPlan);
+   const totalPages = Math.ceil(plans.length / itemsPerPage);
+ 
+  const handleAddPlan = (plan) => {
+    addPlan({
+      ...plan,
+      id: Date.now().toString(),
+    });
   };
-  const indexOfLastPlan = currentPage * itemsPerPage;
-  const indexOfFirstPlan = indexOfLastPlan - itemsPerPage;
-  const currentPlans = plans.slice(indexOfFirstPlan, indexOfLastPlan);
-  const totalPages = Math.ceil(plans.length / itemsPerPage);
 
+  const handleDelete = (index: number) => {
+    const planToDelete = plans[index];
+    deletePlan(planToDelete.id);
+    setDeleteTarget(null);
+  };
+
+ 
   const handlePageChange = (direction: 'prev' | 'next') => {
     if (direction === 'prev' && currentPage > 1) {
       setCurrentPage(currentPage - 1);
@@ -32,13 +51,7 @@ function Home() {
     }
   };
 
-  const handleDelete = (index: number) => {
-    const newPlans = [...plans];
-    newPlans.splice(index, 1);
-    setPlans(newPlans);
-    setDeleteTarget(null);
-  };
-
+  console.log("Redux plans:", plans);
   return (
     <HomeStyle>
       {!plans.length && (
@@ -53,16 +66,18 @@ function Home() {
         {currentPlans.map((plan, index) => (
           <PlanCard key={index}>
             <DeleteButton onClick={() => setDeleteTarget(index)}>
-              <img src={minus} alt="delete" />
+              ➖
             </DeleteButton>
             <ImagePlaceholder>
-                  <DateOverlay>
-                    <Year>{new Date(plan.startDate).getFullYear()}</Year>
-                    <DateRange>
-                      {`${new Date(plan.startDate).toLocaleDateString('en-US', { day: '2-digit', month: 'short' })} - ${new Date(plan.endDate).toLocaleDateString('en-US', { day: '2-digit', month: 'short' })}`}
-                    </DateRange>
-                  </DateOverlay>
-            </ImagePlaceholder>
+                {plan.image && <PlanImage src={plan.image} alt="Uploaded Preview" />}
+                <DateOverlay>
+                  <Year>{new Date(plan.startDate).getFullYear()}</Year>
+                  <DateRange>
+                    {`${new Date(plan.startDate).toLocaleDateString('en-US', { day: '2-digit', month: 'short' })} - 
+                      ${new Date(plan.endDate).toLocaleDateString('en-US', { day: '2-digit', month: 'short' })}`}
+                  </DateRange>
+                </DateOverlay>
+          </ImagePlaceholder>
             <PlanDetails>
               <PlanTitle>{plan.title}</PlanTitle>
             </PlanDetails>
@@ -91,7 +106,6 @@ function Home() {
           </DeleteModalContent>
         </DeleteModal>
       )}
-
       {plans.length > itemsPerPage && (
   <Pagination>
     <PageButton
@@ -111,13 +125,17 @@ function Home() {
     </PageButton>
   </Pagination>
 )}
-
-      <Modal type='plan' onSubmit={addPlan} />
+  <Modal type='plan' onSubmit={handleAddPlan} />
     </HomeStyle>
   );
 }
 
-export default Home;
+export default connect(
+  (state: RootState) => ({
+    plans: state.plan.plans
+  }),
+  {addPlan, deletePlan}
+)(Home);
 
 const HomeStyle = styled.div`
   position: relative;
@@ -246,6 +264,7 @@ const PlanCard = styled.div`
 `;
 
 const ImagePlaceholder = styled.div`
+  position: relative;
   width: 100%;
   height: 70%; 
   background: ${theme.color.input_background};
@@ -255,17 +274,32 @@ const ImagePlaceholder = styled.div`
   margin-bottom: 1rem;
   padding: 1rem;
   border-radius: ${theme.borderRadius.default};
+  overflow: hidden;
+  z-index: 1;
 `;
+
+const PlanImage = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: ${theme.borderRadius.default};
+  position: absolute;
+  top: 0;
+  left: 0;
+`;
+
 
 const DateOverlay = styled.div`
   text-align: left;
   position: absolute;
-  top: 50%;
+  width:90%;
+  bottom: 1px;
   left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
+   transform: translateX(-50%);
+  
   color: ${theme.color.input_text};
   font-family: ${theme.font.family.contents};
+  background: transparent;
 `;
 
 const Year = styled.div`
@@ -305,7 +339,7 @@ const DeleteButton = styled.button`
   width: 2rem;
   height: 2rem;
   border-radius: 50%;
-  background-color: transparent;
+  background: transparent;
   color: ${theme.color.primary_white};
   border: none;
   cursor: pointer;
@@ -313,6 +347,7 @@ const DeleteButton = styled.button`
   align-items: center;
   justify-content: center;
   padding: 4px;
+  z-index: 10;
   
   img {
     width: 100%;

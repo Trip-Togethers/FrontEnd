@@ -1,5 +1,5 @@
 import styled from "styled-components"
-import { ButtonScheme } from "@styles/theme";
+import { ButtonScheme } from "@/styles/theme"
 import '@/styles/font.css'
 
 interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -9,8 +9,8 @@ interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     isLoading?: boolean;
 }
 
-function Button({children, scheme, disabled, 
-    isLoading, ...props}: Props) {
+const Button = ({children, scheme, disabled, 
+    isLoading, ...props}: Props) =>{
     return <ButtonStyle 
         scheme={scheme}
         disabled={disabled} 
@@ -24,8 +24,8 @@ function Button({children, scheme, disabled,
 const ButtonStyle = styled.button<Omit<Props, "children">>`
     font-family: ${({ theme }) => theme.font.family.contents};
     font-weight: ${({ theme }) => theme.font.weight.light};
-    font-size: ${({ theme }) => theme.button.medium.fontSize};
-    padding: ${({ theme }) => theme.button.medium.padding};
+    font-size: ${({ theme }) => theme.button.default.fontSize};
+    padding: ${({ theme }) => theme.button.default.padding};
     color: ${({ theme, scheme }) => theme.buttonScheme[scheme].color};
     background-color: ${({ theme, scheme }) => theme.buttonScheme[scheme].backgroundColor};
     border: 0;
@@ -45,13 +45,6 @@ const ButtonStyle = styled.button<Omit<Props, "children">>`
     &:active {
         transform: scale(0.98);
     }
-
-     &:disabled {
-    background-color: ${({ theme }) => theme.color.input_background};
-    color: ${({ theme }) => theme.color.input_text};
-    cursor: not-allowed;
-    opacity: 0.7;
-}
 `;
 
 export default Button;

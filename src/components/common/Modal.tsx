@@ -1,9 +1,9 @@
-// Modal.tsx
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { theme } from '@/styles/theme';
 import Button from '@/components/common/Button';
 import { AddPlanInput } from '@/components/common/InputText';
+import DatePicker from '../common/DatePicker'
 
 interface ModalProps {
     type: 'plan' | 'schedule';
@@ -28,6 +28,18 @@ const [startDate, setStartDate] = useState(today);
  const [imagePreview, setImagePreview] = useState<string>("");
 
  
+ const handleStartDateChange = (date: Date) => {
+  setStartDate(date);
+  if (date > endDate) {
+    setEndDate(date); // ✅ 시작일 변경 시, 종료일을 자동 조정
+  }
+};
+
+const handleEndDateChange = (date: Date) => {
+  if (date >= startDate) {
+    setEndDate(date);
+  }
+};
 
 
 const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,22 +56,22 @@ const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
 };
 
 const handlePlanSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit?.({
-      title,
-      description,
-      startDate,
-      endDate,
-      image: imagePreview
-    });
-    setTitle("");
-    setDescription("");
-    setStartDate(new Date()); // 새로운 오늘 날짜로 리셋
-    setEndDate(new Date()); // 새로운 오늘 날짜로 리셋
-    setSelectedImage(null);
-    setImagePreview("");
-    setIsOpen(false);
-  };
+  e.preventDefault();
+  onSubmit?.({
+    title,
+    description,
+    startDate,
+    endDate,
+    image: imagePreview
+  });
+  setTitle("");
+  setDescription("");
+  setStartDate(new Date());
+  setEndDate(new Date());
+  setSelectedImage(null);
+  setImagePreview("");
+  setIsOpen(false);
+};
 
  const handleTodoSubmit = (e: React.FormEvent) => {
    e.preventDefault();
@@ -125,10 +137,10 @@ const handlePlanSubmit = (e: React.FormEvent) => {
              <AddPlanInput onChange={(e) => setDescription(e.target.value)} />
            </FormField>
            <FormField>
-             <label>기간</label>
-             <CustomDatePicker value={startDate} onChange={setStartDate} />
-             <CustomDatePicker value={endDate} onChange={setEndDate} />
-           </FormField>
+              <label>기간</label>
+            <DatePicker value={startDate} onChange={handleStartDateChange} />
+            <DatePicker value={endDate} onChange={handleEndDateChange} minDate={startDate} />  {/* ✅ 시작일보다 빠를 수 없음 */}
+            </FormField>
            <SubmitButton>
            <Button scheme="primary" type="submit"
                 style={{

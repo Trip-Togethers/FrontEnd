@@ -1,6 +1,7 @@
 import styled from 'styled-components'
 import Avatar from "@assets/svg/Avatar.tsx"
 import { Link } from 'react-router-dom';
+import { useAuthstore } from '@/store/authStore';
 
 type Props = {
     isOpen: boolean;
@@ -9,6 +10,7 @@ type Props = {
 
 const Sidebar: React.FC<Props> = ({isOpen, onClose}) => {
     if (!isOpen) return null; // 드롭다운이 닫혀 있으면 렌더링 안 함.
+    const {storeLogout} = useAuthstore();
 
     return (
         <>
@@ -33,7 +35,8 @@ const Sidebar: React.FC<Props> = ({isOpen, onClose}) => {
                         <li>내 캘린더</li>
                     </StyledLink>
                 </ul>
-                <span className='logout'>로그아웃</span>
+                <span className='logout' 
+                        onClick={storeLogout}>로그아웃</span>
             </div>  
         </SidebarStyle>
         </>
