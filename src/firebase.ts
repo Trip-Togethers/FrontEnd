@@ -10,7 +10,7 @@ const firebaseConfig = {
   projectId: "triptogether-8c8ac",
   storageBucket: "triptogether-8c8ac.firebasestorage.app",
   messagingSenderId: "64101800978",
-  appId: "1:64101800978:web:7e4258fd9bb70622d34ccb"
+  appId: "1:64101800978:web:7e4258fd9bb70622d34ccb",
 };
 
 // Initialize Firebase

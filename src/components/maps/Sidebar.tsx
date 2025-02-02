@@ -25,12 +25,7 @@ interface Props {
   handleSidebarClick: (id: string) => void;
 }
 
-function SidebarTab({ 
-  isSidebarOpen, 
-  currentTab,
-  handleSidebarClick,
-}: Props) {
-
+function SidebarTab({ isSidebarOpen, currentTab, handleSidebarClick }: Props) {
   return (
     <>
       <SidebarContainer>
@@ -40,8 +35,8 @@ function SidebarTab({
             icon={item.icon}
             text={item.text}
             handleClick={() => handleSidebarClick(item.id)}
-						currentTab={currentTab}
-						isOpen={isSidebarOpen}
+            currentTab={currentTab}
+            isOpen={isSidebarOpen}
           />
         ))}
       </SidebarContainer>

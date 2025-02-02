@@ -1,14 +1,9 @@
 import { styled } from "styled-components";
 
 function Post() {
-	return (
-		<PostStyle>
-				Post
-		</PostStyle>
-	);
+  return <PostStyle>Post</PostStyle>;
 }
 
-const PostStyle = styled.div`
-`;
+const PostStyle = styled.div``;
 
 export default Post;

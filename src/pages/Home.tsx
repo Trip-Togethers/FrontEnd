@@ -1,14 +1,9 @@
 import { styled } from "styled-components";
 
 function Home() {
-	return (
-		<HomeStyle>
-				Home
-		</HomeStyle>
-	);
+  return <HomeStyle>Home</HomeStyle>;
 }
 
-const HomeStyle = styled.div`
-`;
+const HomeStyle = styled.div``;
 
 export default Home;
