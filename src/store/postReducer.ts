@@ -1,35 +1,6 @@
-import { Plan } from './planReducer';
+import { Plans } from './planReducer';
+import { Post, PostState, Comment } from './store';
 
-interface Comment {
-  id: string;
-  postId: string;
-  author: string;
-  content: string;
-  createdAt: string;
-}
-
-interface ImageInfo {
-  url: string;
-  originalName?: string;
-}
-
-interface Post {
-  id: string;
-  title: string;
-  content: string;
-  author: string;
-  createdAt: string;
-  likes: number;
-  comments: Comment[];
-  hasLiked?: boolean;
-  images?: ImageInfo[];
-  planId?: string;      
-  planInfo?: Plan;      
-}
-
-interface PostState {
-  posts: Post[];
-}
 
 // Action Types
 export const ADD_POST = 'ADD_POST';

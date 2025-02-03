@@ -3,18 +3,12 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
 import Button from "@/components/common/Button";
+import { Post, RootState } from '@/store/store';
 
-interface Post {
-  id: string;
-  title: string;
-  author: string;
-  createdAt: string;
-  likes: number;
-}
 
 function Board() {
   const navigate = useNavigate();
-  const posts = useSelector((state: { post: { posts: Post[] } }) => state.post.posts);
+  const posts = useSelector((state: RootState) => state.post.posts);
   const [currentPage, setCurrentPage] = useState(1);
   const postsPerPage = 10;
 
@@ -23,8 +17,6 @@ function Board() {
     return posts.map(post => ({ ...post })).reverse(); // 불변성 유지
   }, [posts]);
   
-
-  // 새 게시글이 추가될 때 첫 페이지로 이동
   useEffect(() => {
     setCurrentPage(1);
   }, [posts]);
@@ -71,7 +63,6 @@ function Board() {
           ))}
         </tbody>
       </Table>
-
       <Pagination>
         <PageButton disabled={currentPage === 1} onClick={() => handlePageChange(currentPage - 1)}>
           ◀
@@ -80,7 +71,7 @@ function Board() {
         {[...Array(totalPages)].map((_, i) => (
           <PageButton 
             key={i} 
-            active={currentPage === i + 1} 
+            $active={currentPage === i + 1} 
             onClick={() => handlePageChange(i + 1)}
           >
             {i + 1}
@@ -94,10 +85,7 @@ function Board() {
     </BoardStyle>
   );
 }
-
 export default Board;
-
-
 
 const BoardStyle = styled.div`
   width: 70%;
