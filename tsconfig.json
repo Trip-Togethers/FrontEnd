@@ -4,11 +4,10 @@
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" }
   ],
-    "compilerOptions": {
-      "strict": true,
-      "forceConsistentCasingInFileNames": true,
-      "jsx": "react-jsx",
-      "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    }
+  "compilerOptions": {
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "jsx": "react-jsx",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"]
+  }
 }
-

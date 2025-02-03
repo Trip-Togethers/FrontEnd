@@ -21,7 +21,9 @@ function DetailSearch({ selectedPlace }: Props) {
           <div className="place-contents">
             <div className="title">
               <h3>{selectedPlace.name}</h3>
-              <div className="bookmark"><Bookmark /></div>
+              <div className="bookmark">
+                <Bookmark />
+              </div>
             </div>
             <p className="rating">⭐ {selectedPlace.rating || "평점 없음"}</p>
             <p className="vicinity">{selectedPlace.vicinity}</p>
@@ -62,19 +64,19 @@ const DetailSearchContainer = styled.div`
         font-size: 24px;
       }
 
-			div.bookmark {
-				cursor: pointer;
-			}
+      div.bookmark {
+        cursor: pointer;
+      }
 
-			svg {
+      svg {
         width: 24px;
         height: 24px;
       }
     }
 
-		p {
-			margin: 5px 10px;
-			padding: 0;
-		}
+    p {
+      margin: 5px 10px;
+      padding: 0;
+    }
   }
 `;

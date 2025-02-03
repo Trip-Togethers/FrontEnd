@@ -1,14 +1,9 @@
 import { styled } from "styled-components";
 
 function Calendar() {
-	return (
-		<CalendarStyle>
-				Calendar
-		</CalendarStyle>
-	);
+  return <CalendarStyle>Calendar</CalendarStyle>;
 }
 
-const CalendarStyle = styled.div`
-`;
+const CalendarStyle = styled.div``;
 
 export default Calendar;
