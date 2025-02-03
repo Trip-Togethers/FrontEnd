@@ -1,12 +1,15 @@
+import "./font.css";
+
 export type ColorKey = "primary_green"| "primary_black" | "primary_white" | "primary_red" | "input_text" |
 "input_background" | "card_background" | "name_gray" | "calender_schedule" | "schedule_focus" ;
 export type ButtonSize = "default";
 export type ButtonScheme = "primary" | "alert" | "not_active";
 export type Font = "default" | "contents" | "title";
 export type FontWeight = "light" | "normal" | "bold";
+export type Shadow = "default";
 export type InputScheme = "login" | "mypage";
 
-interface Theme{
+export interface Theme{
     color: Record<ColorKey, string>;
     button : {
         [key in ButtonSize]: {
@@ -29,6 +32,7 @@ interface Theme{
             [key in FontWeight]: number;
         };
     };
+    shadow: Record<Shadow, string>;
     inputScheme: {
         [key in InputScheme]: {
             width: string;
@@ -85,6 +89,9 @@ export const theme : Theme = {
             normal: 400,
             bold: 700,
         }
+    },
+    shadow: {
+        default: "0 4px 4px 0 #000000"
     },
     inputScheme: {
         login: {
