@@ -90,7 +90,7 @@ const DatePickerContainer = styled.div`
 `;
 
 const Label = styled.label`
-  font-size: ${theme.heading.small.fontSize};
+  font-size: 1rem;
   margin-bottom: 0.5rem;
   display: block;
   color: ${theme.color.primary_black};
@@ -142,7 +142,7 @@ const Select = styled.select`
 
 const ErrorText = styled.p`
   color: ${theme.color.primary_red};
-  font-size: ${theme.heading.small.fontSize};
+  font-size: 1.5rem;
   margin-top: 0.25rem;
   width: 100%;
   text-align: left;

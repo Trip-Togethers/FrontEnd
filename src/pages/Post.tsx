@@ -5,16 +5,22 @@ import { likePost, addComment, deletePost } from "@/store/postReducer";
 import { useState, useEffect } from "react";
 import Button from "@/components/common/Button";
 import avatar from "../../public/svg/avatar.svg";
+import { Post as PostType, Comment, ImageInfo, RootState } from '@/store/store';
+
+
+interface PostImage {
+  url: string;
+}
 
 interface PostProps {
-  posts: any[];
-  likePost: (id: string) => void;
-  addComment: (comment: any) => void;
-  deletePost: (id: string) => void;
+  posts: PostType[];
+  likePost: typeof likePost;
+  addComment: typeof addComment;
+  deletePost: typeof deletePost;
 }
 
 interface ImageModalProps {
-  images: any[];
+  images: PostImage[];
   currentIndex: number;
   onClose: () => void;
   onPrev: () => void;
@@ -121,17 +127,17 @@ function Post({ posts, likePost, addComment, deletePost }: PostProps) {
         <Content>{post.content}</Content>
 
         {post.images && post.images.length > 0 && (
-          <ImagesContainer>
-            {post.images.map((image, index) => (
-              <ImageWrapper key={index} onClick={() => setSelectedImageIndex(index)}>
-                <PostImage
-                  src={typeof image === 'string' ? image : image.url}
-                  alt={`게시글 이미지 ${index + 1}`}
-                />
-              </ImageWrapper>
-            ))}
-          </ImagesContainer>
-        )}
+            <ImagesContainer>
+              {post.images.map((image: PostImage, index: number) => (
+                <ImageWrapper key={index} onClick={() => setSelectedImageIndex(index)}>
+                  <PostImage
+                    src={typeof image === 'string' ? image : image.url}
+                    alt={`게시글 이미지 ${index + 1}`}
+                  />
+                </ImageWrapper>
+              ))}
+            </ImagesContainer>
+          )}
 
         {selectedImageIndex !== null && post.images && (
           <ImageModal
@@ -150,17 +156,15 @@ function Post({ posts, likePost, addComment, deletePost }: PostProps) {
           <LikeCount>{post.likes}</LikeCount>
         </LikeSection>
       </PostWrapper>
-
       <CommentsWrapper>
         <h3>댓글 ({post.comments.length})</h3>
         <CommentsList>
-          {post.comments.map((c) => (
-            <CommentItem key={c.id}>
-              <b>{c.author}</b>: {c.content}
+        {post.comments.map((c: Comment) => (
+         <CommentItem key={c.id}>
+            <b>{c.author}</b>: {c.content}
             </CommentItem>
           ))}
         </CommentsList>
-
         <CommentInputWrapper>
           <CommentInput
             value={comment}
@@ -168,17 +172,17 @@ function Post({ posts, likePost, addComment, deletePost }: PostProps) {
             placeholder="댓글을 입력하세요..."
           />
           <CommentButton
-            scheme="primary"
-            onClick={() => {
-              addComment({
-                id: Date.now().toString(),
-                postId: post.id,
-                author: "익명",
-                content: comment,
-              });
-              setComment("");
-            }}
-          >
+                scheme="primary"
+                onClick={() => {
+                  addComment({
+                    id: Date.now().toString(),
+                    postId: post.id,
+                    author: "익명",
+                    content: comment,
+                    createdAt: new Date().toISOString() // createdAt 추가
+                  });
+                  setComment("");
+                }}>
             댓글 작성
           </CommentButton>
         </CommentInputWrapper>
@@ -188,7 +192,7 @@ function Post({ posts, likePost, addComment, deletePost }: PostProps) {
 }
 
 export default connect(
-  (state: any) => ({ posts: state.post.posts }),
+  (state: RootState) => ({ posts: state.post.posts }),
   { likePost, addComment, deletePost }
 )(Post);
 
@@ -383,10 +387,13 @@ const CommentsList = styled.ul`
 `;
 
 const CommentItem = styled.li`
-  background: ${({ theme }) => theme.color.input_background};
+  background: ${({ theme }) => theme.color.primary_white};
   padding: 0.8rem;
-  border-radius: 5px;
   margin-bottom: 0.5rem;
+  border: none;
+  border-bottom: 1px solid ${({ theme }) => theme.color.input_text};
+  border-radius: 0;
+
 `;
 
 const CommentInputWrapper = styled.div`
@@ -398,8 +405,10 @@ const CommentInputWrapper = styled.div`
 const CommentInput = styled.input`
   flex: 1;
   padding: 0.7rem;
-  border: 1px solid ${({ theme }) => theme.color.input_text};
-  border-radius: 5px;
+  border: none;
+  border-radius: 0;
+  border-bottom: 1px solid ${({ theme }) => theme.color.input_text};
+  font-family: ${({ theme }) => theme.font.family.contents};
 `;
 
 const CommentButton = styled(Button)`

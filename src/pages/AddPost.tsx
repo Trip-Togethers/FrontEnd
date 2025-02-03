@@ -4,21 +4,18 @@ import { useState, useEffect } from "react";
 import { connect, useSelector } from "react-redux";
 import { addPost, editPost } from "@/store/postReducer";
 import Button from "@/components/common/Button";
-import { PostContentInput, PostTitleInput } from "@/components/common/InputText";
+import InputText from "@/components/common/InputText";
+import { ImageInfo, Plan, Post, RootState} from "@/store/store";
 
-interface ImageInfo {
-  url: string;
-  originalName?: string;
-  file?: File;
-  toDelete?: boolean;
-}
 
-interface Plan {
+interface CommentType {
   id: string;
-  title: string;
-  startDate: string;
-  endDate: string;
+  postId: string;
+  author: string;
+  content: string;
+  createdAt: string;
 }
+
 
 interface PostData {
   title: string;
@@ -26,16 +23,16 @@ interface PostData {
   author: string;
   createdAt: string;
   likes: number;
-  comments: { id: string; postId: string; author: string; content: string }[];
+  comments: CommentType[];
   images?: ImageInfo[];
   planId?: string;
   planInfo?: Plan;
 }
 
 interface AddPostProps {
-  addPost: (post: any) => void;
-  editPost: (post: any) => void;
-  posts: any[];
+  addPost: typeof addPost; 
+  editPost: typeof editPost;
+  posts: Post[];
   isEdit?: boolean;
 }
 
@@ -44,6 +41,7 @@ interface PlanModalProps {
   onClose: () => void;
   children: React.ReactNode;
 }
+
 
 const PlanModal: React.FC<PlanModalProps> = ({ isOpen, onClose, children }) => {
   if (!isOpen) return null;
@@ -61,7 +59,7 @@ function AddPost({ addPost, posts, isEdit, editPost }: AddPostProps) {
   const navigate = useNavigate();
   const { post_id } = useParams<{ post_id: string }>();
   const [showPlanModal, setShowPlanModal] = useState(false);
-  const plans = useSelector((state: any) => state.plan.plans);
+  const plans = useSelector((state: RootState) => state.plan.plans);
   const [postData, setPostData] = useState<PostData>({
     title: "",
     content: "",
@@ -78,9 +76,18 @@ function AddPost({ addPost, posts, isEdit, editPost }: AddPostProps) {
       if (existingPost) {
         setPostData({
           ...existingPost,
-          images: existingPost.images?.map(image => ({
+          comments: existingPost.comments.map(comment => ({
+            id: comment.id,
+            postId: comment.postId,
+            author: comment.author,
+            content: comment.content,
+            createdAt: 'createdAt' in comment ? comment.createdAt : new Date().toISOString()
+          })),
+          images: existingPost.images?.map((image: ImageInfo) => ({
             url: image.url,
-            originalName: image.originalName || image.url.split('/').pop()
+            originalName: image.originalName || image.url.split('/').pop(),
+            file: image.file,
+            toDelete: image.toDelete
           })) || [],
         });
       }
@@ -141,15 +148,19 @@ function AddPost({ addPost, posts, isEdit, editPost }: AddPostProps) {
       return;
     }
     
-    const newPostId = isEdit ? post_id : (posts.length + 1).toString();
+    const newPostId = isEdit && post_id ? post_id : (posts.length + 1).toString();
   
     const updatedPost = {
       ...postData,
       id: newPostId,
       images: postData.images?.map(img => ({
         url: img.file ? URL.createObjectURL(img.file) : img.url,
-        originalName: img.originalName || img.file?.name
+        originalName: img.originalName || img.file?.name || ''
       })) || [],
+      comments: postData.comments.map(comment => ({
+        ...comment,
+        createdAt: comment.createdAt || new Date().toISOString() 
+      }))
     };
   
     if (isEdit) {
@@ -165,13 +176,14 @@ function AddPost({ addPost, posts, isEdit, editPost }: AddPostProps) {
     <Container>
       <Title>{isEdit ? "게시글 수정" : "글 작성하기"}</Title>
       <Form onSubmit={handleSubmit}>
-        <PostTitleInput
+        <AddPostTitleInput
+          scheme='mypage'
+          placeholder="제목을 입력하세요."
           name="title"
           value={postData.title}
           onChange={(e) => setPostData({ ...postData, title: e.target.value })}
         />
         
-        <ScheduleSection>
           <ScheduleButton type="button" onClick={handleScheduleClick}>
             + 일정 추가
           </ScheduleButton>
@@ -193,9 +205,10 @@ function AddPost({ addPost, posts, isEdit, editPost }: AddPostProps) {
               </RemovePlanButton>
             </SelectedPlan>
           )}
-        </ScheduleSection>
+      
 
-        <PostContentInput
+        <AddPostContentInput
+          scheme='mypage'
           name="content"
           value={postData.content}
           onChange={(e) => setPostData({ ...postData, content: e.target.value })}
@@ -211,7 +224,7 @@ function AddPost({ addPost, posts, isEdit, editPost }: AddPostProps) {
               id="image-upload"
               onChange={handleFileUpload}
             />
-            <label htmlFor="image-upload">+ 이미지 추가</label>
+            <label htmlFor="image-upload">🖼️ + 이미지 추가</label>
           </ImageUploadButton>
           {postData.images && postData.images.length > 0 && (
             <FileList>
@@ -290,12 +303,43 @@ function AddPost({ addPost, posts, isEdit, editPost }: AddPostProps) {
 }
 
 export default connect(
-  (state: any) => ({ 
+  (state: RootState) => ({ 
     posts: state.post.posts,
     plans: state.plan.plans 
   }),
   { addPost, editPost }
 )(AddPost);
+
+const AddPostTitleInput = styled(InputText)`
+  font-size: 1rem;
+  padding: 1rem;
+  border-radius: 0;
+  width: 100% !important; 
+  max-width: 100%; 
+  display: block; 
+  height: 3rem;
+  color: ${({ theme }) => theme.color.primary_black};
+  background-color: ${({ theme }) => theme.color.primary_white};
+  border: none;
+  border-bottom: 1px solid ${({ theme }) => theme.color.primary_black};
+  font-family: ${({ theme }) => theme.font.family.title};
+`;
+
+const AddPostContentInput = styled(InputText).attrs({ as: "textarea" })`
+  border: 1px solid ${({ theme }) => theme.color.primary_black};
+  font-size: 1rem;
+  padding: 1rem;
+  border-radius: ${({ theme }) => theme.borderRadius.default};
+  width: 100% !important; 
+  max-width: 100%; 
+  display: block; 
+  height: 400px;
+  font-family: ${({ theme }) => theme.font.family.contents};
+  background-color: ${({ theme }) => theme.color.primary_white};
+  white-space: pre-wrap;
+  word-wrap: break-word; 
+  resize: none; 
+`;
 
 const Container = styled.div`
   width: 100%;
@@ -306,7 +350,7 @@ const Container = styled.div`
 `;
 
 const Title = styled.h2`
-  font-size: ${({ theme }) => theme.heading.large.fontSize};
+  font-size: 2rem;
   font-family: ${({ theme }) => theme.font.family.title};
   font-weight: ${({ theme }) => theme.font.weight.bold};
   text-align: center;
@@ -317,8 +361,9 @@ const Form = styled.form`
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  align-items: center;
   margin: 0 auto;
+  align-items: stretch; 
+  width: 100%; 
 `;
 
 const ScheduleButton = styled.button`
@@ -334,7 +379,7 @@ const ScheduleButton = styled.button`
   text-align: center;
   font-size: 1rem;
   align-self: flex-start;
-  margin-left: 6rem;
+  margin-left: 0;
   
   &:hover {
     background: ${({ theme }) => theme.color.primary_green};
@@ -349,8 +394,8 @@ const ImageUploadButton = styled.div`
   color: ${({ theme }) => theme.color.input_text};
   border-radius: 5px;
   cursor: pointer;
-  text-align: center;
-  font-size: 1rem;
+  text-align: left;
+  font-size: 1.25rem;
   font-family: ${({ theme }) => theme.font.family.default};
 
   label {
@@ -367,11 +412,11 @@ const ImageUploadButton = styled.div`
 const ButtonGroup = styled.div`
   display: flex;
   gap: 10px;
+  justify-content: flex-end;
 `;
 
 const ImageUploadWrapper = styled.div`
   width: 100%;
-  max-width: 548px;
   margin: 0 auto;
 `;
 
@@ -380,6 +425,7 @@ const FileList = styled.div`
   overflow-y: auto;
   margin-top: 10px;
   background: ${({ theme }) => theme.color.input_background};
+  font-family: ${({ theme }) => theme.font.family.contents};
   border-radius: 5px;
   padding: 10px;
 
@@ -405,6 +451,7 @@ const FileItem = styled.div`
   background: white;
   border-radius: 4px;
   margin-bottom: 6px;
+  font-family: ${({ theme }) => theme.font.family.contents};
   
   &:last-child {
     margin-bottom: 0;
@@ -417,11 +464,13 @@ const FileInfo = styled.div`
   gap: 8px;
   font-size: 0.9rem;
   color: ${({ theme }) => theme.color.primary_black};
+  font-family: ${({ theme }) => theme.font.family.contents};
   flex: 1;
 `;
 
 const FileSize = styled.span`
   color: ${({ theme }) => theme.color.input_text};
+  font-family: ${({ theme }) => theme.font.family.contents};
   font-size: 0.8rem;
 `;
 
@@ -429,6 +478,7 @@ const FileCheckbox = styled.div`
   display: flex;
   align-items: center;
   margin-right: 8px;
+  font-family: ${({ theme }) => theme.font.family.contents};
 
   input {
     width: 16px;
@@ -498,6 +548,28 @@ const PlanList = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  font-family: ${({ theme }) => theme.font.family.contents};
+  max-height: 300px;
+  overflow-y: auto;
+
+ 
+  &::-webkit-scrollbar {
+    width: 8px; 
+  }
+
+  &::-webkit-scrollbar-track {
+    background: ${({ theme }) => theme.color.input_background}; 
+    border-radius: 10px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: ${({ theme }) => theme.color.primary_green}; 
+    border-radius: 10px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: ${({ theme }) => theme.color.primary_black}; 
+  }
 `;
 
 const PlanItem = styled.div`
@@ -522,31 +594,27 @@ const PlanItem = styled.div`
   }
 `;
 
-const ScheduleSection = styled.div`
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-`;
 
 const SelectedPlan = styled.div`
   position: relative;
-  background: ${({ theme }) => theme.color.input_background};
+  background: ${({ theme }) => theme.color.schedule_focus};
   padding: 1rem;
   border-radius: 5px;
-  margin-left: 6rem;
+  margin-left: 0;
 `;
 
 const PlanTitle = styled.h4`
   margin: 0 0 0.5rem 0;
   font-family: ${({ theme }) => theme.font.family.title};
   padding-right: 2rem;
+  color: ${({ theme }) => theme.color.primary_black};
 `;
 
 const PlanDate = styled.p`
   margin: 0;
-  color: ${({ theme }) => theme.color.input_text};
-  font-size: 0.9rem;
+  color: ${({ theme }) => theme.color.primary_black};
+  font-family: ${({ theme }) => theme.font.family.title};
+  font-size: 1rem;
 `;
 
 const RemovePlanButton = styled.button`
