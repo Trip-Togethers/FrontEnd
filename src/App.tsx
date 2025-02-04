@@ -9,6 +9,7 @@ import Map from "./pages/Map";
 import Post from "./pages/Post";
 import User from "./pages/User";
 import Error from "@common/Error";
+import VerifyEmail from "./pages/VerifyEmail";
 import { ThemeProvider } from "styled-components";
 import { theme } from "./styles/theme";
 import { GlobalStyle } from "./styles/global";
@@ -26,6 +27,12 @@ const router = createBrowserRouter([
     //회원가입
     path: "/users/register",
     element: <Join />,
+    errorElement: <Error />,
+  },
+  {
+    //이메일 인증코드
+    path: "/users/verify-email",
+    element: <VerifyEmail />,
     errorElement: <Error />,
   },
   {
@@ -81,16 +88,6 @@ const router = createBrowserRouter([
   {
     //커뮤니티-글작성
     path: " /posts/:post_id",
-    element: (
-      <Layout>
-        <Post />
-      </Layout>
-    ),
-    errorElement: <Error />,
-  },
-  {
-    //커뮤니티
-    path: "/posts",
     element: (
       <Layout>
         <Post />
