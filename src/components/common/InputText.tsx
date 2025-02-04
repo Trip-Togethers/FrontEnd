@@ -56,8 +56,8 @@ const StyledInput = styled.input<InputProps>`
 
 const LabelStyle = styled.label`
   display: flex;
-  align-tiems: center;
-  text-align: center;
+  align-items: center;
+  text-align:center;
   justify-content: center;
   font-family: ${({ theme }) => theme.font.family.title};
   font-size: 1.25rem;
