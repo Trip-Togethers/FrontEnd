@@ -7,7 +7,6 @@ import Button from "@/components/common/Button";
 import avatar from "../../public/svg/avatar.svg";
 import { Post as PostType, Comment, ImageInfo, RootState } from '@/store/store';
 
-
 interface PostImage {
   url: string;
 }
@@ -476,3 +475,4 @@ const PostImage = styled.img`
     transform: scale(1.05);
   }
 `;
+

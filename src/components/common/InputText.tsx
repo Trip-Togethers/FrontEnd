@@ -1,4 +1,4 @@
-import React, {ForwardedRef} from "react";
+import React, { ForwardedRef } from "react";
 import styled from "styled-components";
 import { InputScheme } from "@/styles/theme";
 
@@ -7,29 +7,26 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
 }
 
-
 // 기본 InputText 컴포넌트
-const InputText = React.forwardRef((
-  { scheme, label, ...props }: InputProps, 
-    ref: ForwardedRef<HTMLInputElement>
+const InputText = React.forwardRef(
+  (
+    { scheme, label, ...props }: InputProps,
+    ref: ForwardedRef<HTMLInputElement>,
   ) => {
-  return (
-    <InputTextStyle>
-      {label && <LabelStyle>{label}</LabelStyle>}
-      <StyledInput 
-        scheme={scheme} 
-        ref={ref}
-        {...props} 
-      />
-    </InputTextStyle>
-  );
-});
+    return (
+      <InputTextStyle>
+        {label && <LabelStyle>{label}</LabelStyle>}
+        <StyledInput scheme={scheme} ref={ref} {...props} />
+      </InputTextStyle>
+    );
+  },
+);
 
 const InputTextStyle = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
-  `;
+`;
 
 const StyledInput = styled.input<InputProps>`
   margin-top: 20px;
@@ -41,12 +38,12 @@ const StyledInput = styled.input<InputProps>`
   border-radius: 10px;
   padding: 0.75rem;
   font-family: ${({ theme }) => theme.font.family.contents};
-  font-size: ${({theme, scheme }) => theme.inputScheme[scheme].fontSize};
-  font-weight: ${({theme}) => theme.font.weight.light};
+  font-size: ${({ theme, scheme }) => theme.inputScheme[scheme].fontSize};
+  font-weight: ${({ theme }) => theme.font.weight.light};
   outline: none;
-  width: ${({theme, scheme }) => theme.inputScheme[scheme].width};
-  height: ${({theme, scheme }) => theme.inputScheme[scheme].height};
-  
+  width: ${({ theme, scheme }) => theme.inputScheme[scheme].width};
+  height: ${({ theme, scheme }) => theme.inputScheme[scheme].height};
+
   &:focus {
     border-color: ${({ theme }) => theme.color.primary_green};
   }
@@ -71,4 +68,3 @@ const LabelStyle = styled.label`
 `;
 
 export default InputText;
-

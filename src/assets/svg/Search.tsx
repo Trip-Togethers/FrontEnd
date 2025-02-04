@@ -9,7 +9,7 @@ const Search = (props: SVGProps<SVGSVGElement>) => (
   >
     <mask
       id="mask0_1102_6291"
-			style={{
+      style={{
         maskType: "alpha",
       }}
       maskUnits="userSpaceOnUse"

@@ -85,6 +85,7 @@ function Board() {
     </BoardStyle>
   );
 }
+
 export default Board;
 
 const BoardStyle = styled.div`
@@ -155,3 +156,4 @@ const PageButton = styled.button<{ $active?: boolean }>`
     opacity: 0.5;
   }
 `;
+

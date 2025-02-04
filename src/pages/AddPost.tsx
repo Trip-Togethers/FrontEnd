@@ -7,7 +7,6 @@ import Button from "@/components/common/Button";
 import InputText from "@/components/common/InputText";
 import { ImageInfo, Plan, Post, RootState} from "@/store/store";
 
-
 interface CommentType {
   id: string;
   postId: string;

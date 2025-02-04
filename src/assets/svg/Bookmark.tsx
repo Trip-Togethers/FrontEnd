@@ -8,7 +8,7 @@ const Bookmark = (props: SVGProps<SVGSVGElement>) => (
   >
     <mask
       id="mask0_1102_6195"
-			style={{
+      style={{
         maskType: "alpha",
       }}
       maskUnits="userSpaceOnUse"

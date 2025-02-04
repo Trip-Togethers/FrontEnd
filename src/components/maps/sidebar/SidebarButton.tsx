@@ -4,18 +4,25 @@ interface Props {
   icon: any;
   text: string;
   id: string;
-	currentTab: string | null;
-	isOpen: boolean;
+  currentTab: string | null;
+  isOpen: boolean;
   handleClick: () => void;
 }
 
-function SidebarButton({ icon, text, id, currentTab, isOpen, handleClick }: Props) {
+function SidebarButton({
+  icon,
+  text,
+  id,
+  currentTab,
+  isOpen,
+  handleClick,
+}: Props) {
   return (
-    <SidebarButtonStyle 
-			id={id} 
-			onClick={handleClick}
-			active={isOpen && currentTab === id}
-		>
+    <SidebarButtonStyle
+      id={id}
+      onClick={handleClick}
+      active={isOpen && currentTab === id}
+    >
       <div>{icon}</div>
       <div>
         <p>{text}</p>
@@ -42,10 +49,10 @@ const SidebarButtonStyle = styled.div<{ active: boolean }>`
       width: 50px;
       height: 50px;
 
-			path {
-				fill: ${({ active, theme }) =>
-        active ? theme.color.primary_green : theme.color.name_gray};
-			}
+      path {
+        fill: ${({ active, theme }) =>
+          active ? theme.color.primary_green : theme.color.name_gray};
+      }
     }
 
     p {

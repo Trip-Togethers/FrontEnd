@@ -49,7 +49,8 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
   const [center, setCenter] = useState({ lat: latitude, lng: longitude });
   const [searchResults, setSearchResults] = useState<any>(null);
   const [selectedPlace, setSelectedPlace] = useState<any>(null);
-  const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
+  const [autocomplete, setAutocomplete] =
+    useState<google.maps.places.Autocomplete | null>(null);
 
   // 사이드바 관련 코드
   const handleSidebarClick = useCallback(
@@ -62,7 +63,7 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
         setIsSidebarOpen(true);
       }
     },
-    [currentTab, isSidebarOpen]
+    [currentTab, isSidebarOpen],
   );
 
   const handleCategoryClick = useCallback(
@@ -72,7 +73,7 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
       (document.getElementById("place-input") as HTMLInputElement).value = name;
       searchCategory(type);
     },
-    [currentTab, isSidebarOpen]
+    [currentTab, isSidebarOpen],
   );
 
   useEffect(() => {
@@ -80,7 +81,7 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
       setSearchResults(null);
       setSelectedPlace(null);
     }
-  }, [isSidebarOpen])
+  }, [isSidebarOpen]);
 
   // 지도 관련 코드
   const mapContainerStyle = {
@@ -108,7 +109,14 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
     const service = new google.maps.places.PlacesService(map);
     const request = {
       placeId: placeId,
-      fields: ["name", "geometry", "vicinity", "rating", "photos", "opening_hours"],
+      fields: [
+        "name",
+        "geometry",
+        "vicinity",
+        "rating",
+        "photos",
+        "opening_hours",
+      ],
     };
 
     service.getDetails(request, (place, status) => {
@@ -118,7 +126,9 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
     });
   };
 
-  const handleAutocompleteLoad = (autocompleteInstance: google.maps.places.Autocomplete) => {
+  const handleAutocompleteLoad = (
+    autocompleteInstance: google.maps.places.Autocomplete,
+  ) => {
     setAutocomplete(autocompleteInstance);
   };
 
@@ -126,12 +136,12 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
     if (autocomplete !== null) {
       const place = autocomplete.getPlace();
       if (place.geometry && place.geometry.location) {
-        const currentCenter = place.geometry.location
+        const currentCenter = place.geometry.location;
 
         setSearchResults([place]);
         setSelectedPlace(place);
         setCurrentTab(SIDEBAR_TAB_TEXT.search.id);
-        setCenter({ lat: currentCenter.lat(), lng: currentCenter.lng() })
+        setCenter({ lat: currentCenter.lat(), lng: currentCenter.lng() });
         map?.panTo(currentCenter);
         map?.setZoom(18);
       }
@@ -147,7 +157,14 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
       location: currentCenter,
       radius: 1000,
       type,
-      fields: ["name", "geometry", "vicinity", "rating", "photos", "opening_hours"],
+      fields: [
+        "name",
+        "geometry",
+        "vicinity",
+        "rating",
+        "photos",
+        "opening_hours",
+      ],
     };
 
     service.nearbySearch(request, (results, status) => {
@@ -187,7 +204,7 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
                       <Search />
                     </div>
                     <Autocomplete
-                      onLoad={handleAutocompleteLoad} 
+                      onLoad={handleAutocompleteLoad}
                       onPlaceChanged={handlePlaceChanged}
                     >
                       <input
@@ -201,7 +218,7 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
                       onClick={() =>
                         ((
                           document.getElementById(
-                            "place-input"
+                            "place-input",
                           ) as HTMLInputElement
                         ).value = "")
                       }
@@ -209,7 +226,7 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
                       <Plus />
                     </div>
                   </InputContainer>
-                  <DetailSearch selectedPlace={selectedPlace} />                
+                  <DetailSearch selectedPlace={selectedPlace} />
                 </>
               )}
             </SidebarDetailContainer>
@@ -243,8 +260,8 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
                 }}
                 title={place.name}
                 onClick={() => {
-                  setSelectedPlace(place)
-                  setIsSidebarOpen(true)
+                  setSelectedPlace(place);
+                  setIsSidebarOpen(true);
                 }}
                 icon={{
                   url: "http://maps.google.com/mapfiles/ms/icons/red-dot.png", // 기본 아이콘
@@ -340,7 +357,7 @@ const InputContainer = styled.div`
 
 const CategoryContainer = styled.div<{ isOpen: boolean }>`
   position: absolute;
-  left: ${({ isOpen }) => isOpen? "385px" : "75px"};
+  left: ${({ isOpen }) => (isOpen ? "385px" : "75px")};
   margin: 10px 0 0 20px;
   height: 40px;
   display: flex;
