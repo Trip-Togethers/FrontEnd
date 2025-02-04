@@ -1,18 +1,18 @@
 import { styled } from "styled-components";
 import Plane from "@assets/svg/Plane";
 import Logo from "@assets/svg/Logo";
-import { Google } from "@/assets/svg";
+import { Google } from "@assets/svg";
 import { Link } from "react-router-dom";
-import Button from "@/components/common/Button";
-import InputText from "@/components/common/InputText";
-import { useAlert } from "@/hooks/useAlert";
+import Button from "@components/common/Button";
+import InputText from "@components/common/InputText";
+import { useAlert } from "@hooks/useAlert";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { ErrorMessage } from "@hookform/error-message";
 import { login } from "@api/auth.api";
-import { useAuthstore } from "@/store/authStore";
+import { useAuthstore } from "@store/authStore";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { app } from "../firebase.ts";
+import { app } from "../firebase";
 
 export interface LoginProps {
   email: string;

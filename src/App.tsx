@@ -1,19 +1,22 @@
 import Login from "./pages/Login";
 import AddPost from "./pages/AddPost";
 import Board from "./pages/Board";
-import Calendar from "./pages/Calendar";
 import Detail from "./pages/Detail";
 import Home from "./pages/Home";
 import Join from "./pages/Join";
 import Map from "./pages/Map";
 import Post from "./pages/Post";
 import User from "./pages/User";
-import Error from "@common/Error";
+import Error from "@components/common/Error";
 import { ThemeProvider } from "styled-components";
 import { theme } from "./styles/theme";
 import { GlobalStyle } from "./styles/global";
 import Layout from "@components/layout/Layout";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import Calendars from "@pages/Calendar";
+import { Provider } from "react-redux";
+import store from "@store/store";
+
 
 const router = createBrowserRouter([
   {
@@ -40,7 +43,7 @@ const router = createBrowserRouter([
   },
   {
     //상세페이지
-    path: "/trips/:trip_id/activities",
+    path: "/trips/:tripId/activities",
     element: (
       <Layout>
         <Detail />
@@ -60,7 +63,7 @@ const router = createBrowserRouter([
   },
   {
     //마이페이지
-    path: "/users/:user_id",
+    path: "/users/:userId",
     element: (
       <Layout>
         <User />
@@ -73,17 +76,17 @@ const router = createBrowserRouter([
     path: "/posts",
     element: (
       <Layout>
-        <Post />
+        <Board/>
       </Layout>
     ),
     errorElement: <Error />,
   },
   {
     //커뮤니티-글작성
-    path: " /posts/:post_id",
+    path: " /posts/:postId",
     element: (
       <Layout>
-        <Post />
+        <AddPost />
       </Layout>
     ),
     errorElement: <Error />,
@@ -98,12 +101,40 @@ const router = createBrowserRouter([
     ),
     errorElement: <Error />,
   },
-  {
-    //달력
-    path: "/calendar/:user_id",
+  {//커뮤니티-글작성
+    path: "/posts/new",
     element: (
       <Layout>
-        <Calendar />
+        <AddPost/>
+      </Layout>
+    ),
+    errorElement: <Error />,
+  },
+  {//커뮤니티 게시글 상세목록
+    path: "/posts/:postId",
+    element: (
+      <Layout>
+        <Post/>
+      </Layout>
+    ),
+    errorElement: <Error />,
+  },
+  { // 커뮤니티 게시글 수정
+    path: "/posts/edit/:postId",
+    element: (
+      <Layout>
+        <AddPost isEdit={true} />
+      </Layout>
+    ),
+    errorElement: <Error />,
+  },
+  {
+    //달력
+    //path: "/calendar/:userId",
+    path: "/calendar/:userId",
+    element: (
+      <Layout>
+        <Calendars />
       </Layout>
     ),
     errorElement: <Error />,
@@ -112,11 +143,13 @@ const router = createBrowserRouter([
 
 function App() {
   return (
-    <>
+    <> 
+    <Provider store={store}>
       <ThemeProvider theme={theme}>
         <GlobalStyle />
         <RouterProvider router={router} />
       </ThemeProvider>
+      </Provider>
     </>
   );
 }

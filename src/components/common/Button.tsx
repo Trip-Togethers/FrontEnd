@@ -1,5 +1,5 @@
-import styled from "styled-components";
-import { ButtonScheme } from "@/styles/theme";
+import styled, { DefaultTheme } from "styled-components";
+import { ButtonScheme } from "@styles/theme.js";
 import "@/styles/font.css";
 
 interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {

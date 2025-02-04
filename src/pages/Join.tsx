@@ -4,12 +4,12 @@ import { Logo } from "@assets/svg";
 import Button from "../components/common/Button";
 import InputText from "@components/common/InputText";
 import { useNavigate } from "react-router-dom";
-import { useAlert } from "../hooks/useAlert";
+import { useAlert } from "@hooks/useAlert";
 import { signup } from "@api/auth.api";
 import { ErrorMessage } from "@hookform/error-message";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
-import { checkEmail } from "@/api/checkEmail";
+import { checkEmail } from "@api/checkEmail";
 
 export interface RegisterProps {
   email: string;
