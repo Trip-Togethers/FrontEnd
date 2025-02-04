@@ -189,7 +189,7 @@ function Home({ plans, addPlan, deletePlan }: HomeProps) {
 
       {/* 새 일정 생성 모달 */}
       <Modal
-        type="schedule"
+        type="plan"
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={(plan) => {
