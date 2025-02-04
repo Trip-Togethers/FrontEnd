@@ -23,7 +23,8 @@ export const signup = async (
 ): Promise<SignupResponse> => {
   const response = await httpClient.post<SignupResponse>(
     `/auth/register`,
-    userData
+    userData,
+    { withCredentials: true }
   );
   return response.data;
 };
@@ -37,7 +38,9 @@ export const login = async (userData: LoginProps) => {
 };
 
 export const logout = async () => {
-  const response = await httpClient.delete(`/auth/logout`);
+  const response = await httpClient.delete(`/auth/logout`, {
+    withCredentials: true,
+  });
   return response.data;
 };
 

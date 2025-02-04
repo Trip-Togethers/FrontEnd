@@ -7,9 +7,10 @@ interface StoreState {
 }
 
 export const getToken = () => {
-  const token = localStorage.getItem("token");
-
-  return token;
+  return document.cookie
+    .split("; ")
+    .find((row) => row.startsWith("token="))
+    ?.split("=")[1];
 };
 
 const setToken = (token: string) => {
