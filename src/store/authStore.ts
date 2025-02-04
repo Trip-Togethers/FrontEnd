@@ -6,6 +6,11 @@ interface StoreState {
   storeLogout: () => void;
 }
 
+interface AuthState {
+  email: string | null;
+  setEmail: (email: string) => void;
+}
+
 export const getToken = () => {
   return document.cookie
     .split("; ")
@@ -37,4 +42,9 @@ export const useAuthstore = create<StoreState>((set) => ({
     removeToken();
     window.location.href = "/users/login";
   },
+}));
+
+export const useEmail = create<AuthState>((set) => ({
+  email: null,
+  setEmail: (email) => set({ email }),
 }));

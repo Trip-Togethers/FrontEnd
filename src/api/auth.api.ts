@@ -16,7 +16,7 @@ export const signup = async (
 ): Promise<SignupResponse> => {
   const response = await httpClient.post<SignupResponse>(
     `/users/register`,
-    userData,
+    userData
   );
   return response.data;
 };
@@ -29,6 +29,16 @@ export const login = async (userData: LoginProps) => {
   );
   return response.data;
 };
+
+interface LoginResponse {
+  // 로그인 서버 응답 데이터 타입 (Response Body)
+  token: string;
+  user: {
+    id: number;
+    name: string;
+    email: string;
+  };
+}
 
 export const logout = async () => {
   const response = await httpClient.delete(`/users/logout`, {
