@@ -1,14 +1,14 @@
 import { styled } from "styled-components";
-import Ticket from "@/components/detail/ticket";
-import Modal from "@/components/common/modal";
+import Ticket from "@components/detail/Ticket";
+import Modal from "@components/common/Modal";
 import { useState } from "react";
 
 function Detail() {
-  const { isIngOpen, setIngOpen } = useState(false);
+  // const { isIngOpen, setIngOpen } = useState(false);
   return (
     <DetailStyle>
       <Ticket />
-      <Modal isOpen={isIngOpen}>제목:</Modal>
+      {/* <Modal isOpen={isIngOpen}>제목:</Modal> */}
       <div>dmdrks</div>
     </DetailStyle>
   );

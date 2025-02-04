@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-import Logo from "@assets/svg/Logo.tsx";
+import Logo from "@assets/svg/Logo";
 
 const Ticket = () => {
   return (
