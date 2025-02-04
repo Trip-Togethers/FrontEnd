@@ -51,3 +51,7 @@ interface LoginResponse {
   // 로그인 서버 응답 데이터 타입 (Response Body)
   token: string;
 }
+
+export const verifyEmail = async (code: string) => {
+  return await httpClient.post("/auth/verify-email", { code });
+};
