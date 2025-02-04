@@ -6,6 +6,11 @@ interface StoreState {
   storeLogout: () => void;
 }
 
+interface AuthState {
+  email: string | null;
+  setEmail: (email: string) => void;
+}
+
 export const getToken = () => {
   const token = localStorage.getItem("token");
 
@@ -31,4 +36,9 @@ export const useAuthstore = create<StoreState>((set) => ({
     window.location.href = "users/login";
     removeToken();
   },
+}));
+
+export const useEmail = create<AuthState>((set) => ({
+  email: null,
+  setEmail: (email) => set({ email }),
 }));
