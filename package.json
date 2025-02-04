@@ -13,6 +13,10 @@
   "dependencies": {
     "@hookform/error-message": "^2.0.1",
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+    "@react-google-maps/api": "^2.20.5",
+>>>>>>> feature/community
     "@reduxjs/toolkit": "^2.5.1",
     "@types/react-redux": "^7.1.34",
 =======
