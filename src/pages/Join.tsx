@@ -10,6 +10,7 @@ import { ErrorMessage } from "@hookform/error-message";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { checkEmail } from "@api/checkEmail";
+import { useEmail } from "@store/authStore";
 
 export interface RegisterProps {
   email: string;
@@ -30,34 +31,36 @@ function Join() {
   const showAlert = useAlert();
   const [isEmailChecked, setIsEmailChecked] = useState(false);
 
-  const onSubmit = (data: RegisterProps) => {
-    signup(data).then((res) => {
+  const onSubmit = async (data: RegisterProps) => {
+    try {
+      await signup(data); // BE Register 요청
       showAlert("회원가입이 완료되었습니다.");
       navigate("/users/login");
-    });
+    } catch (error) {
+      showAlert("회원가입에 실패했습니다.");
+    }
   };
 
   const email = watch("email");
 
-  const checkEmailDuplicate = () => {
+  const checkEmailDuplicate = async () => {
     if (!email) {
       showAlert("이메일을 입력해주세요.");
       return;
     }
 
-    checkEmail(email)
-      .then((res) => {
-        if (res.data.isAvailable) {
-          showAlert("사용 가능한 이메일입니다.");
-          setIsEmailChecked(true);
-        } else {
-          showAlert("이미 사용 중인 이메일입니다.");
-          setIsEmailChecked(false);
-        }
-      })
-      .catch(() => {
-        showAlert("이메일 확인 중 오류가 발생했습니다.");
-      });
+    try {
+      const res = await checkEmail(email);
+      if (res.isAvailable) {
+        showAlert("사용 가능한 이메일입니다.");
+        setIsEmailChecked(true);
+      } else {
+        showAlert("이미 사용 중인 이메일입니다.");
+        setIsEmailChecked(false);
+      }
+    } catch {
+      showAlert("이메일 확인 중 오류가 발생했습니다.");
+    }
   };
 
   return (
@@ -89,7 +92,7 @@ function Join() {
               </button>
             </div>
             <ErrorMessage errors={errors} name="email" as={ErrorTextStyle} />
-
+            <br />
             <InputText
               scheme="login"
               type="text"
@@ -103,7 +106,7 @@ function Join() {
               })}
             />
             <ErrorMessage errors={errors} name="name" as={ErrorTextStyle} />
-
+            <br />
             <InputText
               scheme="login"
               type="password"
@@ -118,7 +121,7 @@ function Join() {
               })}
             />
             <ErrorMessage errors={errors} name="password" as={ErrorTextStyle} />
-
+            <br />
             <InputText
               scheme="login"
               type="tel"
@@ -207,11 +210,11 @@ const JoinStyle = styled.div`
   .logo {
     height: 42px;
     fill: ${({ theme }) => theme.color.primary_green};
-    margin: 40px auto 40px;
+    margin: 40px auto 60px;
   }
 
   .input {
-    margin-bottom: 50px;
+    margin-bottom: 40px;
   }
 `;
 
