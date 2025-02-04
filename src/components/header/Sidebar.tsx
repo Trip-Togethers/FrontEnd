@@ -1,7 +1,7 @@
 import styled from "styled-components";
-import Avatar from "@assets/svg/Avatar.tsx";
+import Avatar from "@assets/svg/Avatar";
 import { Link } from "react-router-dom";
-import { useAuthstore } from "@/store/authStore";
+import { useAuthstore } from "@store/authStore";
 
 type Props = {
   isOpen: boolean;

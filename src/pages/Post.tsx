@@ -1,11 +1,11 @@
 import { styled } from "styled-components";
 import { connect } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
-import { likePost, addComment, deletePost } from "@/store/postReducer";
-import { useState, useEffect } from "react";
-import Button from "@/components/common/Button";
+import { likePost, addComment, deletePost } from "@store/postReducer";
+import { useState, useEffect, SetStateAction } from "react";
+import Button from "@components/common/Button";
 import avatar from "../../public/svg/avatar.svg";
-import { Post as PostType, Comment, ImageInfo, RootState } from '@/store/store';
+import { Post as PostType, Comment, ImageInfo, RootState } from '@store/store';
 
 interface PostImage {
   url: string;
@@ -40,7 +40,7 @@ const ImageModal = ({ images, currentIndex, onClose, onPrev, onNext }: ImageModa
 
   return (
     <ModalOverlay onClick={onClose}>
-      <ModalContent onClick={e => e.stopPropagation()}>
+      <ModalContent onClick={(e: { stopPropagation: () => any; }) => e.stopPropagation()}>
         <CloseButton onClick={onClose}>×</CloseButton>
         
         <ImageNavigator>
@@ -167,7 +167,7 @@ function Post({ posts, likePost, addComment, deletePost }: PostProps) {
         <CommentInputWrapper>
           <CommentInput
             value={comment}
-            onChange={(e) => setComment(e.target.value)}
+            onChange={(e: { target: { value: SetStateAction<string>; }; }) => setComment(e.target.value)}
             placeholder="댓글을 입력하세요..."
           />
           <CommentButton

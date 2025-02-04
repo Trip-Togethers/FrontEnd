@@ -1,7 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit";
-import postReducer from "./postReducer";
-import { planReducer } from "./planReducer";
-import participantReducer from "./participantReducer";
+import postReducer from "./postReducer.js";
+import { planReducer } from "./planReducer.js";
+import participantReducer from "./participantReducer.js";
 
 // 공통 기본 타입 정의
 export interface ImageInfo {

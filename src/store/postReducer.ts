@@ -1,4 +1,3 @@
-import { Plans } from './planReducer';
 import { Post, PostState, Comment } from './store';
 
 

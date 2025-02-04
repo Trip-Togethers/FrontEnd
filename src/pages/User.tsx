@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { styled } from "styled-components";
-import InputText from "@/components/common/InputText";
-import Button from "@/components/common/Button";
-import Avatar from "@assets/svg/Avatar.tsx";
+import InputText from "@components/common/InputText";
+import Button from "@components/common/Button";
+import Avatar from "@assets/svg/Avatar";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { ErrorMessage } from "@hookform/error-message";
-import { useAlert } from "@/hooks/useAlert";
+import { useAlert } from "@hooks/useAlert";
 
 interface UserFormData {
   password: string;

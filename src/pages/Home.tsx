@@ -1,24 +1,22 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { styled } from "styled-components";
 import { useNavigate } from "react-router-dom";
 import { connect, useDispatch, useSelector } from "react-redux";
-import { theme } from "@/styles/theme";
-import Modal from "@/components/common/Modal";
-import Button from "@/components/common/Button";
-import { Plan, RootState } from "@/store/store";
-import { addPlan, deletePlan } from "@/store/planReducer";
-import { addParticipant, removeParticipant } from "@/store/participantReducer";
+import { theme } from "@styles/theme";
+import Modal from "@components/common/Modal";
+import Button from "@components/common/Button";
+import { Plan, RootState } from "@store/store";
+import { addPlan, deletePlan } from "@store/planReducer";
+import { addParticipant, removeParticipant } from "@store/participantReducer";
 
-
-  //  인터페이스 정의
-
+// 인터페이스 정의
 interface HomeProps {
   plans: Plan[];
   addPlan: (plan: Plan) => void;
   deletePlan: (id: string) => void;
 }
 
-  // Home 컴포넌트
+// Home 컴포넌트
 function Home({ plans, addPlan, deletePlan }: HomeProps) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -38,18 +36,14 @@ function Home({ plans, addPlan, deletePlan }: HomeProps) {
     .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
     .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
-  
-  //   일정 카드 클릭 핸들러
-  // - 일정 카드 내의 삭제 버튼이 아닌 영역 클릭 시 활동 페이지로 이동
- 
+  // 일정 카드 클릭 핸들러
   const handlePlanClick = (e: React.MouseEvent, id: string) => {
     if (!(e.target as HTMLElement).closest(".delete-btn")) {
       navigate(`/trips/${id}/activities`);
     }
   };
 
-    //  참가자 모달 오픈 핸들러
-    //  - 해당 일정의 참가자 모달을 열고, 참가자가 없으면 기본 참가자들을 추가
+  // 참가자 모달 오픈 핸들러
   const handleShowParticipants = (e: React.MouseEvent, planId: string) => {
     e.stopPropagation();
     setShowParticipantsModalFor(planId);
@@ -62,7 +56,7 @@ function Home({ plans, addPlan, deletePlan }: HomeProps) {
     }
   };
 
-    // 참가자 삭제 핸들러
+  // 참가자 삭제 핸들러
   const handleRemoveParticipant = () => {
     if (!removeParticipantInfo) return;
     const { planId, index } = removeParticipantInfo;
@@ -70,9 +64,6 @@ function Home({ plans, addPlan, deletePlan }: HomeProps) {
     setRemoveParticipantInfo(null);
   };
 
-     
-    //  - 일정 카드 목록, 삭제 모달, 페이지네이션, 새 일정 생성 버튼, 참가자 모달,
-    //    참가자 삭제 확인 모달 등을 렌더링
   return (
     <HomeStyle>
       {/* 일정이 없을 때 안내 메시지 */}
@@ -89,13 +80,13 @@ function Home({ plans, addPlan, deletePlan }: HomeProps) {
         {currentPlans.map((plan, idx) => {
           const participantList = participantsById[plan.id] || [];
           return (
-            <PlanCard key={plan.id} onClick={(e) => handlePlanClick(e, plan.id)}>
+            <PlanCard key={plan.id} onClick={(e: any) => handlePlanClick(e, plan.id)}>
               {/* 삭제 버튼 */}
               <DeleteButton className="delete-btn" onClick={() => setDeleteTarget(idx)}>
                 ➖
               </DeleteButton>
               {/* 참가자 추가 버튼 */}
-              <ParticipantsButton onClick={(e) => handleShowParticipants(e, plan.id)}>+</ParticipantsButton>
+              <ParticipantsButton onClick={(e: any) => handleShowParticipants(e, plan.id)}>+</ParticipantsButton>
               {/* 참가자 아바타 목록 */}
               <ParticipantsRow>
                 {participantList.slice(0, 2).map((participant: string, i: number) => (
@@ -161,22 +152,20 @@ function Home({ plans, addPlan, deletePlan }: HomeProps) {
       {/* 페이지네이션 */}
       {plans.length > itemsPerPage && (
         <Pagination>
-          {[
-            { label: "<", disabled: currentPage === 1 },
-            { label: currentPage, disabled: true },
-            { label: ">", disabled: currentPage === Math.ceil(plans.length / itemsPerPage) },
-          ].map((item, i) => (
-            <PageButton
-              key={i}
-              onClick={() =>
-                setCurrentPage((p) => (i === 0 ? p - 1 : i === 2 ? p + 1 : p))
-              }
-              disabled={item.disabled}
-              $isActive={false}
-            >
-              {item.label}
-            </PageButton>
-          ))}
+          {[{ label: "<", disabled: currentPage === 1 }, { label: currentPage, disabled: true }, { label: ">", disabled: currentPage === Math.ceil(plans.length / itemsPerPage) }].map(
+            (item, i) => (
+              <PageButton
+                key={i}
+                onClick={() =>
+                  setCurrentPage((p) => (i === 0 ? p - 1 : i === 2 ? p + 1 : p))
+                }
+                disabled={item.disabled}
+                $isActive={false}
+              >
+                {item.label}
+              </PageButton>
+            )
+          )}
         </Pagination>
       )}
 
@@ -192,7 +181,7 @@ function Home({ plans, addPlan, deletePlan }: HomeProps) {
         type="plan"
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSubmit={(plan) => {
+        onSubmit={(plan: any) => {
           addPlan({
             ...plan,
             id: Date.now().toString(),
@@ -204,7 +193,7 @@ function Home({ plans, addPlan, deletePlan }: HomeProps) {
       {/* 참가자 목록 모달 */}
       {showParticipantsModalFor && (
         <ParticipantsModal onClick={() => setShowParticipantsModalFor(null)}>
-          <ModalContent onClick={(e) => e.stopPropagation()}>
+          <ModalContent onClick={(e: { stopPropagation: () => any; }) => e.stopPropagation()}>
             <ModalTitle>참가자 목록</ModalTitle>
             <ParticipantsList>
               {(participantsById[showParticipantsModalFor] || []).map((nickname: string, idx: number) => (

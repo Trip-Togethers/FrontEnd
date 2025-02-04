@@ -4,13 +4,13 @@ import { Logo } from "@assets/svg";
 import Button from "../components/common/Button";
 import InputText from "@components/common/InputText";
 import { useNavigate } from "react-router-dom";
-import { useAlert } from "../hooks/useAlert";
+import { useAlert } from "@hooks/useAlert";
 import { signup } from "@api/auth.api";
 import { ErrorMessage } from "@hookform/error-message";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
-import { checkEmail } from "@/api/checkEmail";
-import { useEmail } from "@/store/authStore";
+import { checkEmail } from "@api/checkEmail";
+import { useEmail } from "@store/authStore";
 
 export interface RegisterProps {
   email: string;
@@ -31,46 +31,36 @@ function Join() {
   const showAlert = useAlert();
   const [isEmailChecked, setIsEmailChecked] = useState(false);
 
-  // const onSubmit = async (data: RegisterProps) => {
-  //   const response = await signup(data);
-  //   if (response.success) {
-  //     useEmail.getState().setEmail(data.email); // 상태에 이메일 저장
-  //     navigate("/users/verify-email");
-  //   }
-  // };
-
-  //백엔드 없이 기능 확인
   const onSubmit = async (data: RegisterProps) => {
-    console.log("회원가입 데이터:", data);
-
-    useEmail.getState().setEmail(data.email);
-    console.log("저장된 이메일:", useEmail.getState().email);
-
-    navigate("/users/verify-email");
+    try {
+      await signup(data); // BE Register 요청
+      showAlert("회원가입이 완료되었습니다.");
+      navigate("/users/login");
+    } catch (error) {
+      showAlert("회원가입에 실패했습니다.");
+    }
   };
 
   const email = watch("email");
 
-  const checkEmailDuplicate = () => {
-    //이메일 중복 확인을 위해
+  const checkEmailDuplicate = async () => {
     if (!email) {
       showAlert("이메일을 입력해주세요.");
       return;
     }
 
-    checkEmail(email)
-      .then((res) => {
-        if (res.data.isAvailable) {
-          showAlert("사용 가능한 이메일입니다.");
-          setIsEmailChecked(true);
-        } else {
-          showAlert("이미 사용 중인 이메일입니다.");
-          setIsEmailChecked(false);
-        }
-      })
-      .catch(() => {
-        showAlert("이메일 확인 중 오류가 발생했습니다.");
-      });
+    try {
+      const res = await checkEmail(email);
+      if (res.isAvailable) {
+        showAlert("사용 가능한 이메일입니다.");
+        setIsEmailChecked(true);
+      } else {
+        showAlert("이미 사용 중인 이메일입니다.");
+        setIsEmailChecked(false);
+      }
+    } catch {
+      showAlert("이메일 확인 중 오류가 발생했습니다.");
+    }
   };
 
   return (
