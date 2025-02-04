@@ -80,7 +80,7 @@ const router = createBrowserRouter([
     path: "/posts",
     element: (
       <Layout>
-        <Post />
+        <Board />
       </Layout>
     ),
     errorElement: <Error />,
@@ -90,7 +90,38 @@ const router = createBrowserRouter([
     path: " /posts/:post_id",
     element: (
       <Layout>
+        <AddPost />
+      </Layout>
+    ),
+    errorElement: <Error />,
+  },
+
+  {
+    //커뮤니티-글작성
+    path: "/posts/new",
+    element: (
+      <Layout>
+        <AddPost />
+      </Layout>
+    ),
+    errorElement: <Error />,
+  },
+  {
+    //커뮤니티 게시글 상세목록
+    path: "/posts/:post_id",
+    element: (
+      <Layout>
         <Post />
+      </Layout>
+    ),
+    errorElement: <Error />,
+  },
+  {
+    // 커뮤니티 게시글 수정
+    path: "/posts/edit/:post_id",
+    element: (
+      <Layout>
+        <AddPost isEdit={true} />
       </Layout>
     ),
     errorElement: <Error />,

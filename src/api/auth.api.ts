@@ -53,7 +53,3 @@ export const login = async (userData: LoginProps) => {
   );
   return response.data;
 };
-
-export const verifyEmail = async (email: string, code: string) => {
-  return await httpClient.post("/auth/verify-email", { email, code });
-};
