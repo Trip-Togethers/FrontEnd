@@ -11,8 +11,8 @@
     "svgr": "npx @svgr/cli -d src/assets/svg --ignore-existing --typescript --no-dimensions public/svg"
   },
   "dependencies": {
-    "@react-google-maps/api": "^2.20.5",
     "@hookform/error-message": "^2.0.1",
+    "@react-google-maps/api": "^2.20.5",
     "@reduxjs/toolkit": "^2.5.1",
     "@types/react-redux": "^7.1.34",
     "axios": "^1.7.9",

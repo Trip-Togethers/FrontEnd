@@ -1,13 +1,14 @@
+import React, { useState, useEffect } from "react";
 import { styled } from "styled-components";
 import { useNavigate, useParams } from "react-router-dom";
-import { useState, useEffect } from "react";
 import { connect, useSelector } from "react-redux";
 import { addPost, editPost } from "@/store/postReducer";
 import Button from "@/components/common/Button";
 import InputText from "@/components/common/InputText";
-import { ImageInfo, Plan, Post, RootState} from "@/store/store";
+import { ImageInfo, Plan, Post, RootState } from "@/store/store";
 
 
+//  인터페이스 정의
 interface CommentType {
   id: string;
   postId: string;
@@ -15,7 +16,6 @@ interface CommentType {
   content: string;
   createdAt: string;
 }
-
 
 interface PostData {
   title: string;
@@ -30,7 +30,7 @@ interface PostData {
 }
 
 interface AddPostProps {
-  addPost: typeof addPost; 
+  addPost: typeof addPost;
   editPost: typeof editPost;
   posts: Post[];
   isEdit?: boolean;
@@ -43,23 +43,33 @@ interface PlanModalProps {
 }
 
 
+  //  일정 선택 모달 컴포넌트 (PlanModal)
+  //  일정 선택을 위한 모달 컴포넌트
 const PlanModal: React.FC<PlanModalProps> = ({ isOpen, onClose, children }) => {
   if (!isOpen) return null;
-
   return (
     <ModalOverlay onClick={onClose}>
-      <ModalContent onClick={e => e.stopPropagation()}>
+      <ModalContent onClick={(e) => e.stopPropagation()}>
         {children}
       </ModalContent>
     </ModalOverlay>
   );
 };
 
+  //  게시글 추가 및 수정 컴포넌트 (AddPost)
+  //  - 제목, 내용, 이미지 업로드, 일정 선택 등의 기능 제공
+  //  - 수정 모드일 경우 기존 데이터를 불러와서 편집 가능
+
 function AddPost({ addPost, posts, isEdit, editPost }: AddPostProps) {
   const navigate = useNavigate();
   const { post_id } = useParams<{ post_id: string }>();
+
+  // 일정 모달 노출 상태 관리
   const [showPlanModal, setShowPlanModal] = useState(false);
+  // redux에서 일정 데이터를 가져옴
   const plans = useSelector((state: RootState) => state.plan.plans);
+
+  // 게시글 데이터 상태 초기화
   const [postData, setPostData] = useState<PostData>({
     title: "",
     content: "",
@@ -70,44 +80,53 @@ function AddPost({ addPost, posts, isEdit, editPost }: AddPostProps) {
     images: [],
   });
 
+  // 수정 모드일 때 기존 게시글 데이터 로드
   useEffect(() => {
     if (isEdit && post_id) {
       const existingPost = posts.find((post) => post.id === post_id);
       if (existingPost) {
         setPostData({
           ...existingPost,
-          comments: existingPost.comments.map(comment => ({
+          comments: existingPost.comments.map((comment) => ({
             id: comment.id,
             postId: comment.postId,
             author: comment.author,
             content: comment.content,
-            createdAt: 'createdAt' in comment ? comment.createdAt : new Date().toISOString()
+            createdAt: "createdAt" in comment ? comment.createdAt : new Date().toISOString(),
           })),
-          images: existingPost.images?.map((image: ImageInfo) => ({
-            url: image.url,
-            originalName: image.originalName || image.url.split('/').pop(),
-            file: image.file,
-            toDelete: image.toDelete
-          })) || [],
+          images:
+            existingPost.images?.map((image: ImageInfo) => ({
+              url: image.url,
+              originalName: image.originalName || image.url.split("/").pop(),
+              file: image.file,
+              toDelete: image.toDelete,
+            })) || [],
         });
       }
     }
   }, [isEdit, post_id, posts]);
 
+   //  일정 선택 버튼 클릭 핸들러
   const handleScheduleClick = () => {
     setShowPlanModal(true);
   };
 
+
+   //  일정 선택 시 해당 일정 정보를 게시글 데이터에 반영
   const handleSelectPlan = (plan: Plan) => {
-    setPostData(prev => ({
+    setPostData((prev) => ({
       ...prev,
       planId: plan.id,
       planInfo: plan,
-      content: `${prev.content}\n\n[여행 일정]\n${plan.title}\n기간: ${new Date(plan.startDate).toLocaleDateString()} - ${new Date(plan.endDate).toLocaleDateString()}`
+      content: `${prev.content}\n\n[여행 일정]\n${plan.title}\n기간: ${new Date(
+        plan.startDate
+      ).toLocaleDateString()} - ${new Date(plan.endDate).toLocaleDateString()}`,
     }));
     setShowPlanModal(false);
   };
 
+    // 이미지 파일 업로드 핸들러
+   //  - 선택한 파일들을 이미지 미리보기 URL과 함께 상태에 저장
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const newFiles = Array.from(e.target.files);
@@ -115,105 +134,120 @@ function AddPost({ addPost, posts, isEdit, editPost }: AddPostProps) {
         newFiles.map(async (file) => ({
           url: URL.createObjectURL(file),
           originalName: file.name,
-          file
+          file,
         }))
       );
-      
-      setPostData(prev => ({
+      setPostData((prev) => ({
         ...prev,
-        images: [...(prev.images || []), ...newImages]
+        images: [...(prev.images || []), ...newImages],
       }));
     }
   };
 
+    // 개별 이미지 삭제 핸들러
   const handleImageDelete = (index: number) => {
-    setPostData(prev => ({
+    setPostData((prev) => ({
       ...prev,
-      images: prev.images?.filter((_, i) => i !== index) || []
+      images: prev.images?.filter((_, i) => i !== index) || [],
     }));
   };
 
+
+   //  선택된(체크된) 이미지 삭제 핸들러
   const handleSelectedImagesDelete = () => {
-    setPostData(prev => ({
+    setPostData((prev) => ({
       ...prev,
-      images: prev.images?.filter(img => !img.toDelete) || []
+      images: prev.images?.filter((img) => !img.toDelete) || [],
     }));
   };
+
+    // 폼 제출 핸들러 (게시글 저장/수정)
+    //  - 제목과 내용 필수 체크
+    // - 수정모드이면 기존 게시글 수정, 아니면 새 게시글 추가
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!postData.title.trim() || !postData.content.trim()) {
-      alert('제목과 내용을 모두 입력해주세요.');
+      alert("제목과 내용을 모두 입력해주세요.");
       return;
     }
-    
+
+    // 수정모드이면 기존 post_id 사용, 아니면 새 id 생성
     const newPostId = isEdit && post_id ? post_id : (posts.length + 1).toString();
-  
+
     const updatedPost = {
       ...postData,
       id: newPostId,
-      images: postData.images?.map(img => ({
-        url: img.file ? URL.createObjectURL(img.file) : img.url,
-        originalName: img.originalName || img.file?.name || ''
-      })) || [],
-      comments: postData.comments.map(comment => ({
+      // 이미지 데이터 재정의: file이 있을 경우 URL 재생성, 없으면 기존 url 사용
+      images:
+        postData.images?.map((img) => ({
+          url: img.file ? URL.createObjectURL(img.file) : img.url,
+          originalName: img.originalName || img.file?.name || "",
+        })) || [],
+      // 댓글 데이터에 생성일자가 없으면 현재 시간 적용
+      comments: postData.comments.map((comment) => ({
         ...comment,
-        createdAt: comment.createdAt || new Date().toISOString() 
-      }))
+        createdAt: comment.createdAt || new Date().toISOString(),
+      })),
     };
-  
+
     if (isEdit) {
       editPost(updatedPost);
     } else {
       addPost(updatedPost);
     }
-    
     navigate("/posts");
   };
 
+    // JSX 렌더링
+    // 제목, 내용 입력창, 일정 추가 버튼, 이미지 업로드, 제출/취소 버튼, 일정 선택 모달
   return (
     <Container>
       <Title>{isEdit ? "게시글 수정" : "글 작성하기"}</Title>
       <Form onSubmit={handleSubmit}>
+        {/* 제목 입력 */}
         <AddPostTitleInput
-          scheme='mypage'
+          scheme="mypage"
           placeholder="제목을 입력하세요."
           name="title"
           value={postData.title}
           onChange={(e) => setPostData({ ...postData, title: e.target.value })}
         />
-        
-          <ScheduleButton type="button" onClick={handleScheduleClick}>
-            + 일정 추가
-          </ScheduleButton>
-          {postData.planInfo && (
-            <SelectedPlan>
-              <PlanTitle>{postData.planInfo.title}</PlanTitle>
-              <PlanDate>
-                {new Date(postData.planInfo.startDate).toLocaleDateString()} - 
-                {new Date(postData.planInfo.endDate).toLocaleDateString()}
-              </PlanDate>
-              <RemovePlanButton 
-                onClick={() => setPostData(prev => ({ 
-                  ...prev, 
-                  planId: undefined, 
-                  planInfo: undefined 
-                }))}
-              >
-                ×
-              </RemovePlanButton>
-            </SelectedPlan>
-          )}
-      
 
+        {/* 일정 추가 버튼 및 선택된 일정 표시 */}
+        <ScheduleButton type="button" onClick={handleScheduleClick}>
+          + 일정 추가
+        </ScheduleButton>
+        {postData.planInfo && (
+          <SelectedPlan>
+            <PlanTitle>{postData.planInfo.title}</PlanTitle>
+            <PlanDate>
+              {new Date(postData.planInfo.startDate).toLocaleDateString()} -{" "}
+              {new Date(postData.planInfo.endDate).toLocaleDateString()}
+            </PlanDate>
+            <RemovePlanButton
+              onClick={() =>
+                setPostData((prev) => ({
+                  ...prev,
+                  planId: undefined,
+                  planInfo: undefined,
+                }))
+              }
+            >
+              ×
+            </RemovePlanButton>
+          </SelectedPlan>
+        )}
+
+        {/* 내용 입력 */}
         <AddPostContentInput
-          scheme='mypage'
+          scheme="mypage"
           name="content"
           value={postData.content}
           onChange={(e) => setPostData({ ...postData, content: e.target.value })}
         />
 
+        {/* 이미지 업로드 영역 */}
         <ImageUploadWrapper>
           <ImageUploadButton>
             <input
@@ -233,13 +267,16 @@ function AddPost({ addPost, posts, isEdit, editPost }: AddPostProps) {
                   <FileCheckbox>
                     <input
                       type="checkbox"
-                      checked={image.toDelete}
+                      checked={image.toDelete || false}
                       onChange={(e) => {
                         const imagesCopy = [...(postData.images || [])];
-                        imagesCopy[index] = { ...imagesCopy[index], toDelete: e.target.checked };
-                        setPostData(prev => ({
+                        imagesCopy[index] = {
+                          ...imagesCopy[index],
+                          toDelete: e.target.checked,
+                        };
+                        setPostData((prev) => ({
                           ...prev,
-                          images: imagesCopy
+                          images: imagesCopy,
                         }));
                       }}
                     />
@@ -252,15 +289,17 @@ function AddPost({ addPost, posts, isEdit, editPost }: AddPostProps) {
                       </FileSize>
                     )}
                   </FileInfo>
-                  <DeleteButton onClick={(e) => {
-                    e.preventDefault();
-                    handleImageDelete(index);
-                  }}>
+                  <DeleteButton
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleImageDelete(index);
+                    }}
+                  >
                     ×
                   </DeleteButton>
                 </FileItem>
               ))}
-              {postData.images.some(img => img.toDelete) && (
+              {postData.images.some((img) => img.toDelete) && (
                 <DeleteSelectedButton
                   onClick={(e) => {
                     e.preventDefault();
@@ -274,11 +313,17 @@ function AddPost({ addPost, posts, isEdit, editPost }: AddPostProps) {
           )}
         </ImageUploadWrapper>
 
+        {/* 제출 및 취소 버튼 그룹 */}
         <ButtonGroup>
-          <Button type="submit" scheme="primary">{isEdit ? "수정 완료" : "완료"}</Button>
-          <Button type="button" scheme="primary" onClick={() => navigate("/posts")}>취소</Button>
+          <Button type="submit" scheme="primary">
+            {isEdit ? "수정 완료" : "완료"}
+          </Button>
+          <Button type="button" scheme="primary" onClick={() => navigate("/posts")}>
+            취소
+          </Button>
         </ButtonGroup>
 
+        {/* 일정 선택 모달 */}
         <PlanModal isOpen={showPlanModal} onClose={() => setShowPlanModal(false)}>
           <ModalHeader>일정 선택</ModalHeader>
           <PlanList>
@@ -286,12 +331,12 @@ function AddPost({ addPost, posts, isEdit, editPost }: AddPostProps) {
               <NoPlanMessage>등록된 일정이 없습니다.</NoPlanMessage>
             ) : (
               plans.map((plan: Plan) => (
-                <PlanItem 
-                  key={plan.id}
-                  onClick={() => handleSelectPlan(plan)}
-                >
+                <PlanItem key={plan.id} onClick={() => handleSelectPlan(plan)}>
                   <h4>{plan.title}</h4>
-                  <p>{new Date(plan.startDate).toLocaleDateString()} - {new Date(plan.endDate).toLocaleDateString()}</p>
+                  <p>
+                    {new Date(plan.startDate).toLocaleDateString()} -{" "}
+                    {new Date(plan.endDate).toLocaleDateString()}
+                  </p>
                 </PlanItem>
               ))
             )}
@@ -302,44 +347,16 @@ function AddPost({ addPost, posts, isEdit, editPost }: AddPostProps) {
   );
 }
 
+
+  // Redux connect 설정
 export default connect(
-  (state: RootState) => ({ 
+  (state: RootState) => ({
     posts: state.post.posts,
-    plans: state.plan.plans 
+    plans: state.plan.plans,
   }),
   { addPost, editPost }
 )(AddPost);
 
-const AddPostTitleInput = styled(InputText)`
-  font-size: 1rem;
-  padding: 1rem;
-  border-radius: 0;
-  width: 100% !important; 
-  max-width: 100%; 
-  display: block; 
-  height: 3rem;
-  color: ${({ theme }) => theme.color.primary_black};
-  background-color: ${({ theme }) => theme.color.primary_white};
-  border: none;
-  border-bottom: 1px solid ${({ theme }) => theme.color.primary_black};
-  font-family: ${({ theme }) => theme.font.family.title};
-`;
-
-const AddPostContentInput = styled(InputText).attrs({ as: "textarea" })`
-  border: 1px solid ${({ theme }) => theme.color.primary_black};
-  font-size: 1rem;
-  padding: 1rem;
-  border-radius: ${({ theme }) => theme.borderRadius.default};
-  width: 100% !important; 
-  max-width: 100%; 
-  display: block; 
-  height: 400px;
-  font-family: ${({ theme }) => theme.font.family.contents};
-  background-color: ${({ theme }) => theme.color.primary_white};
-  white-space: pre-wrap;
-  word-wrap: break-word; 
-  resize: none; 
-`;
 
 const Container = styled.div`
   width: 100%;
@@ -362,8 +379,41 @@ const Form = styled.form`
   flex-direction: column;
   gap: 1rem;
   margin: 0 auto;
-  align-items: stretch; 
-  width: 100%; 
+  align-items: stretch;
+  width: 100%;
+`;
+
+// 제목 입력 스타일
+const AddPostTitleInput = styled(InputText)`
+  font-size: 1rem;
+  padding: 1rem;
+  border-radius: 0;
+  width: 100% !important;
+  max-width: 100%;
+  display: block;
+  height: 3rem;
+  color: ${({ theme }) => theme.color.primary_black};
+  background-color: ${({ theme }) => theme.color.primary_white};
+  border: none;
+  border-bottom: 1px solid ${({ theme }) => theme.color.primary_black};
+  font-family: ${({ theme }) => theme.font.family.title};
+`;
+
+// 내용 입력 스타일 (textarea로 변환)
+const AddPostContentInput = styled(InputText).attrs({ as: "textarea" })`
+  border: 1px solid ${({ theme }) => theme.color.primary_black};
+  font-size: 1rem;
+  padding: 1rem;
+  border-radius: ${({ theme }) => theme.borderRadius.default};
+  width: 100% !important;
+  max-width: 100%;
+  display: block;
+  height: 400px;
+  font-family: ${({ theme }) => theme.font.family.contents};
+  background-color: ${({ theme }) => theme.color.primary_white};
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  resize: none;
 `;
 
 const ScheduleButton = styled.button`
@@ -380,11 +430,16 @@ const ScheduleButton = styled.button`
   font-size: 1rem;
   align-self: flex-start;
   margin-left: 0;
-  
+
   &:hover {
     background: ${({ theme }) => theme.color.primary_green};
     color: white;
   }
+`;
+
+const ImageUploadWrapper = styled.div`
+  width: 100%;
+  margin: 0 auto;
 `;
 
 const ImageUploadButton = styled.div`
@@ -407,17 +462,6 @@ const ImageUploadButton = styled.div`
     background: ${({ theme }) => theme.color.primary_green};
     color: white;
   }
-`;
-
-const ButtonGroup = styled.div`
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-`;
-
-const ImageUploadWrapper = styled.div`
-  width: 100%;
-  margin: 0 auto;
 `;
 
 const FileList = styled.div`
@@ -452,9 +496,22 @@ const FileItem = styled.div`
   border-radius: 4px;
   margin-bottom: 6px;
   font-family: ${({ theme }) => theme.font.family.contents};
-  
+
   &:last-child {
     margin-bottom: 0;
+  }
+`;
+
+const FileCheckbox = styled.div`
+  display: flex;
+  align-items: center;
+  margin-right: 8px;
+  font-family: ${({ theme }) => theme.font.family.contents};
+
+  input {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
   }
 `;
 
@@ -472,19 +529,6 @@ const FileSize = styled.span`
   color: ${({ theme }) => theme.color.input_text};
   font-family: ${({ theme }) => theme.font.family.contents};
   font-size: 0.8rem;
-`;
-
-const FileCheckbox = styled.div`
-  display: flex;
-  align-items: center;
-  margin-right: 8px;
-  font-family: ${({ theme }) => theme.font.family.contents};
-
-  input {
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
-  }
 `;
 
 const DeleteButton = styled.button`
@@ -516,6 +560,14 @@ const DeleteSelectedButton = styled.button`
   }
 `;
 
+const ButtonGroup = styled.div`
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+`;
+
+/* ---------------------- 모달 관련 스타일 ---------------------- */
+
 const ModalOverlay = styled.div`
   position: fixed;
   top: 0;
@@ -544,6 +596,7 @@ const ModalHeader = styled.h3`
   font-family: ${({ theme }) => theme.font.family.title};
 `;
 
+/* ---------------------- 일정 리스트 및 아이템 스타일 ---------------------- */
 const PlanList = styled.div`
   display: flex;
   flex-direction: column;
@@ -552,23 +605,22 @@ const PlanList = styled.div`
   max-height: 300px;
   overflow-y: auto;
 
- 
   &::-webkit-scrollbar {
-    width: 8px; 
+    width: 8px;
   }
 
   &::-webkit-scrollbar-track {
-    background: ${({ theme }) => theme.color.input_background}; 
+    background: ${({ theme }) => theme.color.input_background};
     border-radius: 10px;
   }
 
   &::-webkit-scrollbar-thumb {
-    background: ${({ theme }) => theme.color.primary_green}; 
+    background: ${({ theme }) => theme.color.primary_green};
     border-radius: 10px;
   }
 
   &::-webkit-scrollbar-thumb:hover {
-    background: ${({ theme }) => theme.color.primary_black}; 
+    background: ${({ theme }) => theme.color.primary_black};
   }
 `;
 
@@ -593,7 +645,6 @@ const PlanItem = styled.div`
     font-size: 0.9rem;
   }
 `;
-
 
 const SelectedPlan = styled.div`
   position: relative;

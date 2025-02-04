@@ -5,7 +5,6 @@ import { styled } from "styled-components";
 import Button from "@/components/common/Button";
 import { Post, RootState } from '@/store/store';
 
-
 function Board() {
   const navigate = useNavigate();
   const posts = useSelector((state: RootState) => state.post.posts);
