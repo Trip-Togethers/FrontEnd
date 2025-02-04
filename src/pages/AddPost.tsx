@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { styled } from "styled-components";
 import { useNavigate, useParams } from "react-router-dom";
 import { connect, useSelector } from "react-redux";
-import { addPost, editPost } from "@/store/postReducer";
-import Button from "@/components/common/Button";
-import InputText from "@/components/common/InputText";
-import { ImageInfo, Plan, Post, RootState } from "@/store/store";
+import { addPost, editPost } from "@store/postReducer";
+import Button from "@components/common/Button";
+import InputText from "@components/common/InputText";
+import { ImageInfo, Plan, Post, RootState } from "@store/store";
 
 
 //  인터페이스 정의

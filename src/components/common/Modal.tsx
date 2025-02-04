@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import { SetStateAction, useState } from 'react';
 import styled from 'styled-components';
-import { theme } from '@/styles/theme';
-import Button from '@/components/common/Button';
-import InputText from '@/components/common/InputText';
+import { theme } from '@styles/theme';
+import Button from '@components/common/Button';
+import InputText from '@components/common/InputText';
 
 
 // 1-1) 날짜 선택기(DatePicker) Props
@@ -74,7 +74,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
         {/* 연도 선택 */}
         <Select
           value={selectedDate.getFullYear()}
-          onChange={(e) => handleChange('year', Number(e.target.value))}
+          onChange={(e: { target: { value: any; }; }) => handleChange('year', Number(e.target.value))}
         >
           {years.map((year) => (
             <option key={year} value={year}>
@@ -85,7 +85,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
         {/* 월 선택 */}
         <Select
           value={selectedDate.getMonth()}
-          onChange={(e) => handleChange('month', Number(e.target.value))}
+          onChange={(e: { target: { value: any; }; }) => handleChange('month', Number(e.target.value))}
         >
           {months.map((month) => (
             <option key={month.value} value={month.value}>
@@ -96,7 +96,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
         {/* 일 선택 */}
         <Select
           value={selectedDate.getDate()}
-          onChange={(e) => handleChange('day', Number(e.target.value))}
+          onChange={(e: { target: { value: any; }; }) => handleChange('day', Number(e.target.value))}
         >
           {Array.from(
             {
@@ -297,14 +297,14 @@ const Modal: React.FC<ModalProps> = ({ type, isOpen, onClose, onSubmit }) => {
 
             <div className="field">
               <label>제목</label>
-              <InputText scheme="mypage" onChange={(e) => setTitle(e.target.value)} />
+              <InputText scheme="mypage" onChange={(e: { target: { value: SetStateAction<string>; }; }) => setTitle(e.target.value)} />
             </div>
 
             <div className="field">
               <label>목적지</label>
               <InputText
                 scheme="mypage"
-                onChange={(e) => setDescription(e.target.value)}
+                onChange={(e: { target: { value: SetStateAction<string>; }; }) => setDescription(e.target.value)}
               />
             </div>
 
@@ -336,7 +336,7 @@ const Modal: React.FC<ModalProps> = ({ type, isOpen, onClose, onSubmit }) => {
                     <InputText
                       scheme="mypage"
                       value={todoContent}
-                      onChange={(e) => setTodoContent(e.target.value)}
+                      onChange={(e: { target: { value: SetStateAction<string>; }; }) => setTodoContent(e.target.value)}
                     />
                     <Button scheme="primary" type="submit"  style={{ backgroundColor: "#FFFFFF", color: "#616161" }}>
                       추가하기

@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import Logo from "@assets/svg/Logo.tsx";
-import Bell from "@assets/svg/Bell.tsx";
+import Logo from "@assets/svg/Logo";
+import Bell from "@assets/svg/Bell";
 import styled from "styled-components";
 import Sidebar from "./Sidebar";
-import Avatar from "@assets/svg/Avatar.tsx";
+import Avatar from "@assets/svg/Avatar";
 import { Link } from "react-router-dom";
 
 const Header: React.FC = () => {

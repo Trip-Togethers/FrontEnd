@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { ParticipantsState } from './store';
+import { ParticipantsState } from './store.js';
 
 
 interface AddParticipantPayload {

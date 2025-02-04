@@ -1,6 +1,6 @@
 import React, { ForwardedRef } from "react";
 import styled from "styled-components";
-import { InputScheme } from "@/styles/theme";
+import { InputScheme } from "@styles/theme.js";
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   scheme: InputScheme;

@@ -2,8 +2,8 @@ import { useEffect, useState, useMemo } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
-import Button from "@/components/common/Button";
-import { Post, RootState } from '@/store/store';
+import Button from "@components/common/Button";
+import { RootState } from '@store/store';
 
 function Board() {
   const navigate = useNavigate();

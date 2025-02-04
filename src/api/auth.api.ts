@@ -1,6 +1,6 @@
-import { LoginProps } from "@/pages/Login";
+import { LoginProps } from "@pages/Login";
 import { httpClient } from "./https";
-import { RegisterProps } from "@/pages/Join";
+import { RegisterProps } from "@pages/Join";
 
 export interface SignupResponse {
   // 회원가입 서버 응답 데이터 타입 (Response Body)

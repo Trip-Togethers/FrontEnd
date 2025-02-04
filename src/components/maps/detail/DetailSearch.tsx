@@ -1,4 +1,4 @@
-import { Bookmark } from "@/assets/svg";
+import Bookmark from "@assets/svg/Bookmark";
 import styled from "styled-components";
 
 interface Props {
