@@ -8,7 +8,7 @@ type Props = {
   onClose: () => void;
 };
 
-const Sidebar: React.FC<Props> = ({ isOpen, onClose }) => {
+const Sidebar: React.FC<Props> = ({ isOpen }) => {
   if (!isOpen) return null; // 드롭다운이 닫혀 있으면 렌더링 안 함.
   const { storeLogout } = useAuthstore();
 
