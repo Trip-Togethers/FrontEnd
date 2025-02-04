@@ -11,8 +11,6 @@ import { useForm } from "react-hook-form";
 import { ErrorMessage } from "@hookform/error-message";
 import { login } from "@api/auth.api";
 import { useAuthstore } from "@store/authStore";
-import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { app } from "../firebase";
 
 export interface LoginProps {
   email: string;

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuthstore } from "@/store/authStore";
+import { useAuthstore } from "@store/authStore";
 
 function GoogleAuthRedirect() {
   const navigate = useNavigate();

@@ -1,15 +1,14 @@
 import { styled } from "styled-components";
 import Plane from "@assets/svg/Plane";
 import Logo from "@assets/svg/Logo";
-import Button from "@/components/common/Button";
-import InputText from "@/components/common/InputText";
-import { useAlert } from "@/hooks/useAlert";
+import Button from "@components/common/Button";
+import InputText from "@components/common/InputText";
+import { useAlert } from "@hooks/useAlert";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { ErrorMessage } from "@hookform/error-message";
-import { login } from "@api/auth.api";
-import { useAuthstore } from "@/store/authStore";
-import { useEmail } from "@/store/authStore";
+import { useAuthstore } from "@store/authStore";
+import { useEmail } from "@store/authStore";
 import { verifyEmail } from "@api/auth.api";
 
 export interface VerifyProps {
@@ -31,7 +30,7 @@ function VerifyEmail() {
 
   const onSubmit = async (data: VerifyProps) => {
     try {
-      const res = await verifyEmail(email, data.code); // API 요청
+      const res = await verifyEmail(data.code); // API 요청
       showAlert("회원가입이 완료되었습니다.");
       navigate("/login"); // 로그인 페이지로 이동
     } catch (error) {
