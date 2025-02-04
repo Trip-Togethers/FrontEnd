@@ -30,16 +30,14 @@ function Login() {
   const showAlert = useAlert();
   const { isLoggedIn, storeLogin, storeLogout } = useAuthstore();
 
-  const onSubmit = (data: LoginProps) => {
-    login(data).then(
-      (res) => {
-        storeLogin(res.token);
-        navigate("/trips");
-      },
-      (error) => {
-        showAlert("로그인이 실패했습니다.");
-      },
-    );
+  const onSubmit = async (data: LoginProps) => {
+    try {
+      const res = await login(data);//BE Login 요청
+      storeLogin(res.token);
+      navigate("/trips");
+    } catch (error) {
+      showAlert("로그인이 실패했습니다.");
+    }
   };
 
   const auth = getAuth(app);
