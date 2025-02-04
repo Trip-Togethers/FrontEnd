@@ -29,7 +29,7 @@ export const useAuthstore = create<StoreState>((set) => ({
   },
   storeLogout: async () => {
     try {
-      await logout(); // ✅ 백엔드 로그아웃 API 요청
+      await logout();
     } catch (error) {
       console.error("로그아웃 실패:", error);
     }
