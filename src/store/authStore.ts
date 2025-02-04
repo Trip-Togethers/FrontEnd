@@ -26,9 +26,14 @@ export const useAuthstore = create<StoreState>((set) => ({
     set({ isLoggedIn: true });
     setToken(token);
   },
-  storeLogout: () => {
+  storeLogout: async () => {
+    try {
+      await logout(); // ✅ 백엔드 로그아웃 API 요청
+    } catch (error) {
+      console.error("로그아웃 실패:", error);
+    }
     set({ isLoggedIn: false });
-    window.location.href = "users/login";
     removeToken();
+    window.location.href = "/users/login";
   },
 }));

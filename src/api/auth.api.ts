@@ -22,9 +22,22 @@ export const signup = async (
   userData: RegisterProps
 ): Promise<SignupResponse> => {
   const response = await httpClient.post<SignupResponse>(
-    `https://jsonplaceholder.typicode.com/posts`,
+    `/auth/register`,
     userData
   );
+  return response.data;
+};
+
+export const login = async (userData: LoginProps) => {
+  const response = await httpClient.post<{ token: string }>(
+    `/auth/login`,
+    userData
+  );
+  return response.data;
+};
+
+export const logout = async () => {
+  const response = await httpClient.delete(`/auth/logout`);
   return response.data;
 };
 
@@ -40,10 +53,10 @@ interface LoginResponse {
 }
 
 //테스트용-로그인
-export const login = async (userData: LoginProps) => {
-  const response = await httpClient.post<LoginResponse>(
-    `https://jsonplaceholder.typicode.com/posts`,
-    userData
-  );
-  return response.data;
-};
+//export const login = async (userData: LoginProps) => {
+//  const response = await httpClient.post<LoginResponse>(
+//    `https://jsonplaceholder.typicode.com/posts`,
+//    userData
+//  );
+//  return response.data;
+//};
