@@ -11,7 +11,7 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 const InputText = React.forwardRef(
   (
     { scheme, label, ...props }: InputProps,
-    ref: ForwardedRef<HTMLInputElement>,
+    ref: ForwardedRef<HTMLInputElement>
   ) => {
     return (
       <InputTextStyle>
@@ -19,7 +19,7 @@ const InputText = React.forwardRef(
         <StyledInput scheme={scheme} ref={ref} {...props} />
       </InputTextStyle>
     );
-  },
+  }
 );
 
 const InputTextStyle = styled.div`
@@ -29,7 +29,6 @@ const InputTextStyle = styled.div`
 `;
 
 const StyledInput = styled.input<InputProps>`
-  margin-top: 20px;
   display: flex;
   flex-direction: column;
   background-color: ${({ theme }) => theme.color.input_background};
@@ -57,7 +56,7 @@ const StyledInput = styled.input<InputProps>`
 const LabelStyle = styled.label`
   display: flex;
   align-items: center;
-  text-align:center;
+  text-align: left;
   justify-content: center;
   font-family: ${({ theme }) => theme.font.family.title};
   font-size: 1.25rem;
@@ -65,6 +64,7 @@ const LabelStyle = styled.label`
   color: ${({ theme }) => theme.color.primary_black};
   opacity: 0.75;
   padding-right: 20px;
+  width: 128px; /* 일정한 너비를 유지 */
 `;
 
 export default InputText;

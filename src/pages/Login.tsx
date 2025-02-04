@@ -71,6 +71,7 @@ function Login() {
               })}
             />
             <ErrorMessage errors={errors} name="email" as={ErrorTextStyle} />
+            <br />
             <InputText
               scheme="login"
               type="password"
@@ -146,7 +147,7 @@ const LoginStyle = styled.div`
   }
 
   .input {
-    margin-bottom: 25px;
+    margin: 20px;
   }
 
   .hr-sect {

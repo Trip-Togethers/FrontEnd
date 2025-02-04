@@ -54,6 +54,7 @@ function VerifyEmail() {
               value={email || ""}
               disabled
             />
+            <br />
             <InputText
               scheme="mypage"
               label="인증코드"
@@ -87,8 +88,11 @@ const LoginStyle = styled.div`
   background-color: ${({ theme }) => theme.color.primary_green};
   z-index: 0;
 
-  .p {
-    font-size: 100px;
+  p {
+    font-size: 20px;
+    font-family: ${({ theme }) => theme.font.family.contents};
+    color: ${({ theme }) => theme.color.primary_black};
+    margin-bottom: 50px;
   }
 
   .background-svg {
@@ -120,11 +124,11 @@ const LoginStyle = styled.div`
   .logo {
     height: 42px;
     fill: ${({ theme }) => theme.color.primary_green};
-    margin: 40px auto 40px;
+    margin: 40px auto 20px;
   }
 
   .input {
-    margin-bottom: 25px;
+    margin-bottom: 40px;
   }
 `;
 
