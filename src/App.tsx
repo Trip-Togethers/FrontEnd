@@ -14,7 +14,8 @@ import { theme } from "./styles/theme";
 import { GlobalStyle } from "./styles/global";
 import Layout from "@components/layout/Layout";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-
+import { Provider } from "react-redux";
+import store from "@/store/store";
 
 const router = createBrowserRouter([
   {
@@ -141,10 +142,12 @@ const router = createBrowserRouter([
 function App() {
   return (
     <> 
+     <Provider store={store}> 
       <ThemeProvider theme={theme}>
         <GlobalStyle />
         <RouterProvider router={router} />
       </ThemeProvider>
+      </Provider>
     </>
   );
 }
