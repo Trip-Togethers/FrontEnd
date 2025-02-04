@@ -11,13 +11,18 @@ import { useForm } from "react-hook-form";
 import { ErrorMessage } from "@hookform/error-message";
 import { login } from "@api/auth.api";
 import { useAuthstore } from "@/store/authStore";
-import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { app } from "../firebase.ts";
 
 export interface LoginProps {
   email: string;
   password: string;
 }
+
+const GOOGLE_AUTH_URL = `https://accounts.google.com/o/oauth2/auth? 
+  client_id=${import.meta.env.VITE_GOOGLE_CLIENT_ID}
+  &redirect_uri=${import.meta.env.VITE_GOOGLE_REDIRECT_URI}
+  &response_type=code
+  &scope=email%20profile
+  &access_type=offline`.replace(/\s+/g, ""); // 공백 제거
 
 function Login() {
   const {
@@ -28,7 +33,7 @@ function Login() {
 
   const navigate = useNavigate();
   const showAlert = useAlert();
-  const { isLoggedIn, storeLogin, storeLogout } = useAuthstore();
+  const { storeLogin } = useAuthstore();
 
   const onSubmit = (data: LoginProps) => {
     login(data).then(
@@ -36,19 +41,14 @@ function Login() {
         storeLogin(res.token);
         navigate("/trips");
       },
-      (error) => {
+      () => {
         showAlert("로그인이 실패했습니다.");
-      },
+      }
     );
   };
 
-  const auth = getAuth(app);
-  const provider = new GoogleAuthProvider();
-
-  const handleLogin = () => {
-    signInWithPopup(auth, provider).then((userCredential) => {
-      console.log(userCredential);
-    });
+  const handleGoogleLogin = () => {
+    window.location.href = GOOGLE_AUTH_URL;
   };
 
   return (
@@ -70,9 +70,7 @@ function Login() {
                 },
               })}
             />
-
             <ErrorMessage errors={errors} name="email" as={ErrorTextStyle} />
-
             <InputText
               scheme="login"
               type="password"
@@ -93,7 +91,7 @@ function Login() {
           </Button>
           <div>
             <div className="hr-sect">또는 다음으로 로그인</div>
-            <Google className="google" onClick={handleLogin} />
+            <Google className="google" onClick={handleGoogleLogin} />
           </div>
           <StyledLink to="/users/register">회원가입</StyledLink>
         </fieldset>
