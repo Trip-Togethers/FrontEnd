@@ -10,6 +10,7 @@ import { ErrorMessage } from "@hookform/error-message";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { checkEmail } from "@/api/checkEmail";
+import { useEmail } from "@/store/authStore";
 
 export interface RegisterProps {
   email: string;
@@ -30,16 +31,28 @@ function Join() {
   const showAlert = useAlert();
   const [isEmailChecked, setIsEmailChecked] = useState(false);
 
-  const onSubmit = (data: RegisterProps) => {
-    signup(data).then((res) => {
-      showAlert("회원가입이 완료되었습니다.");
-      navigate("/users/login");
-    });
+  // const onSubmit = async (data: RegisterProps) => {
+  //   const response = await signup(data);
+  //   if (response.success) {
+  //     useEmail.getState().setEmail(data.email); // 상태에 이메일 저장
+  //     navigate("/users/verify-email");
+  //   }
+  // };
+
+  //백엔드 없이 기능 확인
+  const onSubmit = async (data: RegisterProps) => {
+    console.log("회원가입 데이터:", data);
+
+    useEmail.getState().setEmail(data.email);
+    console.log("저장된 이메일:", useEmail.getState().email);
+
+    navigate("/users/verify-email");
   };
 
   const email = watch("email");
 
   const checkEmailDuplicate = () => {
+    //이메일 중복 확인을 위해
     if (!email) {
       showAlert("이메일을 입력해주세요.");
       return;

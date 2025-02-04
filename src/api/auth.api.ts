@@ -8,7 +8,8 @@ export interface SignupResponse {
   email: string;
   name: string;
   // password: string;
-  contact: string;
+  // contact: string;
+  success: boolean;
 }
 
 //회원가입
@@ -28,16 +29,21 @@ export const signup = async (
   return response.data;
 };
 
+interface LoginResponse {
+  // 로그인 서버 응답 데이터 타입 (Response Body)
+  token: string;
+  user: {
+    id: number;
+    name: string;
+    email: string;
+  };
+}
+
 //로그인
 // export const login = async (userData: LoginProps) => {
 //   const response = await httpClient.post(`/users/register`, userData);
 //   return response.data;
 // };
-
-interface LoginResponse {
-  // 로그인 서버 응답 데이터 타입 (Response Body)
-  token: string;
-}
 
 //테스트용-로그인
 export const login = async (userData: LoginProps) => {
@@ -46,4 +52,8 @@ export const login = async (userData: LoginProps) => {
     userData
   );
   return response.data;
+};
+
+export const verifyEmail = async (email: string, code: string) => {
+  return await httpClient.post("/auth/verify-email", { email, code });
 };
