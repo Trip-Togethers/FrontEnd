@@ -67,8 +67,8 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImVtYWlsIjoidGVzdEBhc2QuY29tIiwiaWF0IjoxNzM4NjU0OTYzLCJleHAiOjE3Mzg3NDEzNjN9.NLJ0CyNIrSm3FLUZB2AFqV9awvzg5gZJ4v-0-uasiPM',
         },
+        credentials: 'include',
       });
   
       const data = await response.json();
