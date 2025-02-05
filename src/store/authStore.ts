@@ -1,3 +1,4 @@
+import { logout } from "@api/auth.api";
 import { create } from "zustand";
 
 interface StoreState {
