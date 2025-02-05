@@ -29,6 +29,7 @@ export const login = async (userData: LoginProps) => {
   );
 
   localStorage.setItem("token", response.data.token);
+  console.log(localStorage.getItem('token'));
   return response.data;
 };
 
