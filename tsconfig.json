@@ -10,7 +10,8 @@
       "@store/*": ["store/*"],
       "@styles/*": ["styles/*"],
       "@pages/*": ["pages/*"],
-      "@constants/*": ["constants/*"]
+      "@constants/*": ["constants/*"],
+      "@utils/*": ["utils/*"]
     },
     "module": "esnext",
     "moduleResolution": "node",

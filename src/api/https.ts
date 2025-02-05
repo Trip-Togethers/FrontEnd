@@ -11,7 +11,6 @@ export const createClient = (config?: AxiosRequestConfig) => {
         timeout: DEFAULT_TIMEOUT,
         headers: {
             "Content-Type": "application/json",
-            Authorization: getToken()
         },
         withCredentials: true, // 쿠키 포함
         ...config
@@ -19,7 +18,7 @@ export const createClient = (config?: AxiosRequestConfig) => {
 
     // 요청 인터셉터 (Authorization 헤더 자동 추가)
     axiosInstance.interceptors.request.use((config) => {
-        const token = getToken();
+        const token = localStorage.getItem('token');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
@@ -32,6 +31,7 @@ export const createClient = (config?: AxiosRequestConfig) => {
     axiosInstance.interceptors.response.use(
         (response) => response,
         (error: AxiosError) => {
+            alert(error)
             console.error("API 요청 에러:", error);
 
             if (error.response?.status === 401) { 
