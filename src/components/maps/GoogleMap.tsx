@@ -359,6 +359,7 @@ const BookmarkContainer = styled.div`
   padding: 20px;
   text-align: center;
   cursor: pointer;
+  overflow: auto;
 
   h3 {
     margin-bottom: 10px;
