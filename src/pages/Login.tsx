@@ -9,7 +9,7 @@ import { useAlert } from "@hooks/useAlert";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { ErrorMessage } from "@hookform/error-message";
-import { login } from "@api/auth.api";
+import { login, googleLogin } from "@api/auth.api";
 import { useAuthstore } from "@store/authStore";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { app } from "../firebase";
@@ -28,11 +28,12 @@ function Login() {
 
   const navigate = useNavigate();
   const showAlert = useAlert();
-  const { isLoggedIn, storeLogin, storeLogout } = useAuthstore();
+  const { storeLogin } = useAuthstore();
 
+  // 일반 로그인
   const onSubmit = async (data: LoginProps) => {
     try {
-      const res = await login(data);//BE Login 요청
+      const res = await login(data);
       storeLogin(res.token);
       navigate("/trips");
     } catch (error) {
@@ -43,10 +44,18 @@ function Login() {
   const auth = getAuth(app);
   const provider = new GoogleAuthProvider();
 
-  const handleLogin = () => {
-    signInWithPopup(auth, provider).then((userCredential) => {
-      console.log(userCredential);
-    });
+  // 구글 로그인
+  const handleGoogleLogin = async () => {
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const idToken = await result.user.getIdToken();
+      const res = await googleLogin(idToken);
+      storeLogin(res.token);
+      navigate("/trips");
+    } catch (error) {
+      console.error("Google 로그인 실패:", error);
+      showAlert("구글 로그인에 실패했습니다.");
+    }
   };
 
   return (

@@ -1,9 +1,10 @@
 import { create } from "zustand";
+import { logout } from "../api/auth.api";
 
 interface StoreState {
   isLoggedIn: boolean;
   storeLogin: (token: string) => void;
-  storeLogout: () => void;
+  storeLogout: () => Promise<void>;
 }
 
 export const getToken = () => {
@@ -13,28 +14,22 @@ export const getToken = () => {
     ?.split("=")[1];
 };
 
-const setToken = (token: string) => {
-  localStorage.setItem("token", token);
-};
-
-export const removeToken = () => {
-  localStorage.removeItem("token");
-};
-
 export const useAuthstore = create<StoreState>((set) => ({
-  isLoggedIn: getToken() ? true : false, // 초기값
+  isLoggedIn: !!getToken(),
+
   storeLogin: (token: string) => {
+    document.cookie = `token=${token}; path=/; secure; samesite=strict`;
     set({ isLoggedIn: true });
-    setToken(token);
   },
+
   storeLogout: async () => {
     try {
       await logout();
     } catch (error) {
       console.error("로그아웃 실패:", error);
     }
+    document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
     set({ isLoggedIn: false });
-    removeToken();
     window.location.href = "/users/login";
   },
 }));
