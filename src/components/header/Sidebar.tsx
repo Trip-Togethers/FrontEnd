@@ -29,7 +29,7 @@ const Sidebar: React.FC<Props> = ({ isOpen }) => {
 
       try {
         const response = await userPage(userId); // userPage API 호출
-        setUserData(response.user); // 유저 정보 저장
+        setUserData({...response.user, userId}); // 유저 정보 저장
       } catch (error) {
         console.error("유저 정보를 가져오는 데 실패했습니다.");
       }
@@ -37,6 +37,8 @@ const Sidebar: React.FC<Props> = ({ isOpen }) => {
 
     fetchUserData();
   }, []);
+
+  console.log(JSON.stringify(userData, null, 2))
 
   if (!isOpen) return null; // 드롭다운이 닫혀 있으면 렌더링 안 함.
 
@@ -55,7 +57,7 @@ const Sidebar: React.FC<Props> = ({ isOpen }) => {
       <hr />
       <div className="list">
         <ul>
-          <StyledLink to={`/users/${userData?.id}`}>
+          <StyledLink to={`/users/${userData?.userId}`}>
             <li>내 정보</li>
           </StyledLink>
           <StyledLink to="/posts">
@@ -64,7 +66,7 @@ const Sidebar: React.FC<Props> = ({ isOpen }) => {
           <StyledLink to="/maps">
             <li>지도</li>
           </StyledLink>
-          <StyledLink to={`/calendar/${userData?.id}`}>
+          <StyledLink to={`/calendar`}>
             <li>내 캘린더</li>
           </StyledLink>
         </ul>
