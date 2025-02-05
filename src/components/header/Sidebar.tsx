@@ -45,7 +45,7 @@ const Sidebar: React.FC<Props> = ({ isOpen }) => {
 };
 
 const SidebarStyle = styled.div`
-  background-color: ${({ theme }) => theme.color.primary_white};
+background-color: ${({ theme }) => theme.color.primary_white};
   color: ${({ theme }) => theme.color.input_text};
   display: flex;
   flex-direction: column;
@@ -53,11 +53,17 @@ const SidebarStyle = styled.div`
   right: 0;
   text-align: center;
   border-left: 1px solid #afafaf;
-  z-index: 1;
+  z-index: 1000; /* z-index를 높여서 다른 요소와 겹치지 않게 설정 */
   height: 100%;
   width: 20rem;
   margin-top: 2.7rem;
   font-family: ${({ theme }) => theme.font.family.contents};
+
+  /* 사이드바가 일정과 겹치지 않도록 하단 여백 추가 */
+  @media (max-width: 768px) {
+    margin-top: 0; /* 모바일에서는 top 값 조정 */
+    margin-bottom: 0;
+  }
 
   .avatar {
     height: 10rem;
@@ -109,11 +115,12 @@ const SidebarStyle = styled.div`
   .logout {
     text-decoration: underline 0.5px;
     opacity: 0.6;
-    margin: 10 auto 0; /* 리스트 아래쪽으로 배치 */
+    margin: 10 auto 0;
     &:hover {
       opacity: 1;
     }
   }
+
 `;
 
 const StyledLink = styled(Link)`
