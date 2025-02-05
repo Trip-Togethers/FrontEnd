@@ -30,34 +30,37 @@ function Join() {
   const showAlert = useAlert();
   const [isEmailChecked, setIsEmailChecked] = useState(false);
 
-  const onSubmit = (data: RegisterProps) => {
-    signup(data).then((res) => {
+  const onSubmit = async (data: RegisterProps) => {
+    try {
+      await signup(data); // BE Register 요청
       showAlert("회원가입이 완료되었습니다.");
       navigate("/users/login");
-    });
+    } catch (error) {
+      showAlert("회원가입에 실패했습니다.");
+    }
   };
+
 
   const email = watch("email");
 
-  const checkEmailDuplicate = () => {
+  const checkEmailDuplicate = async () => {
     if (!email) {
       showAlert("이메일을 입력해주세요.");
       return;
     }
 
-    checkEmail(email)
-      .then((res) => {
-        if (res.data.isAvailable) {
-          showAlert("사용 가능한 이메일입니다.");
-          setIsEmailChecked(true);
-        } else {
-          showAlert("이미 사용 중인 이메일입니다.");
-          setIsEmailChecked(false);
-        }
-      })
-      .catch(() => {
-        showAlert("이메일 확인 중 오류가 발생했습니다.");
-      });
+    try {
+      const res = await checkEmail(email);
+      if (res.isAvailable) {
+        showAlert("사용 가능한 이메일입니다.");
+        setIsEmailChecked(true);
+      } else {
+        showAlert("이미 사용 중인 이메일입니다.");
+        setIsEmailChecked(false);
+      }
+    } catch {
+      showAlert("이메일 확인 중 오류가 발생했습니다.");
+    }
   };
 
   return (

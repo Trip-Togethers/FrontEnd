@@ -11,39 +11,34 @@ export interface SignupResponse {
   contact: string;
 }
 
-//회원가입
-// export const signup = async (userData: RegisterProps) => {
-//   const response = await httpClient.post(`/users/register`, userData);
-//   return response.data;
-// };
-
 //테스트용-회원가입
 export const signup = async (
   userData: RegisterProps
 ): Promise<SignupResponse> => {
   const response = await httpClient.post<SignupResponse>(
-    `https://jsonplaceholder.typicode.com/posts`,
+    `/users/register`,
     userData
   );
   return response.data;
 };
 
-//로그인
-// export const login = async (userData: LoginProps) => {
-//   const response = await httpClient.post(`/users/register`, userData);
-//   return response.data;
-// };
+export const login = async (userData: LoginProps) => {
+  const response = await httpClient.post<{ token: string }>(
+    `/users/login`,
+    userData,
+    { withCredentials: true }
+  );
+
+  localStorage.setItem("token", response.data.token)
+  return response.data;
+};
+
+export const logout = async () => {
+  const response = await httpClient.delete(`/users/logout`, { withCredentials: false });
+  return response.data;
+};
 
 interface LoginResponse {
   // 로그인 서버 응답 데이터 타입 (Response Body)
   token: string;
 }
-
-//테스트용-로그인
-export const login = async (userData: LoginProps) => {
-  const response = await httpClient.post<LoginResponse>(
-    `https://jsonplaceholder.typicode.com/posts`,
-    userData
-  );
-  return response.data;
-};

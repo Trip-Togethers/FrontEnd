@@ -11,12 +11,32 @@ export interface ImageInfo {
   toDelete?: boolean;
 }
 
-export interface Plan {
-  id: string;
+export interface Guest {
+  name: string;
+  // 추가적인 게스트 정보가 있으면 여기에 정의
+}
+
+export interface Schedule {
+  id: number;
   title: string;
+  destination: string;
+  startDate: string;
+  endDate: string;
+  createdAt: string;
+  updatedAt: string;
+  photoUrl: string;
+  owner: number;
+  guests: string[]; // 여기에 guest 목록이나 정보가 들어갈 수 있습니다.
+}
+
+export interface Plan {
+  id: number;
+  title: string;
+  destination: string;
   startDate: string;
   endDate: string;
   image?: string;
+  guests: Guest[]; // 여기서 guests 배열의 타입을 정의
 }
 
 export interface Comment {

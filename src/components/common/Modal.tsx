@@ -1,9 +1,9 @@
-import { SetStateAction, useState } from 'react';
-import styled from 'styled-components';
-import { theme } from '@styles/theme';
-import Button from '@components/common/Button';
-import InputText from '@components/common/InputText';
-
+import { SetStateAction, useState } from "react";
+import styled from "styled-components";
+import { theme } from "@styles/theme";
+import Button from "@components/common/Button";
+import InputText from "@components/common/InputText";
+import { createPlan } from "@api/schedule.api";
 
 // 1-1) 날짜 선택기(DatePicker) Props
 interface DatePickerProps {
@@ -16,7 +16,7 @@ interface DatePickerProps {
 
 // 1-2) 모달(Modal) Props
 interface ModalProps {
-  type: 'plan' | 'schedule';
+  type: "plan" | "schedule";
   isOpen: boolean;
   onClose: () => void;
   onSubmit?: (plan: any) => void;
@@ -45,22 +45,22 @@ const DatePicker: React.FC<DatePickerProps> = ({
   // 월 선택 (영어로 월 표시)
   const months = Array.from({ length: 12 }, (_, i) => ({
     value: i,
-    label: new Date(2000, i).toLocaleString('default', { month: 'long' }),
+    label: new Date(2000, i).toLocaleString("default", { month: "long" }),
   }));
 
-   // 해당 연도와 월의 일수 가져오기
+  // 해당 연도와 월의 일수 가져오기
   const getDaysInMonth = (year: number, month: number) => {
     return new Date(year, month + 1, 0).getDate();
   };
 
   // 연도, 월, 일 변경 핸들러
-  const handleChange = (type: 'year' | 'month' | 'day', val: number) => {
+  const handleChange = (type: "year" | "month" | "day", val: number) => {
     const newDate = new Date(selectedDate);
-    if (type === 'year') newDate.setFullYear(val);
-    if (type === 'month') newDate.setMonth(val);
-    if (type === 'day') newDate.setDate(val);
+    if (type === "year") newDate.setFullYear(val);
+    if (type === "month") newDate.setMonth(val);
+    if (type === "day") newDate.setDate(val);
 
-     // 최소 날짜(minDate) 검사
+    // 최소 날짜(minDate) 검사
     if (!minDate || newDate >= minDate) {
       setSelectedDate(newDate);
       onChange?.(newDate);
@@ -74,7 +74,9 @@ const DatePicker: React.FC<DatePickerProps> = ({
         {/* 연도 선택 */}
         <Select
           value={selectedDate.getFullYear()}
-          onChange={(e: { target: { value: any; }; }) => handleChange('year', Number(e.target.value))}
+          onChange={(e: { target: { value: any } }) =>
+            handleChange("year", Number(e.target.value))
+          }
         >
           {years.map((year) => (
             <option key={year} value={year}>
@@ -85,7 +87,9 @@ const DatePicker: React.FC<DatePickerProps> = ({
         {/* 월 선택 */}
         <Select
           value={selectedDate.getMonth()}
-          onChange={(e: { target: { value: any; }; }) => handleChange('month', Number(e.target.value))}
+          onChange={(e: { target: { value: any } }) =>
+            handleChange("month", Number(e.target.value))
+          }
         >
           {months.map((month) => (
             <option key={month.value} value={month.value}>
@@ -96,7 +100,9 @@ const DatePicker: React.FC<DatePickerProps> = ({
         {/* 일 선택 */}
         <Select
           value={selectedDate.getDate()}
-          onChange={(e: { target: { value: any; }; }) => handleChange('day', Number(e.target.value))}
+          onChange={(e: { target: { value: any } }) =>
+            handleChange("day", Number(e.target.value))
+          }
         >
           {Array.from(
             {
@@ -122,21 +128,21 @@ const DatePicker: React.FC<DatePickerProps> = ({
 const TimePicker: React.FC<{
   value?: string;
   onChange?: (time: string) => void;
-}> = ({ value = '09:00 AM', onChange }) => {
+}> = ({ value = "09:00 AM", onChange }) => {
   const hours = Array.from({ length: 12 }, (_, i) => i + 1);
   const minutes = Array.from({ length: 12 }, (_, i) => i * 5);
-  const periods = ['AM', 'PM'];
+  const periods = ["AM", "PM"];
 
   // 시간, 분, 기간 분리
   const [selectedHour, selectedMinute, selectedPeriod] = value.split(/:|\s/);
 
   const handleTimeChange = (
-    type: 'hour' | 'minute' | 'period',
+    type: "hour" | "minute" | "period",
     newValue: string
   ) => {
-    const hour = type === 'hour' ? newValue : selectedHour;
-    const minute = type === 'minute' ? newValue : selectedMinute;
-    const period = type === 'period' ? newValue : selectedPeriod;
+    const hour = type === "hour" ? newValue : selectedHour;
+    const minute = type === "minute" ? newValue : selectedMinute;
+    const period = type === "period" ? newValue : selectedPeriod;
     const newTime = `${hour}:${minute} ${period}`;
     onChange?.(newTime);
   };
@@ -146,10 +152,10 @@ const TimePicker: React.FC<{
       <div className="select-group">
         <select
           value={selectedHour}
-          onChange={(e) => handleTimeChange('hour', e.target.value)}
+          onChange={(e) => handleTimeChange("hour", e.target.value)}
         >
           {hours.map((hour) => (
-            <option key={hour} value={hour.toString().padStart(2, '0')}>
+            <option key={hour} value={hour.toString().padStart(2, "0")}>
               {hour}
             </option>
           ))}
@@ -157,18 +163,18 @@ const TimePicker: React.FC<{
 
         <select
           value={selectedMinute}
-          onChange={(e) => handleTimeChange('minute', e.target.value)}
+          onChange={(e) => handleTimeChange("minute", e.target.value)}
         >
           {minutes.map((minute) => (
-            <option key={minute} value={minute.toString().padStart(2, '0')}>
-              {minute.toString().padStart(2, '0')}
+            <option key={minute} value={minute.toString().padStart(2, "0")}>
+              {minute.toString().padStart(2, "0")}
             </option>
           ))}
         </select>
 
         <select
           value={selectedPeriod}
-          onChange={(e) => handleTimeChange('period', e.target.value)}
+          onChange={(e) => handleTimeChange("period", e.target.value)}
         >
           {periods.map((p) => (
             <option key={p} value={p}>
@@ -181,24 +187,18 @@ const TimePicker: React.FC<{
   );
 };
 
-//  4) 모달(Modal) 컴포넌트  
+//  4) 모달(Modal) 컴포넌트
 const Modal: React.FC<ModalProps> = ({ type, isOpen, onClose, onSubmit }) => {
-  
   // 공통 상태값
   const today = new Date();
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+  const [title, setTitle] = useState("");
+  const [destination, setDestination] = useState("");
   const [startDate, setStartDate] = useState(today);
   const [endDate, setEndDate] = useState(today);
 
-  // 일정 및 할 일(Todo) 상태
-  const [todos, setTodos] = useState<TodoItem[]>([]);
-  const [todoContent, setTodoContent] = useState('');
-  const [selectedTime, setSelectedTime] = useState('09:00 AM');
-
   //이미지 업로드 상태
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string>('');
+  const [imagePreview, setImagePreview] = useState<string>("");
 
   if (!isOpen) return null;
 
@@ -218,7 +218,7 @@ const Modal: React.FC<ModalProps> = ({ type, isOpen, onClose, onSubmit }) => {
     }
   };
 
-   // 이미지 업로드 핸들러
+  // 이미지 업로드 핸들러
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -232,40 +232,40 @@ const Modal: React.FC<ModalProps> = ({ type, isOpen, onClose, onSubmit }) => {
   };
 
   // 폼 제출 (플랜)
-  const handlePlanSubmit = (e: React.FormEvent) => {
+  const handlePlanSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit?.({
+    const plan = {
       title,
-      description,
-      startDate,
-      endDate,
-      image: imagePreview,
-    });
+      destination,
+      startDate: startDate.toISOString().split('T')[0],
+      endDate: startDate.toISOString().split('T')[0],
+      image: imagePreview || null,
+    };
 
-   // 폼 상태 초기화
-    setTitle('');
-    setDescription('');
+    try {
+      await onSubmit?.(plan); // 부모 컴포넌트의 onSubmit 호출
+      console.log("새로운 플랜이 생성되었습니다:", plan);
+      onClose?.();
+    } catch (error) {
+      console.error("플랜 생성 중 오류 발생:", error);
+    }
+
+    // 폼 상태 초기화
+    setTitle("");
+    setDestination("");
     setStartDate(new Date());
     setEndDate(new Date());
     setSelectedImage(null);
-    setImagePreview('');
+    setImagePreview("");
   };
 
-  // 폼 제출 (스케줄/투두)
-  const handleTodoSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (todoContent.trim()) {
-      setTodos([...todos, { content: todoContent, time: selectedTime }]);
-      setTodoContent('');
-    }
-  };
-
-   // 플랜 폼 유효성 검사
+  // 플랜 폼 유효성 검사
   const isFormValid = () => {
-    if (type === 'plan') {
-      return title.trim() !== '' && description.trim() !== '';
+    if (type === "plan") {
+      return (
+        title.trim() !== "" && destination.trim() !== "" && startDate <= endDate
+      );
     }
-     // 스케줄의 경우 별도의 유효성 검사 없음
     return true;
   };
 
@@ -273,95 +273,67 @@ const Modal: React.FC<ModalProps> = ({ type, isOpen, onClose, onSubmit }) => {
   return (
     <ModalWrapper>
       <div className="modal">
-        {/* 닫기 버튼 */}
         <button className="close-btn" onClick={onClose}>
           &times;
         </button>
-
-        {/* 플랜 타입 */}
-        {type === 'plan' ? (
-          <form onSubmit={handlePlanSubmit}>
-             {/* 이미지 업로드 */}
-            <ImageUpload>
-              <div className="upload-box">
-                <input type="file" accept="image/*" onChange={handleImageUpload} />
-                {imagePreview ? (
-                  <img src={imagePreview} alt="preview" />
-                ) : (
-                  <span className="upload-text">
-                    이미지를 드래그하거나 클릭하여 업로드
-                  </span>
-                )}
-              </div>
-            </ImageUpload>
-
-            <div className="field">
-              <label>제목</label>
-              <InputText scheme="mypage" onChange={(e: { target: { value: SetStateAction<string>; }; }) => setTitle(e.target.value)} />
-            </div>
-
-            <div className="field">
-              <label>목적지</label>
-              <InputText
-                scheme="mypage"
-                onChange={(e: { target: { value: SetStateAction<string>; }; }) => setDescription(e.target.value)}
+        <form onSubmit={handlePlanSubmit}>
+          <ImageUpload>
+            <div className="upload-box">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    setSelectedImage(file);
+                    const reader = new FileReader();
+                    reader.onloadend = () =>
+                      setImagePreview(reader.result as string);
+                    reader.readAsDataURL(file);
+                  }
+                }}
               />
+              {imagePreview ? (
+                <img src={imagePreview} alt="preview" />
+              ) : (
+                <span className="upload-text">
+                  이미지를 드래그하거나 클릭하여 업로드
+                </span>
+              )}
             </div>
+          </ImageUpload>
+          <div className="field">
+            <label>제목</label>
+            <InputText
+              scheme="mypage"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </div>
 
-            <div className="field">
-              <label>기간</label>
-              <DatePicker value={startDate} onChange={handleStartDateChange} />
-              <DatePicker value={endDate} onChange={handleEndDateChange} minDate={startDate} />
-            </div>
+          <div className="field">
+            <label>목적지</label>
+            <InputText
+              scheme="mypage"
+              value={destination}
+              onChange={(e) => setDestination(e.target.value)}
+            />
+          </div>
 
-            <div className="submit-btn">
-              <Button scheme="primary" type="submit" disabled={!isFormValid()}>
-                생성하기
-              </Button>
-            </div>
-          </form>
-        ) : (
-          //* 스케줄 타입 
-          <>
-            <form onSubmit={handleTodoSubmit}>
-                <div className="field">
-                  <label>날짜</label>
-                  <DatePicker value={startDate} onChange={handleStartDateChange} />
-                  <label>시간</label>
-                  <TimePicker value={selectedTime} onChange={setSelectedTime} />
-                </div>
-                <div className="field">
-                  <label>일정 내용</label>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                    <InputText
-                      scheme="mypage"
-                      value={todoContent}
-                      onChange={(e: { target: { value: SetStateAction<string>; }; }) => setTodoContent(e.target.value)}
-                    />
-                    <Button scheme="primary" type="submit"  style={{ backgroundColor: "#FFFFFF", color: "#616161" }}>
-                      추가하기
-                    </Button>
-                  </div>
-                </div>
-              </form>
-            {/* 투두 리스트 */}
-            <TodoSection>
-              <div className="list">
-                {todos.map((todo, index) => (
-                  <div key={index} className="item">
-                    <span className="time">{todo.time}</span>
-                    <span className="content">{todo.content}</span>
-                  </div>
-                ))}
-              </div>
-            </TodoSection>
-            <div>
-                <Button scheme="primary" type="submit" style={{ marginTop: "1rem", display: "flex", justifyContent: "center" }}>
-                  생성하기
-                </Button>
-              </div>
-          </>
-        )}
+          <div className="field">
+            <label>기간</label>
+            <DatePicker value={startDate} onChange={setStartDate} />
+            <DatePicker
+              value={endDate}
+              onChange={setEndDate}
+              minDate={startDate}
+            />
+          </div>
+
+          <Button scheme="primary" type="submit" disabled={!isFormValid()}>
+            생성하기
+          </Button>
+        </form>
       </div>
     </ModalWrapper>
   );
@@ -406,7 +378,7 @@ const ModalWrapper = styled.div`
       border: none;
       cursor: pointer;
       color: ${({ theme }) => theme.color.primary_black};
-      
+
       &:hover {
         color: ${({ theme }) => theme.color.primary_green};
       }
@@ -436,7 +408,8 @@ const ModalWrapper = styled.div`
           padding: 0.75rem;
           border: none;
           border-radius: 0;
-          border-bottom: 3px solid ${({ theme }) => theme.color.input_background};
+          border-bottom: 3px solid
+            ${({ theme }) => theme.color.input_background};
           background-color: ${({ theme }) => theme.color.primary_white};
           color: ${({ theme }) => theme.color.primary_black};
           font-family: ${({ theme }) => theme.font.family.contents};
@@ -464,7 +437,7 @@ const ModalWrapper = styled.div`
   }
 `;
 
-//* 5-2) 이미지 업로드 컨테이너 
+//* 5-2) 이미지 업로드 컨테이너
 const ImageUpload = styled.div`
   width: 100%;
   margin-bottom: 1rem;
@@ -480,7 +453,7 @@ const ImageUpload = styled.div`
     align-items: center;
     cursor: pointer;
     background-color: ${({ theme }) => theme.color.input_background};
-    
+
     &:hover {
       border-color: ${({ theme }) => theme.color.primary_green};
     }
@@ -531,12 +504,12 @@ const DateTimeSelect = styled.div`
 
       &:focus {
         outline: none;
-        border-color: ${({ theme }) => theme.color.primary_white}; 
+        border-color: ${({ theme }) => theme.color.primary_white};
       }
 
       option {
-        background-color: ${({ theme }) => theme.color.primary_white}; 
-        color: ${({ theme }) => theme.color.primary_black}; 
+        background-color: ${({ theme }) => theme.color.primary_white};
+        color: ${({ theme }) => theme.color.primary_black};
         padding: 0.5rem;
       }
     }
@@ -605,18 +578,18 @@ const Select = styled.select`
   font-family: ${theme.font.family.contents};
 
   &::-webkit-scrollbar {
-    width: 8px; 
+    width: 8px;
   }
 
   &::-webkit-scrollbar-track {
-    background: ${theme.color.input_background}; 
+    background: ${theme.color.input_background};
     border-radius: 10px;
   }
 
   &::-webkit-scrollbar-thumb {
-    background: ${theme.color.primary_green}; 
-    border-radius: 10px; 
-    border: 2px solid ${theme.color.input_background}; 
+    background: ${theme.color.primary_green};
+    border-radius: 10px;
+    border: 2px solid ${theme.color.input_background};
   }
 `;
 

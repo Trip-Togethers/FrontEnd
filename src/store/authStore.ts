@@ -8,7 +8,6 @@ interface StoreState {
 
 export const getToken = () => {
   const token = localStorage.getItem("token");
-
   return token;
 };
 
@@ -28,7 +27,6 @@ export const useAuthstore = create<StoreState>((set) => ({
   },
   storeLogout: () => {
     set({ isLoggedIn: false });
-    window.location.href = "users/login";
     removeToken();
   },
 }));

@@ -1,73 +1,155 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { styled } from "styled-components";
 import { useNavigate } from "react-router-dom";
 import { connect, useDispatch, useSelector } from "react-redux";
 import { theme } from "@styles/theme";
 import Modal from "@components/common/Modal";
 import Button from "@components/common/Button";
-import { Plan, RootState } from "@store/store";
+import { Guest, Plan, RootState } from "@store/store";
 import { addPlan, deletePlan } from "@store/planReducer";
 import { addParticipant, removeParticipant } from "@store/participantReducer";
+import { FaCopy } from "react-icons/fa";
+import {
+  createLink,
+  createPlan,
+  removePlan,
+  showPlan,
+} from "@api/schedule.api";
 
-// 인터페이스 정의
-interface HomeProps {
-  plans: Plan[];
-  addPlan: (plan: Plan) => void;
-  deletePlan: (id: string) => void;
+// Schedule 인터페이스 및 Home 컴포넌트
+interface Schedule {
+  id: number;
+  title: string;
+  destination: string;
+  startDate: string;
+  endDate: string;
+  createdAt: string;
+  updatedAt: string;
+  photoUrl: string;
+  owner: number;
+  guests: string[];
 }
 
-// Home 컴포넌트
-function Home({ plans, addPlan, deletePlan }: HomeProps) {
+const Home = () => {
+  const [data, setData] = useState<Schedule[]>([]); // 데이터 상태
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1); // 현재 페이지
+  const itemsPerPage = 5; // 한 페이지에 보여줄 일정 개수
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-
-  // 모달, 페이지네이션, 삭제 대상, 참가자 모달, 참가자 삭제 대상 상태 관리
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const participantsById = useSelector((state: RootState) => state.participants);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
-  const [showParticipantsModalFor, setShowParticipantsModalFor] = useState<string | null>(null);
-  const [removeParticipantInfo, setRemoveParticipantInfo] = useState<{ planId: string; index: number } | null>(null);
+  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
+  const [link, setLink] = useState<string>("");
 
-  const itemsPerPage = 6;
+  // 데이터 가져오기
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await showPlan();
+        if (Array.isArray(response.schedules)) {
+          setData(response.schedules); // schedules 배열을 상태에 저장
+        } else {
+          setError("데이터 형식이 잘못되었습니다.");
+        }
+      } catch (err) {
+        setError("데이터를 가져오는 데 실패했습니다.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // 페이지네이션을 적용한 현재 보여질 일정 목록
-  const currentPlans = [...plans]
-    .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
-    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    fetchData();
+  }, []);
 
-  // 일정 카드 클릭 핸들러
-  const handlePlanClick = (e: React.MouseEvent, id: string) => {
+  // 페이지네이션 적용
+  const currentPlans = [...data]
+    .sort(
+      (a, b) =>
+        new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+    ) // 일정 날짜순으로 정렬
+    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage); // 현재 페이지의 일정만 슬라이싱
+
+  // 일정 클릭 핸들러
+  const handlePlanClick = (e: React.MouseEvent, id: number) => {
     if (!(e.target as HTMLElement).closest(".delete-btn")) {
-      navigate(`/trips/${id}/activities`);
+      // 삭제 버튼이 아니라면
+      navigate(`/trips/${id}/activities`); // 해당 일정의 활동 페이지로 이동
     }
   };
 
-  // 참가자 모달 오픈 핸들러
-  const handleShowParticipants = (e: React.MouseEvent, planId: string) => {
-    e.stopPropagation();
-    setShowParticipantsModalFor(planId);
-    const alreadyHas = participantsById[planId]?.length > 0;
-    if (!alreadyHas) {
-      dispatch(addParticipant({ planId, nickname: "참가자 1" }));
-      dispatch(addParticipant({ planId, nickname: "참가자 2" }));
-      dispatch(addParticipant({ planId, nickname: "참가자 3" }));
-      dispatch(addParticipant({ planId, nickname: "참가자 4" }));
+  const handleDeletePlan = async (e: React.MouseEvent, id: number) => {
+    if (window.confirm("정말로 이 일정을 삭제하시겠습니까?")) {
+      try {
+        await removePlan(id);
+        alert("일정이 삭제되었습니다.");
+        window.location.reload(); // 삭제 후 화면 리로드
+      } catch (error) {
+        alert("삭제 중 오류가 발생했습니다.");
+      }
     }
+  };
+
+  const handleOpenModal = async (
+    e: React.MouseEvent,
+    planId: number,
+    userId: number
+  ) => {
+    e.stopPropagation(); //
+    setIsLinkModalOpen(true); // 모달 열기
+    try {
+      const createlink = await createLink(planId, userId);
+      setLink(createlink);
+    } catch (err) {
+      setError("데이터를 가져오는 데 실패했습니다.");
+      alert(err);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsLinkModalOpen(false); // 모달 닫기
+  };
+
+  // 복사 함수 추가
+  const handleCopyLink = () => {
+    if (!link) {
+      alert("링크가 없습니다.");
+      return;
+    }
+    navigator.clipboard
+      .writeText(link) // 클립보드에 텍스트 복사
+      .then(() => {
+        alert("초대 링크가 복사되었습니다!"); // 복사 완료 메시지
+      })
+      .catch(() => {
+        alert("복사 실패. 다시 시도해주세요.");
+      });
   };
 
   // 참가자 삭제 핸들러
-  const handleRemoveParticipant = () => {
-    if (!removeParticipantInfo) return;
-    const { planId, index } = removeParticipantInfo;
-    dispatch(removeParticipant({ planId, index }));
-    setRemoveParticipantInfo(null);
+  const handleRemoveParticipant = (planId: number, nickname: string) => {
+    setData((prevData) =>
+      prevData.map((schedule) =>
+        schedule.id === planId
+          ? {
+              ...schedule,
+              guests: schedule.guests.filter((guest) => guest !== nickname),
+            }
+          : schedule
+      )
+    );
   };
+
+  if (loading) {
+    return <div>로딩 중...</div>;
+  }
+
+  if (error) {
+    return <div>{error}</div>;
+  }
 
   return (
     <HomeStyle>
-      {/* 일정이 없을 때 안내 메시지 */}
-      {!plans.length && (
+      {!data.length && (
         <NoPlanMessage>
           아직 일정이 없습니다 :(
           <br />
@@ -75,184 +157,135 @@ function Home({ plans, addPlan, deletePlan }: HomeProps) {
         </NoPlanMessage>
       )}
 
-      {/* 일정 카드 목록 */}
       <PlansContainer>
-        {currentPlans.map((plan, idx) => {
-          const participantList = participantsById[plan.id] || [];
-          return (
-            <PlanCard key={plan.id} onClick={(e: any) => handlePlanClick(e, plan.id)}>
-              {/* 삭제 버튼 */}
-              <DeleteButton className="delete-btn" onClick={() => setDeleteTarget(idx)}>
-                ➖
-              </DeleteButton>
-              {/* 참가자 추가 버튼 */}
-              <ParticipantsButton onClick={(e: any) => handleShowParticipants(e, plan.id)}>+</ParticipantsButton>
-              {/* 참가자 아바타 목록 */}
-              <ParticipantsRow>
-                {participantList.slice(0, 2).map((participant: string, i: number) => (
-                  <SmallAvatar key={i}>👤</SmallAvatar>
-                ))}
-                {participantList.length > 2 && <MoreCount>+{participantList.length - 2}</MoreCount>}
-              </ParticipantsRow>
-
-              {/* 일정 이미지 및 날짜 오버레이 */}
-              <ImagePlaceholder>
-                {plan.image && <PlanImage src={plan.image} alt="Preview" />}
-                <DateOverlay>
-                  <div style={{ fontSize: "1.5rem", fontWeight: theme.font.weight.light }}>
-                    {new Date(plan.startDate).getFullYear()}
-                  </div>
-                  <div style={{ fontSize: "1.2rem" }}>
-                    {new Date(plan.startDate).toLocaleDateString("en-US", { day: "2-digit", month: "short" })} -{" "}
-                    {new Date(plan.endDate).toLocaleDateString("en-US", { day: "2-digit", month: "short" })}
-                  </div>
-                </DateOverlay>
-              </ImagePlaceholder>
-
-              {/* 일정 제목 */}
-              <div style={{ padding: "1rem 0" }}>
-                <h3
-                  style={{
-                    margin: 0,
-                    fontSize: "clamp(1rem, 1.5vw, 1.25rem)",
-                    fontWeight: theme.font.weight.bold,
-                  }}
-                >
-                  {plan.title}
-                </h3>
-              </div>
-            </PlanCard>
-          );
-        })}
+        {currentPlans.map((schedule) => (
+          <PlanCard
+            key={schedule.id}
+            onClick={(e) => handlePlanClick(e, schedule.id)}
+          >
+            <DeleteButton
+              className="delete-btn"
+              onClick={(e) => handleDeletePlan(e, schedule.id)}
+            >
+              ➖
+            </DeleteButton>
+            <ImagePlaceholder>
+              {schedule.photoUrl ? (
+                <PlanImage src={schedule.photoUrl} alt={schedule.title} />
+              ) : (
+                ""
+              )}
+              <DateOverlay>
+                <div>{new Date(schedule.startDate).getFullYear()}</div>
+                <DateText>
+                  {new Date(schedule.startDate).toLocaleDateString("en-GB", {
+                    day: "2-digit",
+                    month: "short",
+                  })}{" "}
+                  -{" "}
+                  {new Date(schedule.endDate).toLocaleDateString("en-GB", {
+                    day: "2-digit",
+                    month: "short",
+                  })}
+                </DateText>
+              </DateOverlay>
+            </ImagePlaceholder>
+            <h2>{schedule.title}</h2>
+            <ParticipantsButton
+              onClick={(e) => handleOpenModal(e, schedule.id, schedule.owner)}
+            >
+              +
+            </ParticipantsButton>
+            <ParticipantsRow>
+              {/* {schedule.guests.map((guest, idx) => (
+                <SmallAvatar key={idx}>
+                  {guest.avatarUrl ? (
+                    <img src={guest.avatarUrl} alt={guest.name} />
+                  ) : (
+                    "👤"
+                  )}
+                  <span>{guest.name}</span>
+                </SmallAvatar>
+              ))} */}
+            </ParticipantsRow>
+          </PlanCard>
+        ))}
       </PlansContainer>
 
-      {/* 삭제 확인 모달 */}
-      {deleteTarget !== null && (
-        <DeleteModal>
-          <ModalInner>
-            <h3>일정을 삭제하시겠습니까?</h3>
-            <div style={{ display: "flex", gap: "1rem", justifyContent: "center" }}>
-              <Button
-                scheme="alert"
-                onClick={() => {
-                  deletePlan(plans[deleteTarget].id);
-                  setDeleteTarget(null);
-                }}
-              >
-                삭제
-              </Button>
-              <Button scheme="primary" onClick={() => setDeleteTarget(null)}>
-                취소
-              </Button>
-            </div>
-          </ModalInner>
-        </DeleteModal>
-      )}
-
-      {/* 페이지네이션 */}
-      {plans.length > itemsPerPage && (
-        <Pagination>
-          {[{ label: "<", disabled: currentPage === 1 }, { label: currentPage, disabled: true }, { label: ">", disabled: currentPage === Math.ceil(plans.length / itemsPerPage) }].map(
-            (item, i) => (
-              <PageButton
-                key={i}
-                onClick={() =>
-                  setCurrentPage((p) => (i === 0 ? p - 1 : i === 2 ? p + 1 : p))
-                }
-                disabled={item.disabled}
-                $isActive={false}
-              >
-                {item.label}
-              </PageButton>
-            )
-          )}
-        </Pagination>
-      )}
-
-      {/* 새 일정 생성 버튼 */}
-      <NewPlanButton>
-        <Button scheme="primary" onClick={() => setIsModalOpen(true)}>
-          + 새 일정 생성
-        </Button>
-      </NewPlanButton>
-
-      {/* 새 일정 생성 모달 */}
-      <Modal
-        type="plan"
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSubmit={(plan: any) => {
-          addPlan({
-            ...plan,
-            id: Date.now().toString(),
-          });
-          setIsModalOpen(false);
-        }}
-      />
-
-      {/* 참가자 목록 모달 */}
-      {showParticipantsModalFor && (
-        <ParticipantsModal onClick={() => setShowParticipantsModalFor(null)}>
-          <ModalContent onClick={(e: { stopPropagation: () => any; }) => e.stopPropagation()}>
-            <ModalTitle>참가자 목록</ModalTitle>
-            <ParticipantsList>
-              {(participantsById[showParticipantsModalFor] || []).map((nickname: string, idx: number) => (
-                <ParticipantItem key={idx}>
-                  <ParticipantAvatar />
-                  <ParticipantName>{nickname}</ParticipantName>
-                  <RemoveButton
-                    onClick={() =>
-                      setRemoveParticipantInfo({ planId: showParticipantsModalFor!, index: idx })
-                    }
-                  >
-                    ➖
-                  </RemoveButton>
-                </ParticipantItem>
-              ))}
-            </ParticipantsList>
+      {isLinkModalOpen && (
+        <ParticipantsModal>
+          <ModalContent>
+            <InviteLinkTitle>초대링크</InviteLinkTitle>
             <InviteSection>
-              <div>초대링크</div>
-              <InviteLink readOnly value="https://www.trip-together.co.kr" />
+              <InviteLink readOnly value={link} />
+              <FaCopy
+                onClick={handleCopyLink}
+                style={{
+                  cursor: "pointer",
+                  fontSize: "18px",
+                  color: "#007BFF",
+                  marginTop: "7px",
+                  marginLeft: "9px",
+                  transition: "color 0.3s ease",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "#006D24")} // 마우스 오버 효과
+                onMouseLeave={(e) => (e.currentTarget.style.color = "#338A50")} // 마우스 아웃 효과
+              />
             </InviteSection>
             <CloseButtonWrapper>
-              <Button scheme="primary" onClick={() => setShowParticipantsModalFor(null)}>
+              <Button scheme="primary" onClick={handleCloseModal}>
                 닫기
               </Button>
             </CloseButtonWrapper>
           </ModalContent>
         </ParticipantsModal>
       )}
+      {/* 새 일정 생성 버튼 */}
+      <NewPlanButton>
+        <Button scheme="primary" onClick={() => setIsModalOpen(true)}>
+          + 새 일정 생성
+        </Button>
+      </NewPlanButton>
+      {/* 새 일정 생성 모달 */}
+      <Modal
+        type="plan"
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={async (plan: any) => {
+          const newPlan = await createPlan({
+            ...plan,
+          });
+          setIsModalOpen(false);
+          window.location.reload();
+        }}
+      />
 
-      {/* 참가자 삭제 확인 모달 */}
-      {removeParticipantInfo && (
-        <DeleteModal>
-          <ModalInner>
-            <h3>
-              "{(participantsById[removeParticipantInfo.planId] || [])[removeParticipantInfo.index]}"
-              <br />
-              삭제하시겠습니까?
-            </h3>
-            <div style={{ display: "flex", gap: "1rem", justifyContent: "center" }}>
-              <Button scheme="alert" onClick={handleRemoveParticipant}>
-                삭제
-              </Button>
-              <Button scheme="primary" onClick={() => setRemoveParticipantInfo(null)}>
-                취소
-              </Button>
-            </div>
-          </ModalInner>
-        </DeleteModal>
-      )}
+      <Pagination>
+        <PageButton
+          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+          disabled={currentPage === 1}
+          $isActive={false}
+        >
+          이전
+        </PageButton>
+        <span>{currentPage}</span>
+        <PageButton
+          onClick={() =>
+            setCurrentPage((prev) =>
+              Math.min(prev + 1, Math.ceil(data.length / itemsPerPage))
+            )
+          }
+          disabled={currentPage === Math.ceil(data.length / itemsPerPage)}
+          $isActive={false}
+        >
+          다음
+        </PageButton>
+      </Pagination>
     </HomeStyle>
   );
-}
+};
 
- //  Redux 연결
-export default connect(
-  (state: RootState) => ({ plans: state.plan.plans }),
-  { addPlan, deletePlan }
-)(Home);
-
+export default Home;
 
 const HomeStyle = styled.div`
   position: relative;
@@ -345,12 +378,9 @@ const PlanCard = styled.div`
   border-radius: ${({ theme }) => theme.borderRadius.default};
   display: flex;
   flex-direction: column;
-  align-items: center;
   padding: clamp(0.5rem, 2vw, 1.5rem);
-  border: none;
   box-shadow: 0 2px 8px #000000;
   transition: transform 0.2s ease;
-  font-family: ${({ theme }) => theme.font.family.contents};
   cursor: pointer;
 
   &:hover {
@@ -443,7 +473,7 @@ const ParticipantsRow = styled.div`
   bottom: 1rem;
   left: 3.5rem;
   display: flex;
-  align-items: center;
+  align-items: left;
   gap: 0.3rem;
   z-index: 10;
 `;
@@ -477,6 +507,11 @@ const ParticipantsModal = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+`;
+
+const DateText = styled.div`
+  font-size: 1.2rem;
+  font-weight: bold;
 `;
 
 const ModalContent = styled.div`
@@ -548,14 +583,16 @@ const RemoveButton = styled.button`
 
 const InviteSection = styled.div`
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 4px;
   margin-bottom: 1rem;
-  div {
-    font-size: 0.9rem;
-    color: ${({ theme }) => theme.color.primary_black};
-    font-family: ${({ theme }) => theme.font.family.contents};
-  }
+`;
+
+const InviteLinkTitle = styled.div`
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+  color: ${({ theme }) => theme.color.primary_black};
+  font-family: ${({ theme }) => theme.font.family.contents};
 `;
 
 const InviteLink = styled.input`
@@ -565,6 +602,7 @@ const InviteLink = styled.input`
   border-radius: 5px;
   padding: 0.5rem;
   font-family: ${({ theme }) => theme.font.family.contents};
+  width: 90%;
 `;
 
 const CloseButtonWrapper = styled.div`
