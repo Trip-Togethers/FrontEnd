@@ -1,11 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import styled from "styled-components";
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 
-// Styled Calendar with styled-components
 const StyledCalendar = styled(Calendar).attrs((props) => ({
-  ...props, // Ensure all props are passed correctly
+  ...props, // 모든 props 전달
 }))`
   width: 100% !important;
   height: 100%;
@@ -15,26 +14,6 @@ const StyledCalendar = styled(Calendar).attrs((props) => ({
   border-radius: 8px !important;
   padding: 10px !important;
   font-family: 'Arial', sans-serif !important;
-
-  /* 네비게이션 스타일 */
-  // .react-calendar__navigation {
-  //   display: flex !important;
-  //   justify-content: space-between !important;
-  //   margin-bottom: 10px !important;
-  // }
-
-  // .react-calendar__navigation button {
-  //   background: #007bff !important;
-  //   color: white !important;
-  //   border: none !important;
-  //   padding: 5px 10px !important;
-  //   border-radius: 5px !important;
-  //   cursor: pointer !important;
-  // }
-
-  // .react-calendar__navigation button:hover {
-  //   background: #0056b3 !important;
-  // }
 
   /* 요일 스타일 */
   .react-calendar__month-view__weekdays {
@@ -58,19 +37,12 @@ const StyledCalendar = styled(Calendar).attrs((props) => ({
     border-radius: 15px;
   }
 
-  /* 오늘 날짜 */
-  // .react-calendar__tile--now {
-    // background: #ffcc00 !important;
-    // border-radius: 50% !important;
-  // }
-
   /* 이벤트가 있는 날짜 스타일 */
   .event-day div div {
-    // position: relative !important;
     border-radius: 4px;
     background: #63C647;
     padding: 2px 5px;
-    color:rgb(0, 0, 0);
+    color: rgb(0, 0, 0);
     font-weight: bold !important;
     margin: 5px 0;
   }
@@ -107,9 +79,56 @@ const StyledCalendar = styled(Calendar).attrs((props) => ({
   }
 `;
 
+const Popup = styled.div`
+  position: absolute;
+  width: 150px;
+  background-color: white;
+  border: 1px solid #ececec;
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  z-index: 1000;
+`;
+
+const CalendarContainer = styled.div`
+  position: relative;
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+`;
+
+interface EventItem {
+  title: string;
+  destination: string;
+}
+
 const Calendars = () => {
+  // 날짜별 이벤트를 { [날짜(YYYY-MM-DD)]: EventItem[] } 형식으로 저장
+  const [events, setEvents] = useState<{ [key: string]: EventItem[] }>({});
   const [date, setDate] = useState(new Date());
-  const [events, setEvents] = useState<{ [key: string]: string[] }>({});
+
+  // 팝업 상태: 노출여부, 좌표, 해당 날짜 이벤트들, 날짜 정보
+  const [popupData, setPopupData] = useState<{
+    visible: boolean;
+    top: number;
+    left: number;
+    events: EventItem[];
+    date: Date | null;
+  }>({
+    visible: false,
+    top: 0,
+    left: 0,
+    events: [],
+    date: null,
+  });
+
+  // CalendarContainer에 대한 ref (팝업 위치 계산용)
+  const calendarContainerRef = useRef<HTMLDivElement>(null);
 
   // 서버에서 데이터를 불러와서 events 상태 업데이트
   useEffect(() => {
@@ -124,8 +143,6 @@ const Calendars = () => {
         });
 
         const data = await response.json();
-        console.log('Fetched data:', data);
-
         const calendarData = data.calendar;
 
         if (!Array.isArray(calendarData)) {
@@ -133,13 +150,12 @@ const Calendars = () => {
           return;
         }
 
-        const newEvents: { [key: string]: string[] } = {};
+        const newEvents: { [key: string]: EventItem[] } = {};
 
         calendarData.forEach((event: any) => {
           // 날짜를 한국 시간으로 변환
           const startDate = new Date(event.startDate);
           const endDate = new Date(event.endDate);
-
           const startKST = new Date(startDate.getTime() + 9 * 60 * 60 * 1000);
           const endKST = new Date(endDate.getTime() + 9 * 60 * 60 * 1000);
 
@@ -147,12 +163,14 @@ const Calendars = () => {
 
           while (currentDate <= endKST) {
             const dateKey = currentDate.toISOString().split('T')[0];
-
             if (!newEvents[dateKey]) {
               newEvents[dateKey] = [];
             }
-
-            newEvents[dateKey].push(event.title);
+            // 이벤트 제목과 destination 정보를 저장
+            newEvents[dateKey].push({
+              title: event.title,
+              destination: event.destination,
+            });
             currentDate.setDate(currentDate.getDate() + 1);
           }
         });
@@ -166,70 +184,75 @@ const Calendars = () => {
     fetchEvents();
   }, []);
 
-  // 날짜 클릭 시 이벤트 추가
-  const handleAddEvent = (date: Date) => {
-    const eventTitle = prompt('이벤트 제목을 입력하세요');
-    if (eventTitle) {
-      const dateKey = date.toISOString().split('T')[0];
+  // 타일 내에서 클릭 이벤트 처리
+  const handleTileClick = (e: React.MouseEvent<HTMLDivElement>, date: Date) => {
+    e.stopPropagation();
+    const dateKey = date.toISOString().split('T')[0];
+    const dayEvents = events[dateKey];
+    if (!dayEvents || dayEvents.length === 0) {
+      return;
+    }
 
-      setEvents((prevEvents) => {
-        const updatedEvents = { ...prevEvents };
-        if (!updatedEvents[dateKey]) {
-          updatedEvents[dateKey] = [];
-        }
-        updatedEvents[dateKey].push(eventTitle);
-        return updatedEvents;
+    // 클릭한 타일의 DOM 위치 계산
+    const tileRect = e.currentTarget.getBoundingClientRect();
+    if (calendarContainerRef.current) {
+      const containerRect = calendarContainerRef.current.getBoundingClientRect();
+      const popupHeight = 120;
+      const top = tileRect.top - containerRect.top - popupHeight - 5;
+      const popupWidth = 150;
+      const left = tileRect.left - containerRect.left + tileRect.width / 2 - popupWidth / 2;
+
+      setPopupData({
+        visible: true,
+        top,
+        left,
+        events: dayEvents,
+        date: date,
       });
     }
   };
 
-  // 특정 날짜에 이벤트가 있는지 확인하고 스타일 적용
-  const getTileClassName = ({ date }: { date: Date }) => {
-    const dateKey = date.toISOString().split('T')[0];
-    return events[dateKey] ? 'event-day' : '';
-  };
-
-  // 달력 타일에 이벤트 추가
+  // 달력 타일에 이벤트 추가 (타일 내부에 이벤트 제목들을 표시)
   const renderTileContent = ({ date, view }: any) => {
     const dateKey = date.toISOString().split('T')[0];
     const dayEvents = events[dateKey];
 
+    // 월별 보기이고, 해당 날짜에 이벤트가 있을 경우
     if (view === 'month' && dayEvents && dayEvents.length > 0) {
       return (
-        <div style={{ fontSize: '10px', color: '#000' }}>
+        // 클릭 시 타일의 위치를 받아 팝업을 띄우기 위한 onClick 핸들러 추가
+        <div onClick={(e) => handleTileClick(e, date)} style={{ fontSize: '10px', color: '#000' }}>
           {dayEvents.map((event, index) => (
-            <div key={index}>{event}</div>
+            <div key={index}>{event.title}</div>
           ))}
         </div>
       );
     }
-
     return null;
   };
-  
 
   return (
-    <CalendarContainer>
+    <CalendarContainer ref={calendarContainerRef}>
       <h1>캘린더</h1>
       <StyledCalendar
         value={date}
-        onClickDay={handleAddEvent}
-        tileClassName={getTileClassName} // 이벤트 날짜 스타일 적용
-        tileContent={renderTileContent} // 타일 내부에 이벤트 표시
+        tileClassName={({ date }: { date: Date }) => {
+          const dateKey = date.toISOString().split('T')[0];
+          return events[dateKey] ? 'event-day' : '';
+        }}
+        tileContent={renderTileContent}
       />
+
+      {popupData.visible && (
+        <Popup style={{ top: popupData.top, left: popupData.left }}>
+          {popupData.events.map((event, index) => (
+            <div style={{ fontSize: '14px', color: '#000', fontWeight: 'bold'}} className="popup" key={index}>{event.destination}</div>
+          ))}
+          <button style={{ marginTop: '15px', background: '#fff', border: '1px solid #ececec', borderRadius: "4px", padding: '5px 8px', width: '100%'}} className="popup-btn" onClick={() => setPopupData({ ...popupData, visible: false })}>닫기</button>
+        </Popup>
+      )}
     </CalendarContainer>
   );
 };
-
-const CalendarContainer = styled.div`
-  display: flex;
-  height: 100%;
-  flex-direction: column;
-  align-items: center;
-  background-color: #f9f9f9; /* 배경색 */
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 그림자 효과 */
-`;
 
 export default Calendars;
