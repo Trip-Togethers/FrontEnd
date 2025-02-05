@@ -15,3 +15,14 @@ export const userPage = async (userId: number) => {
 
     return response.data;
   }
+
+export const getUserInfo = async (tripId: number) => {
+  const response = await httpClient.get(`/trips/companions/${tripId}`, {
+    withCredentials: true,
+  })
+  return response.data;
+}
+
+export const addUser = async () => {
+  
+}

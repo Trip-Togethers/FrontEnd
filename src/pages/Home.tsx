@@ -1,13 +1,8 @@
 import { useEffect, useState } from "react";
 import { styled } from "styled-components";
 import { useNavigate } from "react-router-dom";
-import { connect, useDispatch, useSelector } from "react-redux";
-import { theme } from "@styles/theme";
 import Modal from "@components/common/Modal";
 import Button from "@components/common/Button";
-import { Guest, Plan, RootState } from "@store/store";
-import { addPlan, deletePlan } from "@store/planReducer";
-import { addParticipant, removeParticipant } from "@store/participantReducer";
 import { FaCopy } from "react-icons/fa";
 import {
   createLink,
@@ -15,6 +10,7 @@ import {
   removePlan,
   showPlan,
 } from "@api/schedule.api";
+import { getUserInfo } from "@api/user.api";
 
 // Schedule 인터페이스 및 Home 컴포넌트
 interface Schedule {
@@ -33,6 +29,7 @@ interface Schedule {
 const Home = () => {
   const [data, setData] = useState<Schedule[]>([]); // 데이터 상태
   const [loading, setLoading] = useState(true);
+  const [users, setUsers] = useState<any[]>([]); // 유저 정보를 담을 상태 추가
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1); // 현재 페이지
   const itemsPerPage = 5; // 한 페이지에 보여줄 일정 개수
@@ -51,8 +48,27 @@ const Home = () => {
         } else {
           setError("데이터 형식이 잘못되었습니다.");
         }
+        // 유저 데이터 가져오기
+        const usersData = await Promise.all(
+          response.schedules.map(async (schedule: Schedule) => {
+            // 해당 여행의 유저 정보 가져오기 (tripId 사용)
+            const userInfo = await getUserInfo(schedule.id); // 각 여행마다 tripId를 넘겨서 유저 정보 가져옴
+            return { scheduleId: schedule.id, users: userInfo.users }; // 유저 정보 반환
+          })
+        );
+
+        const usersMap = usersData.reduce(
+          (acc: any, { scheduleId, users }: any) => {
+            acc[scheduleId] = users; // scheduleId를 키로 사용하여 유저 정보 저장
+            return acc;
+          },
+          {}
+        );
+        setUsers(usersMap);
+        console.log(usersMap);
       } catch (err) {
         setError("데이터를 가져오는 데 실패했습니다.");
+        console.log(err);
       } finally {
         setLoading(false);
       }
@@ -123,6 +139,17 @@ const Home = () => {
       .catch(() => {
         alert("복사 실패. 다시 시도해주세요.");
       });
+  };
+
+  // 참가자 추가
+  const handleAddParticipant = (
+    e: React.MouseEvent,
+    planId: number,
+    user: any
+  ) => {
+    e.stopPropagation(); // 클릭 이벤트가 부모 요소로 전달되지 않도록 방지
+    console.log(`Adding ${user.guest || user.creator} to plan ${planId}`);
+    // 유저 추가 로직 처리 (예: API 호출 등)
   };
 
   // 참가자 삭제 핸들러
@@ -196,17 +223,13 @@ const Home = () => {
             >
               +
             </ParticipantsButton>
+
             <ParticipantsRow>
-              {/* {schedule.guests.map((guest, idx) => (
+              {users[schedule.id]?.map((user: any, idx: number) => (
                 <SmallAvatar key={idx}>
-                  {guest.avatarUrl ? (
-                    <img src={guest.avatarUrl} alt={guest.name} />
-                  ) : (
-                    "👤"
-                  )}
-                  <span>{guest.name}</span>
+                  <span>{user.role === "creator" ? "👑" : "👤"}</span>
                 </SmallAvatar>
-              ))} */}
+              ))}
             </ParticipantsRow>
           </PlanCard>
         ))}
@@ -449,7 +472,7 @@ const DeleteButton = styled.button`
 const ParticipantsButton = styled.button`
   position: absolute;
   bottom: 1rem;
-  left: 1rem;
+  right: 1rem;
   width: 2rem;
   height: 2rem;
   border-radius: 50%;
@@ -476,6 +499,7 @@ const ParticipantsRow = styled.div`
   align-items: left;
   gap: 0.3rem;
   z-index: 10;
+  left: 1rem;
 `;
 
 const SmallAvatar = styled.div`
