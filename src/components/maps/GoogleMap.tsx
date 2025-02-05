@@ -8,9 +8,9 @@ import {
 import styled from "styled-components";
 import SidebarTab from "./Sidebar";
 import SearchCategoryButton from "./SearchCategoryButton";
-import { SIDEBAR_TAB_TEXT } from "@/constants/sidebarTabItem";
+import { SIDEBAR_TAB_TEXT } from "@constants/sidebarTabItem";
 
-import { Plus, Search, Cafe, Bed, ForkSpoon, Hospital, LocationPin } from "@/assets/svg";
+import { Plus, Search, Cafe, Bed, ForkSpoon, Hospital, LocationPin } from "@assets/svg";
 import DetailSearch from "./detail/DetailSearch";
 
 const Category = [
@@ -67,8 +67,8 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImVtYWlsIjoidGVzdEBhc2QuY29tIiwiaWF0IjoxNzM4NjU0OTYzLCJleHAiOjE3Mzg3NDEzNjN9.NLJ0CyNIrSm3FLUZB2AFqV9awvzg5gZJ4v-0-uasiPM',
         },
+        credentials: 'include',
       });
   
       const data = await response.json();
@@ -359,6 +359,7 @@ const BookmarkContainer = styled.div`
   padding: 20px;
   text-align: center;
   cursor: pointer;
+  overflow: auto;
 
   h3 {
     margin-bottom: 10px;

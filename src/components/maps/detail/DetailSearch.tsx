@@ -1,4 +1,4 @@
-import { Bookmark } from '@/assets/svg';
+import { Bookmark } from '@assets/svg';
 import styled from 'styled-components';
 
 interface Props {
@@ -21,10 +21,10 @@ function DetailSearch({ selectedPlace }: Props) {
             const response = await fetch(`${import.meta.env.VITE_SERVER_ADDRESS}/maps/destinations`, {
                 method: 'POST',
                 headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImVtYWlsIjoidGVzdEBhc2QuY29tIiwiaWF0IjoxNzM4NjU0OTYzLCJleHAiOjE3Mzg3NDEzNjN9.NLJ0CyNIrSm3FLUZB2AFqV9awvzg5gZJ4v-0-uasiPM',
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(placeData),
+                credentials: 'include',
             });
 
             if (response.ok) {
@@ -33,7 +33,7 @@ function DetailSearch({ selectedPlace }: Props) {
                 console.error('북마크 저장 실패:', response.status);
             }
         } catch (error) {
-          console.log(error)
+            console.log(error);
             console.error('북마크 저장 중 오류 발생:', error);
         }
     };
