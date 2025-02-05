@@ -89,7 +89,7 @@ const router = createBrowserRouter([
   },
   {
     //커뮤니티-글작성
-    path: " /posts/:postId",
+    path: " /posts",
     element: (
       <Layout>
         <AddPost />
