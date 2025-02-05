@@ -1,4 +1,4 @@
-import { Bookmark } from '@assets/svg'; //overflow
+import { Bookmark } from '@assets/svg';
 import styled from 'styled-components';
 
 interface Props {

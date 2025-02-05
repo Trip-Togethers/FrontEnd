@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { showDetailPlan } from "@api/detail.api";
 import { useParams } from "react-router-dom";
 import { showPlan } from "@api/schedule.api";
-import { formatDate } from '@utils/format';
+import { formatDate } from '@utils/date.format';
 
 interface Schedules {
   id: number;
