@@ -131,7 +131,7 @@ const router = createBrowserRouter([
   {
     //달력
     //path: "/calendar/:userId",
-    path: "/calendar/:userId",
+    path: "/calendar",
     element: (
       <Layout>
         <Calendars />
