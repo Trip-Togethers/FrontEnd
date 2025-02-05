@@ -8,9 +8,9 @@ import {
 import styled from "styled-components";
 import SidebarTab from "./Sidebar";
 import SearchCategoryButton from "./SearchCategoryButton";
-import { SIDEBAR_TAB_TEXT } from "@constants/sidebarTabItem";
+import { SIDEBAR_TAB_TEXT } from "@/constants/sidebarTabItem";
 
-import { Plus, Search, Cafe, Bed, ForkSpoon, Hospital } from "@assets/svg";
+import { Plus, Search, Cafe, Bed, ForkSpoon, Hospital, LocationPin } from "@/assets/svg";
 import DetailSearch from "./detail/DetailSearch";
 
 const Category = [
@@ -51,6 +51,49 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
   const [selectedPlace, setSelectedPlace] = useState<any>(null);
   const [autocomplete, setAutocomplete] =
     useState<google.maps.places.Autocomplete | null>(null);
+  
+  const [destinations, setDestinations] = useState<any[]>([]);
+  const [selectedMarker, setSelectedMarker] = useState<{ lat: number; lng: number } | null>(null);
+
+  useEffect(() => {
+    if (currentTab === "bookmark") {
+      fetchDestinations();
+    }
+  }, [currentTab]);
+
+  const fetchDestinations = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_SERVER_ADDRESS}/maps/destinations`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImVtYWlsIjoidGVzdEBhc2QuY29tIiwiaWF0IjoxNzM4NjU0OTYzLCJleHAiOjE3Mzg3NDEzNjN9.NLJ0CyNIrSm3FLUZB2AFqV9awvzg5gZJ4v-0-uasiPM',
+        },
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        setDestinations(data.destinations);
+      } else {
+        console.error("목적지 불러오기 실패:", data.message);
+      }
+    } catch (error) {
+      console.error("서버 요청 오류:", error);
+    }
+  };
+
+  const handleDestinationClick = (lat: number, lng: number) => {
+    if (!map) return;
+
+    const newCenter = { lat, lng };
+    setCenter(newCenter);
+    setSelectedMarker(newCenter);
+    map.panTo(newCenter);
+    map.setZoom(18);
+  };
+  
+  
 
   // 사이드바 관련 코드
   const handleSidebarClick = useCallback(
@@ -197,7 +240,7 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
           ></SidebarTab>
           {isSidebarOpen && (
             <SidebarDetailContainer>
-              {currentTab === SIDEBAR_TAB_TEXT.search.id && (
+              {currentTab === "search" && (
                 <>
                   <InputContainer>
                     <div className="search">
@@ -229,6 +272,27 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
                   <DetailSearch selectedPlace={selectedPlace} />
                 </>
               )}
+
+              {currentTab === "bookmark" && (
+                <BookmarkContainer>
+                  <ul>
+                    {destinations.length > 0 ? (
+                      destinations.map((place) => (
+                        <li
+                          key={place.id}
+                          onClick={() => handleDestinationClick(place.latitude, place.longitude)}
+                        >
+                          <span>{place.name}</span>
+                          <LocationPin width={20} height={20} color="black" />
+                        </li>
+                      ))
+                    ) : (
+                      <p>저장된 목적지가 없습니다.</p>
+                    )}
+                  </ul>
+                </BookmarkContainer>
+              )}
+
             </SidebarDetailContainer>
           )}
           <CategoryContainer isOpen={isSidebarOpen}>
@@ -272,6 +336,16 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
                 }}
               />
             ))}
+          
+          {selectedMarker && (
+              <Marker
+                position={selectedMarker}
+                icon={{
+                  url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png", // ✅ 파란색 마커 추가
+                  scaledSize: new google.maps.Size(40, 40),
+                }}
+              />
+            )}
         </GoogleMap>
       </MapContainer>
     </LoadScript>
@@ -279,6 +353,38 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
 }
 
 export default GoogleMapComponent;
+
+const BookmarkContainer = styled.div`
+  width: 100%;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+
+  h3 {
+    margin-bottom: 10px;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  li {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 10px;
+    margin: 5px 0;
+    font-size: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  small {
+    color: #6c757d;
+    font-size: 12px;
+  }
+`;
 
 const MapContainer = styled.div`
   width: 100%;

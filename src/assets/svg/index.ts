@@ -25,3 +25,4 @@ export { default as Cafe } from "./Cafe";
 export { default as ForkSpoon } from "./ForkSpoon";
 export { default as Bed } from "./Bed";
 export { default as Hospital } from "./Hospital";
+export { default as LocationPin } from "./LocationPin";
