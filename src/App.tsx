@@ -8,6 +8,7 @@ import Map from "./pages/Map";
 import Post from "./pages/Post";
 import User from "./pages/User";
 import Error from "@components/common/Error";
+import VerifyEmail from "./pages/VerifyEmail";
 import { ThemeProvider } from "styled-components";
 import { theme } from "./styles/theme";
 import { GlobalStyle } from "./styles/global";
@@ -16,7 +17,6 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Calendars from "@pages/Calendar";
 import { Provider } from "react-redux";
 import store from "@store/store";
-
 
 const router = createBrowserRouter([
   {
@@ -29,6 +29,12 @@ const router = createBrowserRouter([
     //회원가입
     path: "/users/register",
     element: <Join />,
+    errorElement: <Error />,
+  },
+  {
+    //이메일 인증코드
+    path: "/users/verify-email",
+    element: <VerifyEmail />,
     errorElement: <Error />,
   },
   {
@@ -76,7 +82,7 @@ const router = createBrowserRouter([
     path: "/posts",
     element: (
       <Layout>
-        <Board/>
+        <Board />
       </Layout>
     ),
     errorElement: <Error />,
@@ -91,9 +97,20 @@ const router = createBrowserRouter([
     ),
     errorElement: <Error />,
   },
+
   {
-    //커뮤니티
-    path: "/posts",
+    //커뮤니티-글작성
+    path: "/posts/new",
+    element: (
+      <Layout>
+        <AddPost />
+      </Layout>
+    ),
+    errorElement: <Error />,
+  },
+  {
+    //커뮤니티 게시글 상세목록
+    path: "/posts/:postId",
     element: (
       <Layout>
         <Post />
@@ -101,25 +118,8 @@ const router = createBrowserRouter([
     ),
     errorElement: <Error />,
   },
-  {//커뮤니티-글작성
-    path: "/posts/new",
-    element: (
-      <Layout>
-        <AddPost/>
-      </Layout>
-    ),
-    errorElement: <Error />,
-  },
-  {//커뮤니티 게시글 상세목록
-    path: "/posts/:postId",
-    element: (
-      <Layout>
-        <Post/>
-      </Layout>
-    ),
-    errorElement: <Error />,
-  },
-  { // 커뮤니티 게시글 수정
+  {
+    // 커뮤니티 게시글 수정
     path: "/posts/edit/:postId",
     element: (
       <Layout>
@@ -143,12 +143,12 @@ const router = createBrowserRouter([
 
 function App() {
   return (
-    <> 
-    <Provider store={store}>
-      <ThemeProvider theme={theme}>
-        <GlobalStyle />
-        <RouterProvider router={router} />
-      </ThemeProvider>
+    <>
+      <Provider store={store}>
+        <ThemeProvider theme={theme}>
+          <GlobalStyle />
+          <RouterProvider router={router} />
+        </ThemeProvider>
       </Provider>
     </>
   );

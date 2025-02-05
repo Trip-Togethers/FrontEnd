@@ -10,6 +10,7 @@ import { ErrorMessage } from "@hookform/error-message";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { checkEmail } from "@api/checkEmail";
+import { useEmail } from "@store/authStore";
 
 export interface RegisterProps {
   email: string;
@@ -92,7 +93,7 @@ function Join() {
               </button>
             </div>
             <ErrorMessage errors={errors} name="email" as={ErrorTextStyle} />
-
+            <br />
             <InputText
               scheme="login"
               type="text"
@@ -106,7 +107,7 @@ function Join() {
               })}
             />
             <ErrorMessage errors={errors} name="name" as={ErrorTextStyle} />
-
+            <br />
             <InputText
               scheme="login"
               type="password"
@@ -121,7 +122,7 @@ function Join() {
               })}
             />
             <ErrorMessage errors={errors} name="password" as={ErrorTextStyle} />
-
+            <br />
             <InputText
               scheme="login"
               type="tel"
@@ -210,11 +211,11 @@ const JoinStyle = styled.div`
   .logo {
     height: 42px;
     fill: ${({ theme }) => theme.color.primary_green};
-    margin: 40px auto 40px;
+    margin: 40px auto 60px;
   }
 
   .input {
-    margin-bottom: 50px;
+    margin-bottom: 40px;
   }
 `;
 

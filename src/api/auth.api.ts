@@ -11,7 +11,6 @@ export interface SignupResponse {
   contact: string;
 }
 
-//테스트용-회원가입
 export const signup = async (
   userData: RegisterProps
 ): Promise<SignupResponse> => {
@@ -33,12 +32,33 @@ export const login = async (userData: LoginProps) => {
   return response.data;
 };
 
-export const logout = async () => {
-  const response = await httpClient.delete(`/users/logout`, { withCredentials: false });
-  return response.data;
-};
+// export const logout = async () => {
+//   const response = await httpClient.delete(`/users/logout`, { withCredentials: false });
+//   return response.data;
+// };
 
 interface LoginResponse {
   // 로그인 서버 응답 데이터 타입 (Response Body)
   token: string;
+  user: {
+    id: number;
+    name: string;
+    email: string;
+  };
 }
+
+export const logout = async () => {
+  const response = await httpClient.delete(`/users/logout`, {
+    withCredentials: true,
+  });
+  return response.data;
+};
+
+// interface LoginResponse {
+//   // 로그인 서버 응답 데이터 타입 (Response Body)
+//   token: string;
+// }
+
+export const verifyEmail = async (code: string) => {
+  return await httpClient.post("/auth/verify-email", { code });
+};
