@@ -72,8 +72,8 @@ const ImageModal = ({ images, currentIndex, onClose, onPrev, onNext }: ImageModa
 
 function Post({ posts, likePost, addComment, deletePost }: PostProps) {
   const navigate = useNavigate();
-  const { post_id } = useParams();
-  const post = posts.find((p) => p.id === post_id);
+  const { postId } = useParams();
+  const post = posts.find((p) => p.id === postId);
   const [comment, setComment] = useState("");
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
 

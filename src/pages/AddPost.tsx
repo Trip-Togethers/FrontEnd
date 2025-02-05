@@ -6,6 +6,7 @@ import { addPost, editPost } from "@store/postReducer";
 import Button from "@components/common/Button";
 import InputText from "@components/common/InputText";
 import { ImageInfo, Plan, Post, RootState } from "@store/store";
+import { showPlans } from "@api/post.api";
 
 
 //  인터페이스 정의
@@ -62,12 +63,12 @@ const PlanModal: React.FC<PlanModalProps> = ({ isOpen, onClose, children }) => {
 
 function AddPost({ addPost, posts, isEdit, editPost }: AddPostProps) {
   const navigate = useNavigate();
-  const { post_id } = useParams<{ post_id: string }>();
-
+  const { postId } = useParams<{ postId: string }>();
+  const [plans, setPlans] = useState<Plan[]>([]);
   // 일정 모달 노출 상태 관리
   const [showPlanModal, setShowPlanModal] = useState(false);
   // redux에서 일정 데이터를 가져옴
-  const plans = useSelector((state: RootState) => state.plan.plans);
+  //const plans = useSelector((state: RootState) => state.plan.plans);
 
   // 게시글 데이터 상태 초기화
   const [postData, setPostData] = useState<PostData>({
@@ -82,8 +83,17 @@ function AddPost({ addPost, posts, isEdit, editPost }: AddPostProps) {
 
   // 수정 모드일 때 기존 게시글 데이터 로드
   useEffect(() => {
-    if (isEdit && post_id) {
-      const existingPost = posts.find((post) => post.id === post_id);
+    const fetchPlans = async () => {
+      try {
+        const data = await showPlans();
+        if (Array.isArray(data.calendar)) setPlans(data.calendar);
+        console.log(data.calendar)
+      } catch (error) {
+        console.error('일정을 불러오지 못했습니다.', error);
+      }
+    };
+    if (isEdit && postId) {
+      const existingPost = posts.find((post) => post.id === postId);
       if (existingPost) {
         setPostData({
           ...existingPost,
@@ -104,7 +114,9 @@ function AddPost({ addPost, posts, isEdit, editPost }: AddPostProps) {
         });
       }
     }
-  }, [isEdit, post_id, posts]);
+
+    fetchPlans();
+  }, [isEdit, postId, posts]);
 
    //  일정 선택 버튼 클릭 핸들러
   const handleScheduleClick = () => {
@@ -113,16 +125,16 @@ function AddPost({ addPost, posts, isEdit, editPost }: AddPostProps) {
 
 
    //  일정 선택 시 해당 일정 정보를 게시글 데이터에 반영
-  const handleSelectPlan = (plan: Plan) => {
-    setPostData((prev) => ({
+   const handleSelectPlan = (plan: Plan) => {
+    setPostData((prev: any) => ({
       ...prev,
       planId: plan.id,
       planInfo: plan,
-      content: `${prev.content}\n\n[여행 일정]\n${plan.title}\n기간: ${new Date(
+      content: `${prev.content || ''}\n\n[여행 일정]\n${plan.title}\n기간: ${new Date(
         plan.startDate
       ).toLocaleDateString()} - ${new Date(plan.endDate).toLocaleDateString()}`,
     }));
-    setShowPlanModal(false);
+    setShowPlanModal(false); 
   };
 
     // 이미지 파일 업로드 핸들러
@@ -173,7 +185,7 @@ function AddPost({ addPost, posts, isEdit, editPost }: AddPostProps) {
     }
 
     // 수정모드이면 기존 post_id 사용, 아니면 새 id 생성
-    const newPostId = isEdit && post_id ? post_id : (posts.length + 1).toString();
+    const newPostId = isEdit && postId ? postId : (posts.length + 1).toString();
 
     const updatedPost = {
       ...postData,
@@ -324,24 +336,23 @@ function AddPost({ addPost, posts, isEdit, editPost }: AddPostProps) {
         </ButtonGroup>
 
         {/* 일정 선택 모달 */}
-        <PlanModal isOpen={showPlanModal} onClose={() => setShowPlanModal(false)}>
-          <ModalHeader>일정 선택</ModalHeader>
+      {showPlanModal && (
+        <PlanModals>
+          <h3>일정 선택</h3>
           <PlanList>
-            {plans.length === 0 ? (
-              <NoPlanMessage>등록된 일정이 없습니다.</NoPlanMessage>
-            ) : (
-              plans.map((plan: Plan) => (
-                <PlanItem key={plan.id} onClick={() => handleSelectPlan(plan)}>
-                  <h4>{plan.title}</h4>
-                  <p>
-                    {new Date(plan.startDate).toLocaleDateString()} -{" "}
-                    {new Date(plan.endDate).toLocaleDateString()}
-                  </p>
-                </PlanItem>
-              ))
-            )}
+            {plans.map((plan) => (
+              <PlanItem key={plan.id} onClick={() => handleSelectPlan(plan)}>
+                <strong>{plan.title}</strong>
+                <p>
+                  {new Date(plan.startDate).toLocaleDateString()} ~{" "}
+                  {new Date(plan.endDate).toLocaleDateString()}
+                </p>
+              </PlanItem>
+            ))}
           </PlanList>
-        </PlanModal>
+          <CloseButton onClick={() => setShowPlanModal(false)}>닫기</CloseButton>
+        </PlanModals>
+      )}
       </Form>
     </Container>
   );
@@ -357,6 +368,31 @@ export default connect(
   { addPost, editPost }
 )(AddPost);
 
+const PlanModals = styled.div`
+  position: fixed;
+  top: 20%;
+  left: 50%;
+  transform: translate(-50%, -20%);
+  background: white;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  z-index: 1000;
+  width: 30%;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+`;
+
+const CloseButton = styled.button`
+  background: #ddd;
+  border: none;
+  padding: 8px 12px;
+  margin-top: 10px;
+  cursor: pointer;
+
+  &:hover {
+    background: #ccc;
+  }
+`;
 
 const Container = styled.div`
   width: 100%;
