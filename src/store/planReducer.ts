@@ -13,8 +13,8 @@ type PlanAction =
   };
   type AllPlanActions = PlanAction | UnknownAction;
 
-  export function addPlan(plan: Plan) {
-  return { type: ADD_PLAN, payload: plan } as const;
+  export function addPlan(plan: Plan): PlanAction {
+    return { type: ADD_PLAN, payload: plan };
 }
 
 export function deletePlan(id: string) {

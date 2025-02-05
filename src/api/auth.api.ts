@@ -27,8 +27,15 @@ export const login = async (userData: LoginProps) => {
     userData,
     { withCredentials: true }
   );
+
+  localStorage.setItem("token", response.data.token)
   return response.data;
 };
+
+// export const logout = async () => {
+//   const response = await httpClient.delete(`/users/logout`, { withCredentials: false });
+//   return response.data;
+// };
 
 interface LoginResponse {
   // 로그인 서버 응답 데이터 타입 (Response Body)
@@ -47,10 +54,10 @@ export const logout = async () => {
   return response.data;
 };
 
-interface LoginResponse {
-  // 로그인 서버 응답 데이터 타입 (Response Body)
-  token: string;
-}
+// interface LoginResponse {
+//   // 로그인 서버 응답 데이터 타입 (Response Body)
+//   token: string;
+// }
 
 export const verifyEmail = async (code: string) => {
   return await httpClient.post("/auth/verify-email", { code });

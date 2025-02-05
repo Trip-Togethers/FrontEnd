@@ -41,6 +41,7 @@ function Join() {
     }
   };
 
+
   const email = watch("email");
 
   const checkEmailDuplicate = async () => {

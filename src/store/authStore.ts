@@ -1,3 +1,4 @@
+import { logout } from "@api/auth.api";
 import { create } from "zustand";
 
 interface StoreState {
@@ -5,6 +6,10 @@ interface StoreState {
   storeLogin: (token: string) => void;
   storeLogout: () => void;
 }
+
+// export const getToken = () => {
+//   const token = localStorage.getItem("token");
+//   return token;
 
 interface AuthState {
   email: string | null;

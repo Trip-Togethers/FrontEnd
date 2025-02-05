@@ -37,7 +37,7 @@ function Login() {
 
   const onSubmit = async (data: LoginProps) => {
     try {
-      const res = await login(data); //BE Login 요청
+      const res = await login(data);//BE Login 요청
       storeLogin(res.token);
       navigate("/trips");
     } catch (error) {
