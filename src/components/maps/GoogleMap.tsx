@@ -8,9 +8,9 @@ import {
 import styled from "styled-components";
 import SidebarTab from "./Sidebar";
 import SearchCategoryButton from "./SearchCategoryButton";
-import { SIDEBAR_TAB_TEXT } from "@/constants/sidebarTabItem";
+import { SIDEBAR_TAB_TEXT } from "@constants/sidebarTabItem";
 
-import { Plus, Search, Cafe, Bed, ForkSpoon, Hospital, LocationPin } from "@/assets/svg";
+import { Plus, Search, Cafe, Bed, ForkSpoon, Hospital, LocationPin } from "@assets/svg";
 import DetailSearch from "./detail/DetailSearch";
 
 const Category = [

@@ -1,7 +1,10 @@
+import { useState, useEffect } from "react";
 import styled from "styled-components";
 import Avatar from "@assets/svg/Avatar";
 import { Link } from "react-router-dom";
 import { useAuthstore } from "@store/authStore";
+import { userPage } from "@api/user.api"; // userPage API import
+import { getUserIdFromToken } from "@utils/get.token.utils";
 
 type Props = {
   isOpen: boolean;
@@ -9,38 +12,67 @@ type Props = {
 };
 
 const Sidebar: React.FC<Props> = ({ isOpen }) => {
-  if (!isOpen) return null; // 드롭다운이 닫혀 있으면 렌더링 안 함.
+  const [userData, setUserData] = useState<any>(null); // 유저 정보를 저장할 상태
   const { storeLogout } = useAuthstore();
 
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const token = localStorage.getItem("token"); // 로컬 스토리지에서 토큰 가져오기
+      if (!token) {
+        return;
+      }
+
+      const userId = getUserIdFromToken(token); // 토큰에서 userId 가져오기
+      if (!userId) {
+        return;
+      }
+
+      try {
+        const response = await userPage(userId); // userPage API 호출
+        setUserData(response.user); // 유저 정보 저장
+      } catch (error) {
+        console.error("유저 정보를 가져오는 데 실패했습니다.");
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  if (!isOpen) return null; // 드롭다운이 닫혀 있으면 렌더링 안 함.
+
   return (
-    <>
-      <SidebarStyle>
-        <div className="user">
-          <Avatar className="avatar" />
-          <span>참가자1</span>
-        </div>
-        <hr />
-        <div className="list">
-          <ul>
-            <StyledLink to="/users/:user_id">
-              <li>내 정보</li>
-            </StyledLink>
-            <StyledLink to="/posts">
-              <li>커뮤니티</li>
-            </StyledLink>
-            <StyledLink to="/maps">
-              <li>지도</li>
-            </StyledLink>
-            <StyledLink to="/calendar/:user_id">
-              <li>내 캘린더</li>
-            </StyledLink>
-          </ul>
-          <span className="logout" onClick={storeLogout}>
-            로그아웃
-          </span>
-        </div>
-      </SidebarStyle>
-    </>
+    <SidebarStyle>
+      <div className="user">
+        {userData ? (
+          <>
+            <Avatar className="avatar" />
+            <span>{userData.nickname}</span> {/* 유저의 닉네임 표시 */}
+          </>
+        ) : (
+          <span>Loading...</span> // 유저 데이터 로딩 중이면 "Loading..." 표시
+        )}
+      </div>
+      <hr />
+      <div className="list">
+        <ul>
+          <StyledLink to={`/users/${userData?.id}`}>
+            <li>내 정보</li>
+          </StyledLink>
+          <StyledLink to="/posts">
+            <li>커뮤니티</li>
+          </StyledLink>
+          <StyledLink to="/maps">
+            <li>지도</li>
+          </StyledLink>
+          <StyledLink to={`/calendar/${userData?.id}`}>
+            <li>내 캘린더</li>
+          </StyledLink>
+        </ul>
+        <span className="logout" onClick={storeLogout}>
+          로그아웃
+        </span>
+      </div>
+    </SidebarStyle>
   );
 };
 

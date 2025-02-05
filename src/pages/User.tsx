@@ -11,6 +11,7 @@ import { useAuthstore } from "@store/authStore";
 import { editUser, userPage } from "@api/user.api";
 import { jwtDecode } from "jwt-decode";
 import { UserFormData } from "models/user.model";
+import { getUserIdFromToken } from "@utils/get.token.utils";
 
 function User() {
   const {
@@ -25,17 +26,6 @@ function User() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
   const navigate = useNavigate();
-
-  // 토큰에서 사용자 ID 추출하는 함수
-  const getUserIdFromToken = (token: string): number | null => {
-    try {
-      const decoded: any = jwtDecode(token); // JWT 디코딩
-      return decoded.userId || null; // 사용자 ID가 payload에 있다고 가정
-    } catch (error) {
-      console.error("토큰 디코딩 실패:", error);
-      return null;
-    }
-  };
 
   // 사용자 정보 불러오기
   useEffect(() => {
