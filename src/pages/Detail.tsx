@@ -3,7 +3,8 @@ import React, { useEffect, useState } from "react";
 import { showDetailPlan } from "@api/detail.api";
 import { useParams } from "react-router-dom";
 import { showPlan } from "@api/schedule.api";
-import { formatDate } from '@utils/date.format';
+import { formatDate } from "@utils/date.format";
+import Ticket from "@components/detail/Ticket";
 
 interface Schedules {
   id: number;
@@ -30,89 +31,43 @@ function Detail() {
       console.warn("유효하지 않은 tripId:", tripId);
       return;
     }
-  
+
     const fetchData = async () => {
       try {
         const data = await showDetailPlan(Number(tripId));
         console.log("API 데이터 수신:", data);
-  
+
         if (data && Array.isArray(data.scheduleDate)) {
           setScheduleData(data.scheduleDate); // API의 scheduleDate로 설정
         } else {
           console.warn("유효하지 않은 일정 데이터 형식:", data.scheduleDate);
         }
-  
-      const mainData = await showPlan();
-      console.log("메인 일정 데이터:", mainData);
 
-      const foundSchedule = mainData.schedules.find(
-        (item: Schedules) => item.id === Number(tripId)
-      );
+        const mainData = await showPlan();
+        console.log("메인 일정 데이터:", mainData);
 
-      if (foundSchedule) {
-        setMainSchedule(foundSchedule);
-      } else {
-        console.warn("해당 ID의 일정을 찾을 수 없습니다.");
+        const foundSchedule = mainData.schedules.find(
+          (item: Schedules) => item.id === Number(tripId)
+        );
+
+        if (foundSchedule) {
+          setMainSchedule(foundSchedule);
+        } else {
+          console.warn("해당 ID의 일정을 찾을 수 없습니다.");
+        }
+      } catch (error) {
+        console.error("일정 데이터를 불러오는 중 오류 발생:", error);
       }
-    } catch (error) {
-      console.error("일정 데이터를 불러오는 중 오류 발생:", error);
-    }
-  };
-  
+    };
+
     fetchData();
   }, [tripId]);
-
 
   if (!mainSchedule) return <p>일정 정보를 불러오는 중입니다...</p>;
 
   return (
     <DetailContainer>
-      <TripInfoCard>
-        <Ticket>
-          <TicketContent>
-            <div style={{ display: "flex", flexDirection: "row" }}>
-              <SideSection>
-                <SideLabel>TRIP</SideLabel>
-              </SideSection>
-
-              <div style={{ display: "flex", flexDirection: "column", margin: "0px" }}>
-                <LeftSection>
-                  <InfoBox>
-                    <Label>Title</Label>
-                    <Title>{mainSchedule.title}</Title>
-                  </InfoBox>
-                  <InfoRow>
-                    <InfoBox>
-                      <Label>From</Label>
-                      <Date>{formatDate(mainSchedule.startDate)}</Date>
-                    </InfoBox>
-                    <InfoBox>
-                      <Label>To</Label>
-                      <Date>{formatDate(mainSchedule.endDate)}</Date>
-                    </InfoBox>
-                    <InfoBox>
-                      <Label>Destination</Label>
-                      <Destination>{mainSchedule.destination}</Destination>
-                    </InfoBox>
-                  </InfoRow>
-                </LeftSection>
-                <PassengersContainer>
-                  <Passengers>{mainSchedule.guests.join(", ")}</Passengers>
-                </PassengersContainer>
-              </div>
-
-              <PhotoSection>
-                <TripPhoto src={mainSchedule.photoUrl || "/path/to/photo.jpg"} alt="Trip" />
-              </PhotoSection>
-            </div>
-
-            <BarcodeSection>
-              <Barcode />
-            </BarcodeSection>
-          </TicketContent>
-        </Ticket>
-      </TripInfoCard>
-
+      <Ticket />
       {/* 일정 데이터 렌더링 */}
       <Schedule>
         {Array.isArray(scheduleData) && scheduleData.length > 0 ? (
@@ -136,135 +91,15 @@ function Detail() {
   );
 }
 
-
-const SideLabel = styled.div`
- width: 30px;
-  height: 150px;
-  text-align: center;
-`;
-
 const DetailContainer = styled.div`
   font-family: Arial, sans-serif;
   padding: 20px;
 `;
 
-const SideSection = styled.div`
-  background: #00703c;
-  color: white;
-  padding: 10px;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  font-weight: bold;
-  font-size: 18px;
-`;
-
-const TripInfoCard = styled.div`
-  display: flex;
-  justify-content: center;
-  margin: 20px 0;
-`;
-
-const Ticket = styled.div`
-  background: #fff;
-  padding: 20px;
-  border-radius: 15px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  width: 90%;
-  border: 2px solid #00703c;
-  display: flex;
-  align-items: center;
-`;
-
-const TicketContent = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-`;
-
-const LeftSection = styled.div`
-  display: flex;
-  flex-direction: row;
-  gap: 10px;
-`;
-
-const Title = styled.div`
-  margin-top: 10px;
-  font-family: ${({ theme }) => theme.font.family.contents};
-  font-size: 1.2rem;
-`;
-
-const InfoRow = styled.div`
-  display: flex;
-  gap: 20px;
-`;
-
-const InfoBox = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 10px; /* border와 콘텐츠 간 간격 */
-  margin: 10px; /* 요소 바깥쪽 간격 */
-`;
-
-const Label = styled.span`
-  font-weight: bold;
-`;
-
-const Date = styled.span`
-  font-size: 14px;
-  margin-top: 10px;
-  font-family: ${({ theme }) => theme.font.family.contents};
-  font-size: 1.2rem;
-`;
-
-const Destination = styled.span`
-  font-size: 14px;
-  margin-top: 10px;
-  font-family: ${({ theme }) => theme.font.family.contents};
-  font-size: 1.2rem;
-`;
-
-const PassengersContainer = styled.div`
-  margin-top: 5px;
-`;
-
-const Passengers = styled.div`
-  margin-top: 18px;
-  margin-left: 20px;
-`;
-
-const PhotoSection = styled.div`
-  margin: 0 20px;
-`;
-
-const TripPhoto = styled.img`
-  width: 150px;
-  height: auto;
-  border-radius: 10px;
-`;
-
-const BarcodeSection = styled.div`
-  display: flex;
-  align-items: center;
-`;
-
-const Barcode = styled.div`
-  width: 30px;
-  height: 150px;
-  background: repeating-linear-gradient(
-    to bottom,
-    black,
-    black 4px,
-    white 4px,
-    white 8px
-  );
-`;
-
 const Schedule = styled.div`
   display: flex;
   gap: 20px;
-  justify-content: center; 
+  justify-content: center;
   margin: 20px 0;
 `;
 
@@ -278,13 +113,11 @@ const Day = styled.div`
 const DateTitle = styled.h3`
   color: #00703c;
   margin-bottom: 10px;
-
 `;
 
 const ScheduleList = styled.ul`
   list-style: none;
   padding: 0;
-  
 `;
 
 const ScheduleItem = styled.li`
