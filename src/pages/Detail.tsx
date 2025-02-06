@@ -3,7 +3,9 @@ import React, { useEffect, useState } from "react";
 import { showDetailPlan } from "@api/detail.api";
 import { useParams } from "react-router-dom";
 import { showPlan } from "@api/schedule.api";
-import { formatDate } from '@utils/date.format';
+import { formatDate } from "@utils/date.format";
+import { getUserIdFromToken } from "@utils/get.token.utils";
+import { userPage } from "@api/user.api";
 
 interface Schedules {
   id: number;
@@ -11,7 +13,7 @@ interface Schedules {
   startDate: Date;
   endDate: Date;
   destination: string;
-  guests: string[];
+  guests: { userId: number; nickname: string }[];
   photoUrl: string;
 }
 
@@ -24,44 +26,65 @@ function Detail() {
   const { tripId } = useParams<{ tripId: string }>();
   const [mainSchedule, setMainSchedule] = useState<Schedules | null>(null);
   const [scheduleData, setScheduleData] = useState<DaySchedule[]>([]);
+  const [userData, setUserData] = useState<any>(null); // 유저 정보를 저장할 상태
+  const [guests, setGuests] = useState<Array<{ userId: number; nickname: string }>>([]);
 
   useEffect(() => {
     if (!tripId) {
       console.warn("유효하지 않은 tripId:", tripId);
       return;
     }
-  
+
+    const fetchUserData = async () => {
+      const token = localStorage.getItem("token"); // 로컬 스토리지에서 토큰 가져오기
+      if (!token) {
+        return;
+      }
+
+      const userId = getUserIdFromToken(token); // 토큰에서 userId 가져오기
+      if (!userId) {
+        return;
+      }
+
+      try {
+        const response = await userPage(userId); // userPage API 호출
+        setUserData({ ...response.user, userId }); // 유저 정보 저장
+      } catch (error) {
+        console.error("유저 정보를 가져오는 데 실패했습니다.");
+      }
+    };
+
     const fetchData = async () => {
       try {
         const data = await showDetailPlan(Number(tripId));
         console.log("API 데이터 수신:", data);
-  
+
         if (data && Array.isArray(data.scheduleDate)) {
           setScheduleData(data.scheduleDate); // API의 scheduleDate로 설정
         } else {
           console.warn("유효하지 않은 일정 데이터 형식:", data.scheduleDate);
         }
-  
-      const mainData = await showPlan();
-      console.log("메인 일정 데이터:", mainData);
 
-      const foundSchedule = mainData.schedules.find(
-        (item: Schedules) => item.id === Number(tripId)
-      );
+        const mainData = await showPlan();
+        console.log("메인 일정 데이터:", mainData);
 
-      if (foundSchedule) {
-        setMainSchedule(foundSchedule);
-      } else {
-        console.warn("해당 ID의 일정을 찾을 수 없습니다.");
+        const foundSchedule = mainData.schedules.find(
+          (item: Schedules) => item.id === Number(tripId)
+        );
+
+        if (foundSchedule) {
+          setMainSchedule(foundSchedule);
+        } else {
+          console.warn("해당 ID의 일정을 찾을 수 없습니다.");
+        }
+      } catch (error) {
+        console.error("일정 데이터를 불러오는 중 오류 발생:", error);
       }
-    } catch (error) {
-      console.error("일정 데이터를 불러오는 중 오류 발생:", error);
-    }
-  };
-  
-    fetchData();
-  }, [tripId]);
+    };
 
+    fetchData();
+    fetchUserData();
+  }, [tripId]);
 
   if (!mainSchedule) return <p>일정 정보를 불러오는 중입니다...</p>;
 
@@ -75,7 +98,13 @@ function Detail() {
                 <SideLabel>TRIP</SideLabel>
               </SideSection>
 
-              <div style={{ display: "flex", flexDirection: "column", margin: "0px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  margin: "0px",
+                }}
+              >
                 <LeftSection>
                   <InfoBox>
                     <Label>Title</Label>
@@ -97,12 +126,15 @@ function Detail() {
                   </InfoRow>
                 </LeftSection>
                 <PassengersContainer>
-                  <Passengers>{mainSchedule.guests.join(", ")}</Passengers>
-                </PassengersContainer>
+                <Passengers>{mainSchedule.guests.join(", ")}</Passengers>
+              </PassengersContainer>
               </div>
 
               <PhotoSection>
-                <TripPhoto src={mainSchedule.photoUrl || "/path/to/photo.jpg"} alt="Trip" />
+                <TripPhoto
+                  src={mainSchedule.photoUrl || "/path/to/photo.jpg"}
+                  alt="Trip"
+                />
               </PhotoSection>
             </div>
 
@@ -136,9 +168,8 @@ function Detail() {
   );
 }
 
-
 const SideLabel = styled.div`
- width: 30px;
+  width: 30px;
   height: 150px;
   text-align: center;
 `;
@@ -264,7 +295,7 @@ const Barcode = styled.div`
 const Schedule = styled.div`
   display: flex;
   gap: 20px;
-  justify-content: center; 
+  justify-content: center;
   margin: 20px 0;
 `;
 
@@ -278,13 +309,11 @@ const Day = styled.div`
 const DateTitle = styled.h3`
   color: #00703c;
   margin-bottom: 10px;
-
 `;
 
 const ScheduleList = styled.ul`
   list-style: none;
   padding: 0;
-  
 `;
 
 const ScheduleItem = styled.li`
