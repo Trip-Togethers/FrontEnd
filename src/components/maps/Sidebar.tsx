@@ -2,8 +2,8 @@ import styled from "styled-components";
 import SidebarButton from "./sidebar/SidebarButton";
 import { SIDEBAR_TAB_TEXT } from "../../constants/sidebarTabItem";
 
-import { Bookmark } from "@assets/svg";
-import { Search } from "@assets/svg";
+import Bookmark from "@assets/svg/Bookmark";
+import Search from "@assets/svg/Search";
 
 const sidebarTabContents = [
   {

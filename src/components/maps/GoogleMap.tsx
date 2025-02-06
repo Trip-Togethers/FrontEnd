@@ -10,8 +10,14 @@ import SidebarTab from "./Sidebar";
 import SearchCategoryButton from "./SearchCategoryButton";
 import { SIDEBAR_TAB_TEXT } from "@constants/sidebarTabItem";
 
-import { Plus, Search, Cafe, Bed, ForkSpoon, Hospital, LocationPin } from "@assets/svg";
 import DetailSearch from "./detail/DetailSearch";
+import ForkSpoon from "@assets/svg/ForkSpoon";
+import Cafe from "@assets/svg/Cafe";
+import Bed from "@assets/svg/Bed";
+import Hospital from "@assets/svg/Hospital";
+import Search from "@assets/svg/Search";
+import { Plus } from "@assets/svg";
+import LocationPin from "@assets/svg/LocationPin";
 
 const Category = [
   {
