@@ -1,10 +1,12 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
-import Calendar from 'react-calendar';
-import 'react-calendar/dist/Calendar.css';
-import { getUserPlan } from '@api/calendar.api';
-import { getUserIdFromToken } from '@utils/get.token.utils';
-import { userPage } from '@api/user.api';
+import Calendar from "react-calendar";
+import "react-calendar/dist/Calendar.css";
+import { getUserPlan } from "@api/calendar.api";
+import { getUserIdFromToken } from "@utils/get.token.utils";
+import { userPage } from "@api/user.api";
+import { showPlans } from "@api/post.api";
+import { Plan } from "@store/planReducer";
 
 const StyledCalendar = styled(Calendar).attrs((props) => ({
   ...props, // 모든 props 전달
@@ -16,7 +18,7 @@ const StyledCalendar = styled(Calendar).attrs((props) => ({
   border: 1px solid #ddd !important;
   border-radius: 8px !important;
   padding: 10px !important;
-  font-family: 'Arial', sans-serif !important;
+  font-family: "Arial", sans-serif !important;
 
   /* 요일 스타일 */
   .react-calendar__month-view__weekdays {
@@ -43,7 +45,7 @@ const StyledCalendar = styled(Calendar).attrs((props) => ({
   /* 이벤트가 있는 날짜 스타일 */
   .event-day div div {
     border-radius: 4px;
-    background: #63C647;
+    background: #63c647;
     padding: 2px 5px;
     color: rgb(0, 0, 0);
     font-weight: bold !important;
@@ -89,7 +91,7 @@ const Popup = styled.div`
   border: 1px solid #ececec;
   border-radius: 8px;
   padding: 10px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   z-index: 1000;
 `;
 
@@ -123,93 +125,58 @@ const Calendars = () => {
     date: new Date(),
   });
 
-  const [userData, setUserData] = useState<any>(null); // 유저 정보를 저장할 상태
-
   // CalendarContainer에 대한 ref (팝업 위치 계산용)
   const calendarContainerRef = useRef<HTMLDivElement>(null);
 
-// 유저 데이터를 불러오는 함수
-const fetchUserData = async () => {
-  const token = localStorage.getItem("token"); // 로컬 스토리지에서 토큰 가져오기
-  if (!token) {
-    return;
-  }
+  const [plans, setPlans] = useState<Plan[]>([]);
 
-  const userId = getUserIdFromToken(token); // 토큰에서 userId 가져오기
-  if (!userId) {
-    return;
-  }
-
-  try {
-    const response = await userPage(userId); // userPage API 호출
-    setUserData({ ...response.user, userId }); // 유저 정보 저장
-  } catch (error) {
-    console.error("유저 정보를 가져오는 데 실패했습니다.");
-  }
-};
-
-// 사용자의 일정을 불러오는 함수
-const fetchEvents = async (userId: number) => {
-  try {
-    const response = await getUserPlan(userId); // userId를 인자로 전달
-    const calendarData = response.data.calendar;
-    console.log(calendarData);
-
-    if (!Array.isArray(calendarData)) {
-      console.error('Expected an array but got:', calendarData);
-      return;
-    }
-
-    const newEvents: { [key: string]: EventItem[] } = {};
-
-    calendarData.forEach((event: any) => {
-      // 날짜를 한국 시간으로 변환
-      const startDate = new Date(event.startDate);
-      const endDate = new Date(event.endDate);
-      const startKST = new Date(startDate.getTime() + 9 * 60 * 60 * 1000);
-      const endKST = new Date(endDate.getTime() + 9 * 60 * 60 * 1000);
-
-      let currentDate = new Date(startKST);
-
-      while (currentDate <= endKST) {
-        const dateKey = currentDate.toISOString().split('T')[0];
-        if (!newEvents[dateKey]) {
-          newEvents[dateKey] = [];
+  useEffect(() => {
+    // 사용자의 일정을 불러오는 함수
+    const fetchEvents = async () => {
+      try {
+        const data = await showPlans();
+        if (Array.isArray(data.calendar)) {
+          setPlans(data.calendar);
+  
+          const newEvents: { [key: string]: EventItem[] } = {};
+  
+          data.calendar.forEach((event: any) => {
+            // 날짜를 한국 시간으로 변환
+            const startDate = new Date(event.startDate);
+            const endDate = new Date(event.endDate);
+            const startKST = new Date(startDate.getTime() + 9 * 60 * 60 * 1000);
+            const endKST = new Date(endDate.getTime() + 9 * 60 * 60 * 1000);
+  
+            let currentDate = new Date(startKST);
+  
+            while (currentDate <= endKST) {
+              const dateKey = currentDate.toISOString().split("T")[0];
+              if (!newEvents[dateKey]) {
+                newEvents[dateKey] = [];
+              }
+              // 이벤트 제목과 destination 정보를 저장
+              newEvents[dateKey].push({
+                title: event.title,
+                destination: event.destination,
+              });
+              currentDate.setDate(currentDate.getDate() + 1);
+            }
+          });
+  
+          setEvents(newEvents);
         }
-        // 이벤트 제목과 destination 정보를 저장
-        newEvents[dateKey].push({
-          title: event.title,
-          destination: event.destination,
-        });
-        currentDate.setDate(currentDate.getDate() + 1);
+      } catch (error) {
+        console.error("Error fetching events:", error);
       }
-    });
-
-    setEvents(newEvents);
-  } catch (error) {
-    console.error('Error fetching events:', error);
-  }
-};
-
-// useEffect에서 fetchUserData와 fetchEvents 호출
-useEffect(() => {
-  const fetchData = async () => {
-    await fetchUserData();
-    const token = localStorage.getItem("token"); // 로컬 스토리지에서 토큰 가져오기
-    const userId = getUserIdFromToken(token!); // userId를 가져오기
-
-    if (userId) {
-      fetchEvents(userId); // 사용자의 일정을 불러옴
-    }
-  };
-
-  fetchData();
-}, []); // 컴포넌트 마운트 시 실행
+    };
+  
+    fetchEvents(); // 컴포넌트 마운트 시 실행
+  }, []); // 컴포넌트 마운트 시 한번만 실행
 
   // 타일 내에서 클릭 이벤트 처리
   const handleTileClick = (e: React.MouseEvent<HTMLDivElement>, date: Date) => {
     e.stopPropagation();
-    const dateKey = date.toISOString().split('T')[0];
+    const dateKey = date.toISOString().split("T")[0];
     const dayEvents = events[dateKey];
     if (!dayEvents || dayEvents.length === 0) {
       return;
@@ -218,32 +185,32 @@ useEffect(() => {
     // 클릭한 타일의 DOM 위치 계산
     const tileRect = e.currentTarget.getBoundingClientRect();
     if (calendarContainerRef.current) {
-      const containerRect = calendarContainerRef.current.getBoundingClientRect();
+      const containerRect =
+        calendarContainerRef.current.getBoundingClientRect();
       const popupHeight = 120;
       const top = tileRect.top - containerRect.top - popupHeight - 5;
       const popupWidth = 150;
-      const left = tileRect.left - containerRect.left + tileRect.width / 2 - popupWidth / 2;
-
-      // setPopupData({
-      //   visible: true,
-      //   top,
-      //   left,
-      //   //events: dayEvents,
-      //   date: date,
-      // });
+      const left =
+        tileRect.left -
+        containerRect.left +
+        tileRect.width / 2 -
+        popupWidth / 2;
     }
   };
 
   // 달력 타일에 이벤트 추가 (타일 내부에 이벤트 제목들을 표시)
   const renderTileContent = ({ date, view }: { date: Date; view: string }) => {
-    const dateKey = date.toISOString().split('T')[0];
+    const dateKey = date.toISOString().split("T")[0];
     const dayEvents = events[dateKey];
 
     // 월별 보기이고, 해당 날짜에 이벤트가 있을 경우
-    if (view === 'month' && dayEvents && dayEvents.length > 0) {
+    if (view === "month" && dayEvents && dayEvents.length > 0) {
       return (
         // 클릭 시 타일의 위치를 받아 팝업을 띄우기 위한 onClick 핸들러 추가
-        <div onClick={(e) => handleTileClick(e, date)} style={{ fontSize: '10px', color: '#000' }}>
+        <div
+          onClick={(e) => handleTileClick(e, date)}
+          style={{ fontSize: "10px", color: "#000" }}
+        >
           {dayEvents.map((event, index) => (
             <div key={index}>{event.title}</div>
           ))}
@@ -259,18 +226,28 @@ useEffect(() => {
       <StyledCalendar
         //value={date}
         tileClassName={({ date }: { date: Date }) => {
-          const dateKey = date.toISOString().split('T')[0];
-          return events[dateKey] ? 'event-day' : '';
+          const dateKey = date.toISOString().split("T")[0];
+          return events[dateKey] ? "event-day" : "";
         }}
         tileContent={renderTileContent}
       />
 
       {popupData.visible && (
         <Popup style={{ top: popupData.top, left: popupData.left }}>
-          {/* {popupData.events.map((event, index) => (
-            <div style={{ fontSize: '14px', color: '#000', fontWeight: 'bold'}} className="popup" key={index}>{event.destination}</div>
-          ))} */}
-          <button style={{ marginTop: '15px', background: '#fff', border: '1px solid #ececec', borderRadius: "4px", padding: '5px 8px', width: '100%'}} className="popup-btn" onClick={() => setPopupData({ ...popupData, visible: false })}>닫기</button>
+          <button
+            style={{
+              marginTop: "15px",
+              background: "#fff",
+              border: "1px solid #ececec",
+              borderRadius: "4px",
+              padding: "5px 8px",
+              width: "100%",
+            }}
+            className="popup-btn"
+            onClick={() => setPopupData({ ...popupData, visible: false })}
+          >
+            닫기
+          </button>
         </Popup>
       )}
     </CalendarContainer>
