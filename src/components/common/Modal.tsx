@@ -1,9 +1,8 @@
-import { SetStateAction, useState } from "react";
+import { useState } from "react";
 import styled from "styled-components";
 import { theme } from "@styles/theme";
 import Button from "@components/common/Button";
 import InputText from "@components/common/InputText";
-import { createPlan } from "@api/schedule.api";
 
 // 1-1) 날짜 선택기(DatePicker) Props
 interface DatePickerProps {
@@ -234,11 +233,24 @@ const Modal: React.FC<ModalProps> = ({ type, isOpen, onClose, onSubmit }) => {
   // 폼 제출 (플랜)
   const handlePlanSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const getStartDate = new Date(startDate)
+    const getEndDate = new Date(endDate)
+
+    const formatDate = (date: Date): string => {
+      const year = date.getFullYear();
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const day = date.getDate().toString().padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    const formatStartDate = formatDate(getStartDate);
+    const formatEndDate = formatDate(getEndDate)
+
     const plan = {
       title,
       destination,
-      startDate: startDate.toISOString().split('T')[0],
-      endDate: startDate.toISOString().split('T')[0],
+      startDate: formatStartDate, 
+      endDate: formatEndDate,
       image: imagePreview || null,
     };
 

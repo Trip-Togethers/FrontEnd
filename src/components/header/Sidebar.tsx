@@ -38,8 +38,6 @@ const Sidebar: React.FC<Props> = ({ isOpen }) => {
     fetchUserData();
   }, []);
 
-  console.log(JSON.stringify(userData, null, 2))
-
   if (!isOpen) return null; // 드롭다운이 닫혀 있으면 렌더링 안 함.
 
   return (
