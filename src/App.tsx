@@ -13,12 +13,17 @@ import { ThemeProvider } from "styled-components";
 import { theme } from "./styles/theme";
 import { GlobalStyle } from "./styles/global";
 import Layout from "@components/layout/Layout";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom";
 import Calendars from "@pages/Calendar";
 import { Provider } from "react-redux";
 import store from "@store/store";
 
 const router = createBrowserRouter([
+   // 기본 경로 접근 시 로그인 페이지로 리디렉션
+  {
+    path: "/",
+    element: <Navigate to = '/users/login' replace />
+  },
   {
     //로그인
     path: "/users/login",
