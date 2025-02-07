@@ -104,7 +104,7 @@ const Ticket = () => {
       </div>
 
       <PhotoSection>
-        <img src="public/ticket_img.png" alt="img" />
+        <img src={mainSchedule.photoUrl} alt={mainSchedule.title} />
       </PhotoSection>
       <Barcode className="barcode" />
     </TicketStyle>
