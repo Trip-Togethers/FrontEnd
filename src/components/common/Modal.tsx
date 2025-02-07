@@ -220,6 +220,7 @@ const Modal: React.FC<ModalProps> = ({ type, isOpen, onClose, onSubmit }) => {
   // 이미지 업로드 핸들러
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    
     if (file) {
       setSelectedImage(file);
       const reader = new FileReader();
@@ -236,22 +237,12 @@ const Modal: React.FC<ModalProps> = ({ type, isOpen, onClose, onSubmit }) => {
     const getStartDate = new Date(startDate)
     const getEndDate = new Date(endDate)
 
-    const formatDate = (date: Date): string => {
-      const year = date.getFullYear();
-      const month = (date.getMonth() + 1).toString().padStart(2, '0');
-      const day = date.getDate().toString().padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    }
-
-    const formatStartDate = formatDate(getStartDate);
-    const formatEndDate = formatDate(getEndDate)
-
     const plan = {
       title,
       destination,
-      startDate: formatStartDate, 
-      endDate: formatEndDate,
-      image: imagePreview || null,
+      startDate: getStartDate, 
+      endDate: getEndDate,
+      image: selectedImage || null,
     };
 
     try {
@@ -294,16 +285,7 @@ const Modal: React.FC<ModalProps> = ({ type, isOpen, onClose, onSubmit }) => {
               <input
                 type="file"
                 accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    setSelectedImage(file);
-                    const reader = new FileReader();
-                    reader.onloadend = () =>
-                      setImagePreview(reader.result as string);
-                    reader.readAsDataURL(file);
-                  }
-                }}
+                onChange={handleImageUpload}
               />
               {imagePreview ? (
                 <img src={imagePreview} alt="preview" />

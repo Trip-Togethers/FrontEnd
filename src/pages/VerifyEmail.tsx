@@ -32,7 +32,7 @@ function VerifyEmail() {
     try {
       const res = await verifyEmail(data.code); // API 요청
       showAlert("회원가입이 완료되었습니다.");
-      navigate("/login"); // 로그인 페이지로 이동
+      navigate("/users/login"); // 로그인 페이지로 이동
     } catch (error) {
       showAlert("인증 코드가 올바르지 않습니다.");
       navigate("/users/register");

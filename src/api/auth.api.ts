@@ -27,9 +27,6 @@ export const login = async (userData: LoginProps) => {
     userData,
     { withCredentials: true }
   );
-
-  localStorage.setItem("token", response.data.token);
-  console.log(localStorage.getItem('token'));
   return response.data;
 };
 

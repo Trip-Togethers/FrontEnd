@@ -69,7 +69,7 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
 
   const fetchDestinations = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_SERVER_ADDRESS}/maps/destinations`, {
+      const response = await fetch(`${import.meta.env.VITE_SERVER_ADDRESS}/${import.meta.env.PORT}/maps/destinations`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

@@ -1,7 +1,7 @@
 import axios, { AxiosRequestConfig, AxiosError } from 'axios';
 import { getToken, removeToken } from '../store/authStore';
 
-const BASE_URL = "http://localhost:1111";
+const BASE_URL = "http://3.39.232.234:80";
 const DEFAULT_TIMEOUT = 30000;
 
 // Axios 인스턴스 생성
@@ -10,7 +10,7 @@ export const createClient = (config?: AxiosRequestConfig) => {
         baseURL: BASE_URL,
         timeout: DEFAULT_TIMEOUT,
         headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "multipart/form-data",
         },
         withCredentials: true, // 쿠키 포함
         ...config
@@ -27,19 +27,19 @@ export const createClient = (config?: AxiosRequestConfig) => {
         return Promise.reject(error);
     });
 
-    // 응답 인터셉터 (에러 처리)
-    axiosInstance.interceptors.response.use(
-        (response) => response,
-        (error: AxiosError) => {
-            console.error("API 요청 에러:", error);
+    // // 응답 인터셉터 (에러 처리)
+    // axiosInstance.interceptors.response.use(
+    //     (response) => response,
+    //     (error: AxiosError) => {
+    //         console.error("API 요청 에러:", error);
 
-            if (error.response?.status === 401) { 
-                removeToken();
-                window.location.href = '/users/login'; // 로그인 페이지로 리다이렉트
-            }
-            return Promise.reject(error);
-        }
-    );
+    //         if (error.response?.status === 401) { 
+    //             removeToken();
+    //             window.location.href = '/users/login'; // 로그인 페이지로 리다이렉트
+    //         }
+    //         return Promise.reject(error);
+    //     }
+    // );
 
     return axiosInstance;
 };
@@ -59,18 +59,20 @@ export const requestHandler = async <T>(
 
         switch (method) {
             case "post":
-                response = await httpClient.post(url, payload);
-                console.log(url, payload)
+                response = await httpClient.post(url, payload, { withCredentials: true });
+                console.log("POST:", url, payload);
                 break;
             case "get":
-                response = await httpClient.get(url);
-                console.log(url)
+                response = await httpClient.get(url, { withCredentials: true });
+                console.log("GET:", url);
                 break;
             case "put":
-                response = await httpClient.put(url, payload);
+                response = await httpClient.put(url, payload, { withCredentials: true });
+                console.log("PUT:", url, payload);
                 break;
             case "delete":
-                response = await httpClient.delete(url);
+                response = await httpClient.delete(url, { withCredentials: true });
+                console.log("DELETE:", url);
                 break;
             default:
                 throw new Error("지원하지 않는 HTTP 메서드입니다.");
