@@ -1,9 +1,9 @@
 import { CreateData } from "models/schedule.model"
-import { createClient, requestHandler } from "./https"
+import { createClient, createClientFormData, requestHandler } from "./https"
 import { getToken } from "@store/authStore"
 
 export const createPlan = async (createData: CreateData) => {
-  const axiosInstance = createClient(); // Axios 인스턴스 생성
+  const axiosInstance = createClientFormData(); // Axios 인스턴스 생성
 
   const formData = new FormData();
 

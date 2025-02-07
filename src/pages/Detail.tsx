@@ -112,6 +112,7 @@ function Detail() {
   );
 }
 
+
 const SideLabel = styled.div`
   width: 30px;
   height: 150px;
@@ -124,8 +125,9 @@ const DetailContainer = styled.div`
 `;
 
 const Schedule = styled.div`
-  display: flex;
+  display: grid; /* 변경된 부분: grid로 수정 */
   gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* 일정이 가로로 일정 수 만큼 배치 */
   justify-content: center;
   margin: 20px 0;
 `;
