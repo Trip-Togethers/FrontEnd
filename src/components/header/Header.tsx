@@ -4,7 +4,7 @@ import Bell from "@assets/svg/Bell";
 import styled from "styled-components";
 import Sidebar from "./Sidebar";
 import Avatar from "@assets/svg/Avatar";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { getUserIdFromToken } from "@utils/get.token.utils";
 import { userPage } from "@api/user.api";
 
@@ -14,9 +14,9 @@ const Header: React.FC = () => {
 
   const toggleDropdown = () => {
     setIsOpen((prevState) => {
-    const newState = !prevState;
-    return newState;
-  });
+      const newState = !prevState;
+      return newState;
+    });
   };
 
   useEffect(() => {
@@ -40,7 +40,24 @@ const Header: React.FC = () => {
     };
 
     fetchUserData();
+
+    const handleScroll = () => {
+      setIsOpen(false); // 스크롤 시 사이드바 닫기
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    // 컴포넌트 언마운트 시 이벤트 리스너 제거
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, []);
+
+  const location = useLocation();
+
+  useEffect(() => {
+    setIsOpen(false); // 경로가 변경될 때 사이드바를 닫기
+  }, [location.pathname]); // 페이지가 변경될 때마다 호출
 
   return (
     <>
