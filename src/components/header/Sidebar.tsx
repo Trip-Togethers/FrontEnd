@@ -39,13 +39,8 @@ const Sidebar: React.FC<Props> = ({ isOpen }) => {
     fetchUserData();
   }, []);
 
-  console.log(JSON.stringify(userData, null, 2));
-
-  if (!isOpen) return null; // 드롭다운이 닫혀 있으면 렌더링 안 함.
-
-  // onClick={() => navigate(`/users/${userData?.userId}`)} style={{ cursor: "pointer" }
   return (
-    <SidebarStyle>
+    <SidebarStyle $isOpen={isOpen}>
       <div className="user">
         {userData ? (
           <>
@@ -56,10 +51,10 @@ const Sidebar: React.FC<Props> = ({ isOpen }) => {
                 <Avatar />
               )}
             </div>
-            <span>{userData.nickname}</span> {/* 유저의 닉네임 표시 */}
+            <span>{userData.nickname}</span>
           </>
         ) : (
-          <span>Loading...</span> // 유저 데이터 로딩 중이면 "Loading..." 표시
+          <span>Loading...</span>
         )}
       </div>
       <hr />
@@ -86,19 +81,25 @@ const Sidebar: React.FC<Props> = ({ isOpen }) => {
   );
 };
 
-const SidebarStyle = styled.div`
+const SidebarStyle = styled.div<{ $isOpen: boolean }>`
   background-color: ${({ theme }) => theme.color.primary_white};
   color: ${({ theme }) => theme.color.input_text};
   display: flex;
   flex-direction: column;
   position: fixed;
+  top: 0;
   right: 0;
   text-align: center;
   border-left: 1px solid #afafaf;
-  z-index: 1000; /* z-index를 높여서 다른 요소와 겹치지 않게 설정 */
+  z-index: 1000;
   height: 100%;
   width: 20rem;
   margin-top: 2.7rem;
+
+  /* 애니메이션 적용 */
+  transform: ${({ $isOpen }) => ($isOpen ? "translateX(0)" : "translateX(100%)")};
+  transition: transform 0.3s ease-in-out; /* 슬라이딩 애니메이션이 적용되는 부분 */
+  
   font-family: ${({ theme }) => theme.font.family.contents};
 
   /* 사이드바가 일정과 겹치지 않도록 하단 여백 추가 */
