@@ -1,17 +1,44 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Logo from "@assets/svg/Logo";
 import Bell from "@assets/svg/Bell";
 import styled from "styled-components";
 import Sidebar from "./Sidebar";
 import Avatar from "@assets/svg/Avatar";
 import { Link } from "react-router-dom";
+import { getUserIdFromToken } from "@utils/get.token.utils";
+import { userPage } from "@api/user.api";
 
 const Header: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [userData, setUserData] = useState<any>(null); // 유저 정보를 저장할 상태
+
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
   };
+
+   useEffect(() => {
+      const fetchUserData = async () => {
+        const token = localStorage.getItem("token"); // 로컬 스토리지에서 토큰 가져오기
+        if (!token) {
+          return;
+        }
+  
+        const userId = getUserIdFromToken(token); // 토큰에서 userId 가져오기
+        if (!userId) {
+          return;
+        }
+  
+        try {
+          const response = await userPage(userId); // userPage API 호출
+          setUserData({ ...response.user, userId }); // 유저 정보 저장
+        } catch (error) {
+          console.error("유저 정보를 가져오는 데 실패했습니다.");
+        }
+      };
+  
+      fetchUserData();
+    }, []);
 
   return (
     <>
@@ -21,7 +48,13 @@ const Header: React.FC = () => {
         </Link>
         <div className="nav">
           <Bell className="bell" />
-          <Avatar className="avatar" onClick={toggleDropdown} />
+          <div className="avatar_icon" onClick={toggleDropdown}>
+          {userData?.profile_picture ? (
+            <img src={userData.profile_picture} className="profile_img"/>
+          ): (
+            <Avatar />
+          )}
+          </div>
         </div>
       </HeaderStyle>
       <Sidebar isOpen={isOpen} onClose={() => setIsOpen(false)} />
@@ -57,6 +90,23 @@ const HeaderStyle = styled.header`
   .avatar {
     fill: #ffffff;
     height: 2rem;
+  }
+
+  .avatar_icon {
+    width: 30px; 
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    overflow: hidden;
+  }
+
+  .profile_img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; 
+    border-radius: 50%;
   }
 `;
 

@@ -13,7 +13,7 @@ type Props = {
 
 const Sidebar: React.FC<Props> = ({ isOpen }) => {
   const [userData, setUserData] = useState<any>(null); // 유저 정보를 저장할 상태
-  const { storeLogout } = useAuthstore();  
+  const { storeLogout } = useAuthstore();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -30,7 +30,7 @@ const Sidebar: React.FC<Props> = ({ isOpen }) => {
 
       try {
         const response = await userPage(userId); // userPage API 호출
-        setUserData({...response.user, userId}); // 유저 정보 저장
+        setUserData({ ...response.user, userId }); // 유저 정보 저장
       } catch (error) {
         console.error("유저 정보를 가져오는 데 실패했습니다.");
       }
@@ -39,16 +39,23 @@ const Sidebar: React.FC<Props> = ({ isOpen }) => {
     fetchUserData();
   }, []);
 
-  console.log(JSON.stringify(userData, null, 2))
+  console.log(JSON.stringify(userData, null, 2));
 
   if (!isOpen) return null; // 드롭다운이 닫혀 있으면 렌더링 안 함.
 
+  // onClick={() => navigate(`/users/${userData?.userId}`)} style={{ cursor: "pointer" }
   return (
     <SidebarStyle>
       <div className="user">
         {userData ? (
           <>
-            <Avatar className="avatar"  onClick={() => navigate(`/users/${userData?.userId}`)} style={{ cursor: "pointer" }} />
+            <div className="img-box">
+              {userData.profile_picture ? (
+                <img src={userData.profile_picture} />
+              ) : (
+                <Avatar />
+              )}
+            </div>
             <span>{userData.nickname}</span> {/* 유저의 닉네임 표시 */}
           </>
         ) : (
@@ -80,7 +87,7 @@ const Sidebar: React.FC<Props> = ({ isOpen }) => {
 };
 
 const SidebarStyle = styled.div`
-background-color: ${({ theme }) => theme.color.primary_white};
+  background-color: ${({ theme }) => theme.color.primary_white};
   color: ${({ theme }) => theme.color.input_text};
   display: flex;
   flex-direction: column;
@@ -109,6 +116,8 @@ background-color: ${({ theme }) => theme.color.primary_white};
     color: ${({ theme }) => theme.color.name_gray};
     display: flex;
     flex-direction: column;
+    align-items: center; /* 수직 중앙 정렬 */
+    justify-content: center;
     font-size: 1.5rem;
     margin-bottom: 1rem;
   }
@@ -156,6 +165,23 @@ background-color: ${({ theme }) => theme.color.primary_white};
     }
   }
 
+  .img-box {
+    margin: 40px;
+    display: flex;
+    justify-content: center; /* 수평 중앙 정렬 */
+    align-items: center; /* 수직 중앙 정렬 */
+    width: 10rem; /* 원하는 크기로 조정 */
+    height: 10rem; /* 정사각형 유지 */
+    border-radius: 50%; /* 원형 */
+    overflow: hidden; /* 이미지가 넘치지 않도록 */
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+  }
 `;
 
 const StyledLink = styled(Link)`

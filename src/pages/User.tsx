@@ -51,7 +51,12 @@ function User() {
         setUserData(response.user); // 응답 데이터에서 사용자 정보 저장
         setValue("email", response.user.email); // 이메일 값 설정
         setValue("nickname", response.user.nickname); // 닉네임 값 설정
-        setLoading(false);
+         // 프로필 이미지가 있으면 미리보기 설정
+      if (response.user.profile_picture) {
+        setImagePreview(response.user.profile_picture);
+      }
+
+      setLoading(false);
       } catch (error) {
         setError("유저 데이터를 가져오는 데 실패했습니다.");
         setLoading(false);
@@ -81,6 +86,7 @@ function User() {
   };
 
   const onUpdateSubmit = async (data: UserFormData) => {
+
     try {
       // 비밀번호 변경을 확인하는 로직
       if (data.newPassword !== data.confirmPassword) {
@@ -95,17 +101,27 @@ function User() {
       const userId = Number(
         getUserIdFromToken(localStorage.getItem("token") || "")
       );
-      // editUser 함수 호출하여 서버에 데이터 전송
-      const response = await editUser(userId, {
-        nickname: data.nickname,
-        email: data.email,
-        newPassword: data.newPassword,
-      });
+
+      const formData = new FormData();
+      if (selectedImage) {
+        formData.append("image", selectedImage);
+      }
+  
+      // 닉네임, 이메일, 비밀번호 데이터를 FormData에 추가
+      formData.append("nickname", data.nickname);
+      formData.append("email", data.email);
+      if (data.newPassword) {
+        formData.append("newPassword", data.newPassword);
+      }
+
+      const response = await editUser(userId, formData)
+  
 
       // 수정 성공 시 성공 메시지나 피드백 표시
       alert("사용자 정보가 업데이트되었습니다.");
       setUserData(response.user); // 갱신된 사용자 정보 업데이트
       navigate("/trips"); // 수정 후 다른 페이지로 이동
+      window.location.reload();
     } catch (error) {
       setError("정보 수정에 실패했습니다.");
       console.log(error);
