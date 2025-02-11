@@ -15,3 +15,11 @@ export interface Schedules {
     guests: string[];
     photoUrl: string;
   }
+
+  export interface EditData {
+    title?: string,
+    destination?: string,
+    startDate?: Date,
+    endDate?: Date,
+    photoUrl?: string;
+}

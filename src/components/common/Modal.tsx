@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { theme } from "@styles/theme";
 import Button from "@components/common/Button";
 import InputText from "@components/common/InputText";
-import { Schedules } from "models/schedule.model";
+import { EditData, Schedules } from "models/schedule.model";
 
 // 1-1) 날짜 선택기(DatePicker) Props
 interface DatePickerProps {
@@ -21,6 +21,7 @@ interface ModalProps {
   onClose: () => void;
   onSubmit?: (plan: any) => void;
   initialData?: Schedules | null; // initialData 속성 추가
+  planData?: EditData;
 }
 
 // 1-3 할 일(Todo) 아이템 인터페이스
@@ -189,17 +190,21 @@ const TimePicker: React.FC<{
 };
 
 //  4) 모달(Modal) 컴포넌트
-const Modal: React.FC<ModalProps> = ({ type, isOpen, onClose, onSubmit }) => {
+const Modal: React.FC<ModalProps> = ({ type, isOpen, onClose, onSubmit, planData}) => {
+  console.log(planData)
   // 공통 상태값
   const today = new Date();
-  const [title, setTitle] = useState("");
-  const [destination, setDestination] = useState("");
-  const [startDate, setStartDate] = useState(today);
-  const [endDate, setEndDate] = useState(today);
+  const [title, setTitle] = useState(planData?.title || "");
+  const [destination, setDestination] = useState(planData?.destination || "");
+  // planData에서 시작일과 종료일이 문자열이라면 Date 객체로 변환
+  const startDateFromPlan = planData?.startDate ? new Date(planData.startDate) : today;
+  const endDateFromPlan = planData?.endDate ? new Date(planData.endDate) : today;
 
+  const [startDate, setStartDate] = useState(startDateFromPlan);
+  const [endDate, setEndDate] = useState(endDateFromPlan);
   //이미지 업로드 상태
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string>("");
+  const [imagePreview, setImagePreview] = useState<string>(planData?.photoUrl || "");
 
   if (!isOpen) return null;
 
@@ -236,14 +241,12 @@ const Modal: React.FC<ModalProps> = ({ type, isOpen, onClose, onSubmit }) => {
   // 폼 제출 (플랜)
   const handlePlanSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const getStartDate = new Date(startDate)
-    const getEndDate = new Date(endDate)
 
     const plan = {
       title,
       destination,
-      startDate: getStartDate, 
-      endDate: getEndDate,
+      startDate,
+      endDate,
       image: selectedImage || null,
     };
 
@@ -258,25 +261,25 @@ const Modal: React.FC<ModalProps> = ({ type, isOpen, onClose, onSubmit }) => {
     // 폼 상태 초기화
     setTitle("");
     setDestination("");
-    setStartDate(new Date());
-    setEndDate(new Date());
+    setStartDate(today);
+    setEndDate(today);
     setSelectedImage(null);
     setImagePreview("");
   };
 
   // 플랜 폼 유효성 검사
   const isFormValid = () => {
-    if (type === "plan") {
+    if (type === "schedule") {
       return (
         title.trim() !== "" && destination.trim() !== "" && startDate <= endDate
       );
-    }
+    } 
     return true;
   };
 
   // 4-2 랜더링
   return (
-    <ModalWrapper>  
+    <ModalWrapper>
       <div className="modal">
         <button className="close-btn" onClick={onClose}>
           &times;
@@ -318,16 +321,16 @@ const Modal: React.FC<ModalProps> = ({ type, isOpen, onClose, onSubmit }) => {
 
           <div className="field">
             <label>기간</label>
-            <DatePicker value={startDate} onChange={setStartDate} />
+            <DatePicker value={startDate} onChange={handleStartDateChange} />
             <DatePicker
               value={endDate}
-              onChange={setEndDate}
+              onChange={handleEndDateChange}
               minDate={startDate}
             />
           </div>
 
           <Button scheme="primary" type="submit" disabled={!isFormValid()}>
-            생성하기
+          {type === "plan" ? "수정하기" : "생성하기"}
           </Button>
         </form>
       </div>

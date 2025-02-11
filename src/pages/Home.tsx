@@ -271,11 +271,11 @@ const Home = () => {
       </NewPlanButton>
       {/* 새 일정 생성 모달 */}
       <Modal
-        type="plan"
+        type="schedule"
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={async (plan: any) => {
-          const newPlan = await createPlan({
+          await createPlan({
             ...plan,
           });
           setIsModalOpen(false);

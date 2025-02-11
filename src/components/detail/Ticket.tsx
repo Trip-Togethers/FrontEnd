@@ -2,7 +2,7 @@ import styled from "styled-components";
 import { Barcode } from "@assets/svg";
 import { useParams } from "react-router-dom";
 import { showDetailPlan } from "@api/detail.api";
-import { showPlan } from "@api/schedule.api";
+import { createPlan, showPlan } from "@api/schedule.api";
 import { LogoRotate } from "@assets/svg";
 import { useEffect, useState } from "react";
 import { formatDate } from "@utils/date.format";
@@ -16,7 +16,7 @@ interface DaySchedule {
   currentDate: string;
 }
 
-const Ticket = () => {
+const Ticket = ({ onClick }: { onClick: () => void }) => {
   const { tripId } = useParams<{ tripId: string }>();
   const [mainSchedule, setMainSchedule] = useState<Schedules | null>(null);
   const [scheduleData, setScheduleData] = useState<DaySchedule[]>([]);
@@ -59,13 +59,7 @@ const Ticket = () => {
 
     fetchData();
   }, [tripId]);
-
-  // 티켓 클릭 시 수정 모달 열기
-  const openEditModal = () => {
-    setEditableTicket(mainSchedule); // 수정할 데이터 설정
-    setIsModalOpen(true); // 모달 열기
-  };
-
+  
   // 수정된 티켓 저장
   const handleSave = async (updatedTicket: Schedules) => {
     // 수정된 티켓 데이터를 API로 저장하는 로직
@@ -76,7 +70,7 @@ const Ticket = () => {
   if (!mainSchedule) return <p>일정 정보를 불러오는 중입니다...</p>;
 
   return (
-    <TicketStyle onClick={openEditModal}>
+    <TicketStyle onClick={onClick}>
       <div className="logo-background">
         <LogoRotate className="logo" />
       </div>
@@ -116,14 +110,7 @@ const Ticket = () => {
         <img src={mainSchedule.photoUrl} alt={mainSchedule.title} />
       </PhotoSection>
       <Barcode className="barcode" />
-
-      <Modal
-        type="plan"
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSubmit={handleSave}
-        initialData={editableTicket} // 초기 데이터 전달 안되고있음 & 아무곳이나 눌러서 닫게 수정
-      />
+      
     </TicketStyle>
   );
 };

@@ -2,11 +2,12 @@ import { styled } from "styled-components";
 import React, { useEffect, useState } from "react";
 import { showDetailPlan } from "@api/detail.api";
 import { useParams } from "react-router-dom";
-import { showPlan } from "@api/schedule.api";
+import { createPlan, editPlan, showPlan } from "@api/schedule.api";
 import { formatDate } from "@utils/date.format";
 import { getUserIdFromToken } from "@utils/get.token.utils";
 import { userPage } from "@api/user.api";
 import Ticket from "@components/detail/Ticket";
+import Modal from "@components/common/Modal";
 
 interface Schedules {
   id: number;
@@ -32,6 +33,7 @@ function Detail() {
 
   const [currentPage, setCurrentPage] = useState(0);
   const itemsPerPage = 3;
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // 일정 데이터를 3개씩 분할
   const paginatedSchedule = (scheduleData: any[]) => {
@@ -108,7 +110,20 @@ function Detail() {
   return (
     <DetailContainer>
       <TicketContainer>
-        <Ticket />
+        <Ticket onClick={() => setIsModalOpen(true)} />
+        <Modal
+          type="plan"
+          isOpen={isModalOpen} // 모달 열고 닫는 상태를 isModalOpen으로 관리
+          onClose={() => setIsModalOpen(false)} // 모달 닫기
+          onSubmit={async (plan: any) => {
+            await editPlan({
+              ...plan,
+            }, Number(tripId));
+            setIsModalOpen(false);
+            window.location.reload();
+          }}
+          planData={mainSchedule}
+        />
       </TicketContainer>
       <ScheduleContainer>
         <Schedule>

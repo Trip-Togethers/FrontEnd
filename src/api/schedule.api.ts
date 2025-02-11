@@ -1,4 +1,4 @@
-import { CreateData } from "models/schedule.model"
+import { CreateData, EditData } from "models/schedule.model"
 import { createClient, createClientFormData, requestHandler } from "./https"
 import { getToken } from "@store/authStore"
 
@@ -26,6 +26,36 @@ export const createPlan = async (createData: CreateData) => {
     return response.data;
   } catch (error) {
     console.error('플랜 생성 실패:', error);
+    throw error;
+  }
+}
+
+export const editPlan = async (createData: EditData, tripId : number) => {
+  const axiosInstance = createClientFormData(); // Axios 인스턴스 생성
+
+  const formData = new FormData();
+
+  // createData 객체의 속성들을 formData에 추가
+  if (createData.title) formData.append('title', createData.title);
+  if (createData.destination) formData.append('destination', createData.destination);
+  
+  // Date를 문자열로 변환하여 추가
+  if (createData.startDate) 
+    formData.append('startDate', createData.startDate.toISOString().split('T')[0]); // 'YYYY-MM-DD' 형식으로 변환
+  if (createData.endDate) 
+    formData.append('endDate', createData.endDate.toISOString().split('T')[0]); // 'YYYY-MM-DD' 형식으로 변환
+
+  // 이미지 파일이 존재하면 해당 파일을 formData에 추가
+  if (createData.photoUrl) {
+    formData.append('image', createData.photoUrl); // image는 파일 객체여야 함
+  }
+
+  try {
+    const response = await axiosInstance.put(`/trips/${tripId}`, formData); // 'trips' 엔드포인트로 POST 요청
+    console.log('플랜 수정 성공:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('플랜 수정 실패:', error);
     throw error;
   }
 }
