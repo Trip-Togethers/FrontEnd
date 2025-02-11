@@ -26,6 +26,8 @@ function User() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
   const navigate = useNavigate();
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
 
   // 사용자 정보 불러오기
   useEffect(() => {
@@ -64,6 +66,20 @@ function User() {
     setIsVerified(true);
   };
 
+  // 이미지 업로드 핸들러
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const onUpdateSubmit = async (data: UserFormData) => {
     try {
       // 비밀번호 변경을 확인하는 로직
@@ -76,7 +92,9 @@ function User() {
         setError("사용자 정보를 불러오는 데 실패했습니다.");
         return;
       }
-      const userId = Number(getUserIdFromToken(localStorage.getItem("token") || ""));
+      const userId = Number(
+        getUserIdFromToken(localStorage.getItem("token") || "")
+      );
       // editUser 함수 호출하여 서버에 데이터 전송
       const response = await editUser(userId, {
         nickname: data.nickname,
@@ -107,7 +125,6 @@ function User() {
       <Container>
         <Title>내 정보</Title>
         <Divider />
-        <StyledAvatar />
         <form
           onSubmit={handleSubmit(isVerified ? onUpdateSubmit : onVerifySubmit)}
         >
@@ -139,6 +156,20 @@ function User() {
                 </>
               ) : (
                 <>
+                  <StyledAvatar>
+                    <div className="upload-box">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                    />
+                    {imagePreview ? (
+                  <img src={imagePreview} alt="preview" />
+                  ) : (
+                    <Avatar />
+                  )}
+                    </div>
+                  </StyledAvatar>
                   <InputText
                     scheme="mypage"
                     type="text"
@@ -239,10 +270,46 @@ const Divider = styled.div`
   background-color: ${({ theme }) => theme.color.primary_green};
 `;
 
-const StyledAvatar = styled(Avatar)`
-  height: 30%;
-  width: 30%;
+const StyledAvatar = styled.div`
+  height: 220px;  /* 원하는 고정 크기로 설정 */
+  width: 220px;   /* width와 height를 동일하게 설정하여 원형 만들기 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  .upload-box {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border: 1px dashed ${({ theme }) => theme.color.input_background};
+    border-radius: 50%;  /* 동그라미 모양으로 설정 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    background-color: ${({ theme }) => theme.color.input_background};
+
+    &:hover {
+      border-color: ${({ theme }) => theme.color.primary_green};
+    }
+
+    input {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+  }
+
+  img {
+    width: 100%;  /* 부모 요소 크기에 맞게 확장 */
+    height: 100%; /* 부모 요소 크기에 맞게 확장 */
+    object-fit: cover;  /* 이미지가 동그라미에 맞게 잘리도록 설정 */
+    border-radius: 50%;  /* 이미지를 원형으로 만들기 */
+  }
 `;
+
 
 const GuideText = styled.p`
   text-align: center;

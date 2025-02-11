@@ -4,6 +4,8 @@ const SvgAvatar = (props: SVGProps<SVGSVGElement>) => (
     xmlns="http://www.w3.org/2000/svg"
     fill="none"
     viewBox="0 0 24 24"
+    width="100%"         // 부모 요소에 맞춰 크기 자동 조정
+    height="100%"        // 부모 요소에 맞춰 크기 자동 조정
     {...props}
   >
     <rect width={24} height={24} fill="#EADDFF" rx={12} />
