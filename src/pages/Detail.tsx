@@ -30,6 +30,25 @@ function Detail() {
   const [userData, setUserData] = useState<any>(null); // 유저 정보를 저장할 상태
   const [guests, setGuests] = useState<Array<{ userId: number; nickname: string }>>([]);
 
+  const [currentPage, setCurrentPage] = useState(0);
+  const itemsPerPage = 3;
+
+  // 일정 데이터를 3개씩 분할
+  const paginatedSchedule = (scheduleData: any[]) => {
+    const startIndex = currentPage * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return scheduleData.slice(startIndex, endIndex);
+  };
+
+  // 페이지 이동 함수
+  const handlePageChange = (direction: "next" | "prev") => {
+    if (direction === "next" && (currentPage + 1) * itemsPerPage < scheduleData.length) {
+      setCurrentPage(currentPage + 1);
+    } else if (direction === "prev" && currentPage > 0) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
   useEffect(() => {
     if (!tripId) {
       console.warn("유효하지 않은 tripId:", tripId);
@@ -88,48 +107,68 @@ function Detail() {
 
   return (
     <DetailContainer>
-      <Ticket />
-      {/* 일정 데이터 렌더링 */}
-      <Schedule>
-        {Array.isArray(scheduleData) && scheduleData.length > 0 ? (
-          scheduleData.map((day, index) => (
-            <Day key={index}>
-              <DateTitle>{day.scheduleDate}</DateTitle> {/* 날짜 표시 */}
-              <ScheduleList>
-                {day.currentDate !== "No detail available" ? (
-                  <ScheduleItem>{day.currentDate}</ScheduleItem> // 일정이 있을 경우
-                ) : (
-                  <ScheduleItem>상세 일정이 없습니다.</ScheduleItem> // 일정이 없을 경우
-                )}
-              </ScheduleList>
-            </Day>
-          ))
-        ) : (
-          <p>일정이 없습니다.</p>
+      <TicketContainer>
+        <Ticket />
+      </TicketContainer>
+      <ScheduleContainer>
+        <Schedule>
+          {Array.isArray(scheduleData) && scheduleData.length > 0 ? (
+            paginatedSchedule(scheduleData).map((day, index) => (
+              <Day key={index}>
+                <DateTitle>{day.scheduleDate}</DateTitle>
+                <ScheduleList>
+                  {day.currentDate !== "No detail available" ? (
+                    <ScheduleItem>{day.currentDate}</ScheduleItem>
+                  ) : (
+                    <ScheduleItem>상세 일정이 없습니다.</ScheduleItem>
+                  )}
+                </ScheduleList>
+              </Day>
+            ))
+          ) : (
+            <p>일정이 없습니다.</p>
+          )}
+        </Schedule>
+        {scheduleData.length > itemsPerPage && (
+          <Pagination>
+            <ArrowButton onClick={() => handlePageChange("prev")} disabled={currentPage === 0}>
+              {"<"}
+            </ArrowButton>
+            <ArrowButton onClick={() => handlePageChange("next")} disabled={(currentPage + 1) * itemsPerPage >= scheduleData.length}>
+              {">"}
+            </ArrowButton>
+          </Pagination>
         )}
-      </Schedule>
+      </ScheduleContainer>
     </DetailContainer>
   );
-}
-
-
-const SideLabel = styled.div`
-  width: 30px;
-  height: 150px;
-  text-align: center;
-`;
+};
 
 const DetailContainer = styled.div`
   font-family: Arial, sans-serif;
   padding: 20px;
 `;
 
-const Schedule = styled.div`
-  display: grid; /* 변경된 부분: grid로 수정 */
-  gap: 20px;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* 일정이 가로로 일정 수 만큼 배치 */
+const TicketContainer = styled.div`
+  margin-bottom: 30px; /* 티켓과 일정 사이의 간격 */
+  display: flex;
   justify-content: center;
+`;
+
+const ScheduleContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 13%;
+`;
+
+const Schedule = styled.div`
+  display: flex;
+  flex-direction: row;  /* 가로로 나열 */
+  gap: 20px;  /* 각 일정 항목 간의 간격 */
   margin: 20px 0;
+  justify-content: flex-start;  /* 왼쪽 정렬 */
+  flex-wrap: wrap;  /* 화면 크기에 맞게 자동으로 줄바꿈 */
 `;
 
 const Day = styled.div`
@@ -145,12 +184,40 @@ const DateTitle = styled.h3`
 `;
 
 const ScheduleList = styled.ul`
+  display: flex;  /* 가로로 나열 */
   list-style: none;
   padding: 0;
+  margin: 0;
+  flex-wrap: wrap;  /* 가로로 넘칠 경우 자동으로 줄바꿈 */
 `;
 
 const ScheduleItem = styled.li`
-  padding: 5px 0;
+  padding: 5px 10px;
+  margin-right: 15px;  /* 각 아이템 간의 간격 */
+  background-color: #f4f4f4;
+  border-radius: 5px;
+`;
+
+const Pagination = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+`;
+
+const ArrowButton = styled.button`
+  padding: 10px;
+  background-color: #00703c;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 0 10px;
+  font-size: 16px;
+
+  &:disabled {
+    background-color: #d1d1d1;
+    cursor: not-allowed;
+  }
 `;
 
 export default Detail;

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import styled from "styled-components";
 import Avatar from "@assets/svg/Avatar";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuthstore } from "@store/authStore";
 import { userPage } from "@api/user.api"; // userPage API import
 import { getUserIdFromToken } from "@utils/get.token.utils";
@@ -13,7 +13,8 @@ type Props = {
 
 const Sidebar: React.FC<Props> = ({ isOpen }) => {
   const [userData, setUserData] = useState<any>(null); // 유저 정보를 저장할 상태
-  const { storeLogout } = useAuthstore();
+  const { storeLogout } = useAuthstore();  
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -47,7 +48,7 @@ const Sidebar: React.FC<Props> = ({ isOpen }) => {
       <div className="user">
         {userData ? (
           <>
-            <Avatar className="avatar" />
+            <Avatar className="avatar"  onClick={() => navigate(`/users/${userData?.userId}`)} style={{ cursor: "pointer" }} />
             <span>{userData.nickname}</span> {/* 유저의 닉네임 표시 */}
           </>
         ) : (

@@ -5,3 +5,13 @@ export interface CreateData {
     endDate: Date,
     image: string
 }
+
+export interface Schedules {
+    id: number;
+    title: string;
+    startDate: Date;
+    endDate: Date;
+    destination: string;
+    guests: string[];
+    photoUrl: string;
+  }

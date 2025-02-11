@@ -6,16 +6,10 @@ import { showPlan } from "@api/schedule.api";
 import { LogoRotate } from "@assets/svg";
 import { useEffect, useState } from "react";
 import { formatDate } from "@utils/date.format";
+import Modal from "@components/common/Modal";
+import { Schedules } from "models/schedule.model";
 
-interface Schedules {
-  id: number;
-  title: string;
-  startDate: Date;
-  endDate: Date;
-  destination: string;
-  guests: string[];
-  photoUrl: string;
-}
+
 
 interface DaySchedule {
   scheduleDate: string;
@@ -26,6 +20,8 @@ const Ticket = () => {
   const { tripId } = useParams<{ tripId: string }>();
   const [mainSchedule, setMainSchedule] = useState<Schedules | null>(null);
   const [scheduleData, setScheduleData] = useState<DaySchedule[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false); // 모달 열기/닫기 상태
+  const [editableTicket, setEditableTicket] = useState<Schedules | null>(null); // 수정할 티켓 데이터
 
   useEffect(() => {
     if (!tripId) {
@@ -64,10 +60,23 @@ const Ticket = () => {
     fetchData();
   }, [tripId]);
 
+  // 티켓 클릭 시 수정 모달 열기
+  const openEditModal = () => {
+    setEditableTicket(mainSchedule); // 수정할 데이터 설정
+    setIsModalOpen(true); // 모달 열기
+  };
+
+  // 수정된 티켓 저장
+  const handleSave = async (updatedTicket: Schedules) => {
+    // 수정된 티켓 데이터를 API로 저장하는 로직
+    console.log("저장된 티켓 데이터:", updatedTicket);
+    setIsModalOpen(false); // 모달 닫기
+  };
+
   if (!mainSchedule) return <p>일정 정보를 불러오는 중입니다...</p>;
 
   return (
-    <TicketStyle>
+    <TicketStyle onClick={openEditModal}>
       <div className="logo-background">
         <LogoRotate className="logo" />
       </div>
@@ -107,6 +116,14 @@ const Ticket = () => {
         <img src={mainSchedule.photoUrl} alt={mainSchedule.title} />
       </PhotoSection>
       <Barcode className="barcode" />
+
+      <Modal
+        type="plan"
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleSave}
+        initialData={editableTicket} // 초기 데이터 전달 안되고있음 & 아무곳이나 눌러서 닫게 수정
+      />
     </TicketStyle>
   );
 };

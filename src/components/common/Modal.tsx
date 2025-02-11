@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { theme } from "@styles/theme";
 import Button from "@components/common/Button";
 import InputText from "@components/common/InputText";
+import { Schedules } from "models/schedule.model";
 
 // 1-1) 날짜 선택기(DatePicker) Props
 interface DatePickerProps {
@@ -19,6 +20,7 @@ interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit?: (plan: any) => void;
+  initialData?: Schedules | null; // initialData 속성 추가
 }
 
 // 1-3 할 일(Todo) 아이템 인터페이스
@@ -274,7 +276,7 @@ const Modal: React.FC<ModalProps> = ({ type, isOpen, onClose, onSubmit }) => {
 
   // 4-2 랜더링
   return (
-    <ModalWrapper>
+    <ModalWrapper>  
       <div className="modal">
         <button className="close-btn" onClick={onClose}>
           &times;
