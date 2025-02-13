@@ -86,3 +86,21 @@ export const deleteDetailPosts = async (postId: number) => {
   console.log(data);
   return data;
 };
+
+export const like = async (postId: number) => {
+  const data = await requestHandler("post", `/posts/${postId}/like`);
+  console.log(data);
+  return data;
+}
+
+export const addComemnts = async (postId: number, content: string) => {
+  const data = await requestHandler("post", `/posts/${postId}/comments`, { comments: content })
+  console.log(data);
+  return data;
+}
+
+export const showComments = async (postId: number) => {
+  const data = await requestHandler("get", `/posts/${postId}/comments`)
+  console.log(data);
+  return data;
+}

@@ -142,28 +142,12 @@ const Home = () => {
   };
 
   // 참가자 추가
-  const handleAddParticipant = (
-    e: React.MouseEvent,
-    planId: number,
-    user: any
-  ) => {
-    e.stopPropagation(); // 클릭 이벤트가 부모 요소로 전달되지 않도록 방지
-    console.log(`Adding ${user.guest || user.creator} to plan ${planId}`);
-    // 유저 추가 로직 처리 (예: API 호출 등)
+  const handleAddParticipant = () => {
   };
 
   // 참가자 삭제 핸들러
-  const handleRemoveParticipant = (planId: number, nickname: string) => {
-    setData((prevData) =>
-      prevData.map((schedule) =>
-        schedule.id === planId
-          ? {
-              ...schedule,
-              guests: schedule.guests.filter((guest) => guest !== nickname),
-            }
-          : schedule
-      )
-    );
+  const handleRemoveParticipant = () => {
+   
   };
 
   if (loading) {

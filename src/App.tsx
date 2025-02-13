@@ -17,6 +17,7 @@ import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom"
 import Calendars from "@pages/Calendar";
 import { Provider } from "react-redux";
 import store from "@store/store";
+import InvitePage from "@pages/InvitePage";
 
 const router = createBrowserRouter([
    // 기본 경로 접근 시 로그인 페이지로 리디렉션
@@ -94,7 +95,7 @@ const router = createBrowserRouter([
   },
   {
     //커뮤니티-글작성
-    path: " /posts",
+    path: "/posts",
     element: (
       <Layout>
         <AddPost />
@@ -144,6 +145,12 @@ const router = createBrowserRouter([
     ),
     errorElement: <Error />,
   },
+  {
+    // 초대 페이지
+    path: "/trips/companions/:tripId/invite/:userId/:inviteCode",
+    element: <InvitePage />,
+    errorElement: <Error />,
+  }
 ]);
 
 function App() {

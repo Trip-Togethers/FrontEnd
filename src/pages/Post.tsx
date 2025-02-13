@@ -1,40 +1,55 @@
 import { styled } from "styled-components";
 import { connect } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
-import { likePost, addComment, deletePost } from "@store/postReducer";
 import { useState, useEffect, SetStateAction } from "react";
 import Button from "@components/common/Button";
 import avatar from "../../public/svg/avatar.svg";
 import {
   Post as PostType,
-  Comment,
   ImageInfo,
   RootState,
   Post,
   GetPost,
   Schedule,
 } from "@store/store";
-import { deleteDetailPosts, showDetailPosts } from "@api/post.api";
+import { addComemnts, deleteDetailPosts, like, showComments, showDetailPosts } from "@api/post.api";
 import { showPlan } from "@api/schedule.api";
 
 interface PostImage {
   url: string;
 }
 
-interface PostProps {
-  posts: PostType[];
-  likePost: typeof likePost;
-  addComment: typeof addComment;
-  deletePost: typeof deletePost;
-}
+// 타입 정의
+interface Author {
+  nick: string;
+  profile: string;
+};
 
-function Posts({ posts }: PostProps) {
+interface Comment {
+  id: number;
+  content: string;
+  author: Author;
+  createdAt: string;
+};
+
+interface CommentsResponse {
+  comment: {
+    message: string;
+    statusCode: number;
+    posts: Comment[];
+  };
+};
+
+function Posts() {
   const navigate = useNavigate();
   const { postId } = useParams();
   const [post, setPost] = useState<GetPost | null>(null); // 객체로 상태 변경
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<Schedule[]>([]); // 일정 데이터 상태
   const [error, setError] = useState<string | null>(null);
+  const [likes, setLikes] = useState<Number>();
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [content, setContent] = useState<string>("");  // 댓글 입력값을 위한 상태 추가
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -66,6 +81,23 @@ function Posts({ posts }: PostProps) {
       }
     };
 
+    const fetchComments = async () => {
+      try {
+        const data: CommentsResponse = await showComments(Number(postId));
+        console.log(data)
+        if (Array.isArray(data.comment.posts)) {
+          setComments(data.comment.posts);  // 댓글 배열을 상태에 설정
+        } else {
+          console.error("댓글 데이터가 배열이 아닙니다.", data);
+        }
+      } catch (error) {
+        console.error("댓글을 가져오는 중 오류가 발생했습니다.", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchComments();
     fetchPosts();
   }, [postId]);
 
@@ -81,6 +113,35 @@ function Posts({ posts }: PostProps) {
         alert("게시글 삭제 중 오류가 발생했습니다.");
         console.error(error);
       }
+    }
+  };
+
+  // 좋아요 추가 및 삭제
+  const handleLike = async() => {
+    try {
+      const LikeCount = await like(Number(postId))
+      setLikes(LikeCount.like.post.like)
+      window.location.reload();
+    } catch (error) {
+      alert("좋아요 추가 혹은 취소 중 오류가 발생했습니다.");
+      console.error(error);
+    }
+  }
+
+  const handleCommentSubmit = async () => {
+    if (content.trim()) {
+      try {
+        const data = await addComemnts(Number(postId), content);  // 댓글 작성 API 호출
+        if (data && data.comment && Array.isArray(data.comment.posts)) {
+          setComments(data.comment.posts);  // 새로 작성된 댓글이 포함된 댓글 목록 업데이트
+        }
+        setContent("");  // 댓글 작성 후 입력란 초기화
+        window.location.reload();
+      } catch (error) {
+        console.error("댓글 작성 중 오류가 발생했습니다.", error);
+      }
+    } else {
+      alert("댓글 내용을 입력해 주세요.");
     }
   };
   
@@ -148,21 +209,17 @@ function Posts({ posts }: PostProps) {
             <Content>{post.postContent}</Content>
             {post.postPhotoUrl && (
               <ImagesContainer>
-              <ImageWrapper>
-                <PostImage src={post.postPhotoUrl} />
-              </ImageWrapper>
-            </ImagesContainer>
+                <ImageWrapper>
+                  <PostImage src={post.postPhotoUrl} />
+                </ImageWrapper>
+              </ImagesContainer>
             )}
           </>
         )}
 
         {/* 이미지를 표시하는 부분을 텍스트로 바꿈 */}
         <LikeSection>
-          <LikeButton
-            scheme="primary"
-            onClick={() => alert("좋아요!")}
-            $isLiked={false}
-          >
+          <LikeButton scheme="primary" onClick={handleLike} $isLiked={false}>
             👍🏻
           </LikeButton>
           <LikeCount>{post?.likes}</LikeCount> {/* 옵셔널 체이닝 */}
@@ -170,16 +227,27 @@ function Posts({ posts }: PostProps) {
       </PostWrapper>
 
       <CommentsWrapper>
-        <h3>댓글 ({post?.comments_count})</h3> {/* 옵셔널 체이닝 */}
+        <h3>댓글 ({comments.length})</h3>
         <CommentsList>
-          {/* 댓글 데이터도 텍스트로 바꿈 */}
-          <CommentItem>
-            <b>익명</b>: 이 게시글은 정말 유익합니다!
-          </CommentItem>
+          {loading ? (
+            <div>로딩 중...</div>
+          ) : Array.isArray(comments) && comments.length > 0 ? (
+            comments.map((comment) => (
+              <CommentItem key={comment.id}>
+                <b>{comment.author?.nick || "익명"}</b>: {comment.content}
+              </CommentItem>
+            ))
+          ) : (
+            <div>댓글이 없습니다.</div>
+          )}
         </CommentsList>
         <CommentInputWrapper>
-          <CommentInput placeholder="댓글을 입력하세요..." />
-          <CommentButton scheme="primary" onClick={() => alert("댓글 작성")}>
+        <CommentInput
+          value={content}
+          onChange={(e) => setContent(e.target.value)}  // 댓글 내용 상태 업데이트
+          placeholder="댓글을 입력하세요..."
+        />
+          <CommentButton scheme="primary" onClick={handleCommentSubmit}>
             댓글 작성
           </CommentButton>
         </CommentInputWrapper>
@@ -189,9 +257,7 @@ function Posts({ posts }: PostProps) {
 }
 
 export default connect((state: RootState) => ({ posts: state.post.posts }), {
-  likePost,
-  addComment,
-  deletePost,
+
 })(Posts);
 
 const SelectedSchedule = styled.div`
