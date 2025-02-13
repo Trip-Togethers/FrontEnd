@@ -130,11 +130,13 @@ function Posts({ posts }: PostProps) {
               </SelectedSchedule>
             ))}
             <Content>{post.postContent}</Content>
-            <ImagesContainer>
+            {post.postPhotoUrl && (
+              <ImagesContainer>
               <ImageWrapper>
                 <PostImage src={post.postPhotoUrl} />
               </ImageWrapper>
             </ImagesContainer>
+            )}
           </>
         )}
 
