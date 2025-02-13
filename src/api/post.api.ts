@@ -80,3 +80,9 @@ export const showDetailPosts = async (postId: number) => {
   console.log(data);
   return data;
 };
+
+export const deleteDetailPosts = async (postId: number) => {
+  const data = await requestHandler("delete", `/posts/${postId}`);
+  console.log(data);
+  return data;
+};

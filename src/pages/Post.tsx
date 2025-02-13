@@ -14,7 +14,7 @@ import {
   GetPost,
   Schedule,
 } from "@store/store";
-import { showDetailPosts } from "@api/post.api";
+import { deleteDetailPosts, showDetailPosts } from "@api/post.api";
 import { showPlan } from "@api/schedule.api";
 
 interface PostImage {
@@ -69,6 +69,22 @@ function Posts({ posts }: PostProps) {
     fetchPosts();
   }, [postId]);
 
+  const handleDeletePost = async () => {
+    if (window.confirm("정말로 이 게시글을 삭제하시겠습니까?")) {
+      try {
+        // 삭제 API 호출 (예: showDeletePost)
+        await deleteDetailPosts(Number(postId)); // postId를 넘겨서 삭제 요청
+  
+        alert("게시글이 삭제되었습니다.");
+        navigate("/posts"); // 삭제 후 목록 페이지로 리다이렉트
+      } catch (error) {
+        alert("게시글 삭제 중 오류가 발생했습니다.");
+        console.error(error);
+      }
+    }
+  };
+  
+
   // 데이터가 없으면 로딩 중인 화면을 표시
   if (loading) {
     return <div>Loading...</div>;
@@ -94,7 +110,7 @@ function Posts({ posts }: PostProps) {
           </EditButton>
           <DeleteButton
             scheme="alert"
-            onClick={() => alert("게시글이 삭제되었습니다.")} // 삭제 처리
+            onClick={handleDeletePost} // 삭제 처리
           >
             🗑 삭제
           </DeleteButton>

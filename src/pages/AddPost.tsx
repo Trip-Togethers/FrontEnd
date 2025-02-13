@@ -121,7 +121,7 @@ function AddPost() {
         };
         responseData = await addPost(postData);
         console.log("게시글 생성 성공:", responseData);
-        navigate(`/posts}`); // 생성 후 상세 페이지로 이동
+        navigate(`/posts`); // 생성 후 상세 페이지로 이동
       }
     } catch (error) {
       console.error("게시글 처리 실패:", error);
