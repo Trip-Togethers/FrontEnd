@@ -5,7 +5,7 @@ import Detail from "./pages/Detail";
 import Home from "./pages/Home";
 import Join from "./pages/Join";
 import Map from "./pages/Map";
-import Post from "./pages/Post";
+import Posts from "./pages/Post";
 import User from "./pages/User";
 import Error from "@components/common/Error";
 import VerifyEmail from "./pages/VerifyEmail";
@@ -118,7 +118,7 @@ const router = createBrowserRouter([
     path: "/posts/:postId",
     element: (
       <Layout>
-        <Post />
+        <Posts />
       </Layout>
     ),
     errorElement: <Error />,
@@ -128,7 +128,7 @@ const router = createBrowserRouter([
     path: "/posts/edit/:postId",
     element: (
       <Layout>
-        <AddPost isEdit={true} />
+        <AddPost />
       </Layout>
     ),
     errorElement: <Error />,

@@ -3,37 +3,55 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
 import Button from "@components/common/Button";
-import { RootState } from '@store/store';
+import { showPosts } from "@api/post.api";
+
+interface Author {
+  nick: string;
+  profile: string;
+}
+
+interface Post {
+  id: number;
+  postTitle: string;
+  postContent: string;
+  author: Author;
+  createdAt: string;
+  likes: number;
+  comments_count: number;
+}
 
 function Board() {
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const posts = useSelector((state: RootState) => state.post.posts);
-  const [currentPage, setCurrentPage] = useState(1);
-  const postsPerPage = 10;
 
-  const displayedPosts = useMemo(() => {
-    console.log("Redux에서 변경된 posts:", posts);
-    return posts.map(post => ({ ...post })).reverse(); // 불변성 유지
-  }, [posts]);
-  
   useEffect(() => {
-    setCurrentPage(1);
-  }, [posts]);
+    const fetchPosts = async () => {
+      try {
+        const data = await showPosts();
+        console.log(data);  // 반환된 데이터 확인
+        setPosts(data.posts.posts); // 응답에서 posts 데이터를 상태에 저장
+      } catch (error) {
+        console.error("게시글을 불러오는 중 오류가 발생했습니다", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const indexOfLastPost = currentPage * postsPerPage;
-  const indexOfFirstPost = indexOfLastPost - postsPerPage;
-  const currentPosts = displayedPosts.slice(indexOfFirstPost, indexOfLastPost);
-  const totalPages = Math.ceil(displayedPosts.length / postsPerPage);
+    fetchPosts();
+  }, []);
 
-  const handlePageChange = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
-  };
+  if (loading) {
+    return <div>로딩 중...</div>;
+  }
+
 
   return (
     <BoardStyle>
       <Header>
         <h1>게시판</h1>
-        <Button scheme="primary" 
+        <Button
+          scheme="primary"
           style={{ fontSize: "1.25rem", padding: 0, width: "3rem", height: "3rem" }}
           onClick={() => navigate("/posts/new")}
         >
@@ -51,11 +69,11 @@ function Board() {
           </tr>
         </thead>
         <tbody>
-          {currentPosts.map((post, index) => (
+          {posts.map((post, index) => (
             <Tr key={post.id} onClick={() => navigate(`/posts/${post.id}`)}>
-              <Td>{index + 1 + indexOfFirstPost}</Td>
-              <Td>{post.title}</Td>
-              <Td>{post.author}</Td>
+              <Td>{index + 1}</Td>
+              <Td>{post.postTitle}</Td>
+              <Td>{post.author.nick}</Td>
               <Td>{new Date(post.createdAt).toLocaleDateString()}</Td>
               <Td>👍 {post.likes}</Td>
             </Tr>
@@ -63,23 +81,10 @@ function Board() {
         </tbody>
       </Table>
       <Pagination>
-        <PageButton disabled={currentPage === 1} onClick={() => handlePageChange(currentPage - 1)}>
-          ◀
-        </PageButton>
-        
-        {[...Array(totalPages)].map((_, i) => (
-          <PageButton 
-            key={i} 
-            $active={currentPage === i + 1} 
-            onClick={() => handlePageChange(i + 1)}
-          >
-            {i + 1}
-          </PageButton>
-        ))}
-
-        <PageButton disabled={currentPage === totalPages} onClick={() => handlePageChange(currentPage + 1)}>
-          ▶
-        </PageButton>
+        <PageButton disabled>◀</PageButton>
+        <PageButton $active={true}>1</PageButton>
+        <PageButton>2</PageButton>
+        <PageButton disabled>▶</PageButton>
       </Pagination>
     </BoardStyle>
   );

@@ -86,7 +86,7 @@ function Detail() {
         }
 
         const mainData = await showPlan();
-        console.log("메인 일정 데이터:", mainData);
+        console.log("메인 일정 데이터:", mainData)
 
         const foundSchedule = mainData.schedules.find(
           (item: Schedules) => item.id === Number(tripId)
@@ -101,6 +101,7 @@ function Detail() {
         console.error("일정 데이터를 불러오는 중 오류 발생:", error);
       }
     };
+    console.log("부모에서 받은 mainSchedule:", mainSchedule);
 
     fetchData();
     fetchUserData();
@@ -111,6 +112,7 @@ function Detail() {
     <DetailContainer>
       <TicketContainer>
         <Ticket onClick={() => setIsModalOpen(true)} />
+          
         <Modal
           type="plan"
           isOpen={isModalOpen} // 모달 열고 닫는 상태를 isModalOpen으로 관리
