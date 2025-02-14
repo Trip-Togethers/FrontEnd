@@ -12,7 +12,7 @@ import {
   GetPost,
   Schedule,
 } from "@store/store";
-import { addComemnts, deleteDetailPosts, like, showComments, showDetailPosts } from "@api/post.api";
+import { addComemnts, deleteComments, deleteDetailPosts, editComments, like, showComments, showDetailPosts } from "@api/post.api";
 import { showPlan } from "@api/schedule.api";
 
 interface PostImage {
@@ -144,6 +144,48 @@ function Posts() {
       alert("댓글 내용을 입력해 주세요.");
     }
   };
+
+  // 댓글 수정 핸들러
+const handleCommentEdit = async (commentId: number, currentContent: string) => {
+  const newContent = prompt("수정할 댓글 내용을 입력하세요:", currentContent);
+  if (newContent && newContent !== currentContent) {
+    try {
+      const response = await editComments(Number(postId), commentId, newContent);  // 수정된 댓글 내용 전달
+      if (response.statusCode === 200) {
+        setComments((prevComments) =>
+          prevComments.map((comment) =>
+            comment.id === commentId ? { ...comment, content: newContent } : comment
+          )
+        );
+        alert("댓글이 수정되었습니다.");
+      } else {
+        alert("댓글 수정에 실패했습니다.");
+      }
+    } catch (error) {
+      alert("댓글 수정 중 오류가 발생했습니다.");
+      console.error(error);
+    }
+  }
+};
+
+// 댓글 삭제 핸들러
+const handleCommentDelete = async (commentId: number) => {
+  if (window.confirm("정말로 이 댓글을 삭제하시겠습니까?")) {
+    try {
+      const response = await deleteComments(Number(postId), commentId);  // 댓글 삭제 요청
+      if (response.comment.statusCode === 200) {
+        // 댓글 목록에서 해당 댓글 삭제
+        setComments((prevComments) => prevComments.filter((comment) => comment.id !== commentId));
+        alert("댓글이 삭제되었습니다.");
+      } else {
+        alert("댓글 삭제에 실패했습니다.");
+      }
+    } catch (error) {
+      alert("댓글 삭제 중 오류가 발생했습니다.");
+      console.error(error);
+    }
+  }
+};
   
 
   // 데이터가 없으면 로딩 중인 화면을 표시
@@ -234,7 +276,26 @@ function Posts() {
           ) : Array.isArray(comments) && comments.length > 0 ? (
             comments.map((comment) => (
               <CommentItem key={comment.id}>
-                <b>{comment.author?.nick || "익명"}</b>: {comment.content}
+                <div>
+                  <b>{comment.author?.nick || "익명"}</b>: {comment.content}
+                  <ButtonWrapper>
+                    <EditButton
+                      scheme="primary"
+                      onClick={() =>
+                        handleCommentEdit(comment.id, comment.content)
+                      }
+                    >
+                      ✏️ 수정
+                    </EditButton>
+
+                    <DeleteButton
+                      scheme="alert"
+                      onClick={() => handleCommentDelete(comment.id)}
+                    >
+                      🗑 삭제
+                    </DeleteButton>
+                  </ButtonWrapper>
+                </div>
               </CommentItem>
             ))
           ) : (
@@ -242,11 +303,11 @@ function Posts() {
           )}
         </CommentsList>
         <CommentInputWrapper>
-        <CommentInput
-          value={content}
-          onChange={(e) => setContent(e.target.value)}  // 댓글 내용 상태 업데이트
-          placeholder="댓글을 입력하세요..."
-        />
+          <CommentInput
+            value={content}
+            onChange={(e) => setContent(e.target.value)} // 댓글 내용 상태 업데이트
+            placeholder="댓글을 입력하세요..."
+          />
           <CommentButton scheme="primary" onClick={handleCommentSubmit}>
             댓글 작성
           </CommentButton>
@@ -474,6 +535,15 @@ const CommentItem = styled.li`
   border: none;
   border-bottom: 1px solid ${({ theme }) => theme.color.input_text};
   border-radius: 0;
+  position: relative; /* 버튼을 오른쪽 상단에 고정시키기 위한 설정 */
+`;
+
+const ButtonWrapper = styled.div`
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  gap: 0.5rem;
 `;
 
 const CommentInputWrapper = styled.div`

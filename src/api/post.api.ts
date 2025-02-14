@@ -104,3 +104,15 @@ export const showComments = async (postId: number) => {
   console.log(data);
   return data;
 }
+
+export const editComments = async (postId: number, commentId: number, content: string) => {
+  const data = await requestHandler("put", `/posts/${postId}/comments/${commentId}`, { comments: content })
+  console.log(data);
+  return data;
+}
+
+export const deleteComments = async (postId: number, commentId: number) => {
+  const data = await requestHandler("delete", `/posts/${postId}/comments/${commentId}`)
+  console.log(data);
+  return data;
+}
