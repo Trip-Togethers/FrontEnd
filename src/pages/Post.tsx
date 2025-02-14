@@ -54,6 +54,8 @@ function Posts() {
   const [likes, setLikes] = useState<Number>();
   const [comments, setComments] = useState<Comment[]>([]);
   const [content, setContent] = useState<string>("");  // 댓글 입력값을 위한 상태 추가
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalImage, setModalImage] = useState("");
 
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   
@@ -206,7 +208,17 @@ const handleCommentDelete = async (commentId: number) => {
     }
   }
 };
-  
+   // 이미지 클릭 시 모달 열기
+  const openModal = (imageUrl: string) => {
+    setModalImage(imageUrl);
+    setIsModalOpen(true);
+  };
+
+  // 모달 닫기
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setModalImage("");
+  };
 
   // 데이터가 없으면 로딩 중인 화면을 표시
   if (loading) {
@@ -269,13 +281,25 @@ const handleCommentDelete = async (commentId: number) => {
               </SelectedSchedule>
             ))}
             <Content>{post.postContent}</Content>
-            {post.postPhotoUrl && (
-              <ImagesContainer>
-                <ImageWrapper>
-                  <PostImage src={post.postPhotoUrl} />
-                </ImageWrapper>
-              </ImagesContainer>
-            )}
+            <div>
+              {post.postPhotoUrl && (
+                <ImagesContainer onClick={() => openModal(post.postPhotoUrl)}>
+                  <ImageWrapper>
+                    <PostImage src={post.postPhotoUrl} />
+                  </ImageWrapper>
+                </ImagesContainer>
+              )}
+
+              {/* 모달 */}
+              {isModalOpen && (
+                <Modal onClick={closeModal}>
+                  <ModalContent>
+                    <ModalImage src={modalImage} />
+                    <CloseButton onClick={closeModal}>✖</CloseButton>
+                  </ModalContent>
+                </Modal>
+              )}
+            </div>
           </>
         )}
 
@@ -363,6 +387,50 @@ const handleCommentDelete = async (commentId: number) => {
 export default connect((state: RootState) => ({ posts: state.post.posts }), {
 
 })(Posts);
+
+// 이미지 크게 보는 모달 스타일
+const Modal = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`;
+
+const ModalContent = styled.div`
+  position: relative;
+  max-width: 90%;
+  max-height: 90%;
+  overflow: hidden;
+`;
+
+const ModalImage = styled.img`
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+`;
+
+const CloseButton = styled.button`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 24px;  // X 글자 크기 조정
+  color: white;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;  // 버튼 크기
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
 
 // 수정 버튼 스타일
 const CommetnEditButton = styled.button`
