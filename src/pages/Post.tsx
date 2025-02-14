@@ -14,6 +14,9 @@ import {
 } from "@store/store";
 import { addComemnts, deleteComments, deleteDetailPosts, editComments, like, showComments, showDetailPosts } from "@api/post.api";
 import { showPlan } from "@api/schedule.api";
+import { Avatar } from "@assets/svg";
+import { useAuthstore } from "@store/authStore";
+import { jwtDecode } from "jwt-decode";
 
 interface PostImage {
   url: string;
@@ -21,6 +24,7 @@ interface PostImage {
 
 // 타입 정의
 interface Author {
+  id: number | null;
   nick: string;
   profile: string;
 };
@@ -51,7 +55,20 @@ function Posts() {
   const [comments, setComments] = useState<Comment[]>([]);
   const [content, setContent] = useState<string>("");  // 댓글 입력값을 위한 상태 추가
 
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  
   useEffect(() => {
+    const token = localStorage.getItem('token'); // 로컬스토리지에서 직접 가져오기
+  
+  if (token) {
+    try {
+      const decodedToken: any = jwtDecode(token); // 🔹 토큰 디코딩
+      const userId = decodedToken?.userId || null
+      setCurrentUserId(userId)
+    } catch (error) {
+      console.error("토큰 디코딩 실패:", error);
+    }
+  }
     const fetchPosts = async () => {
       try {
         const response = await showDetailPosts(Number(postId));
@@ -81,6 +98,7 @@ function Posts() {
       }
     };
 
+    // 댓글 조회
     const fetchComments = async () => {
       try {
         const data: CommentsResponse = await showComments(Number(postId));
@@ -101,6 +119,7 @@ function Posts() {
     fetchPosts();
   }, [postId]);
 
+  // 게시글 삭제
   const handleDeletePost = async () => {
     if (window.confirm("정말로 이 게시글을 삭제하시겠습니까?")) {
       try {
@@ -128,6 +147,7 @@ function Posts() {
     }
   }
 
+  // 댓글 추가
   const handleCommentSubmit = async () => {
     if (content.trim()) {
       try {
@@ -151,7 +171,7 @@ const handleCommentEdit = async (commentId: number, currentContent: string) => {
   if (newContent && newContent !== currentContent) {
     try {
       const response = await editComments(Number(postId), commentId, newContent);  // 수정된 댓글 내용 전달
-      if (response.statusCode === 200) {
+      if (response.comment.statusCode === 200) {
         setComments((prevComments) =>
           prevComments.map((comment) =>
             comment.id === commentId ? { ...comment, content: newContent } : comment
@@ -277,24 +297,47 @@ const handleCommentDelete = async (commentId: number) => {
             comments.map((comment) => (
               <CommentItem key={comment.id}>
                 <div>
+                  {comment.author.profile ? (
+                    <img
+                      src={comment.author.profile}
+                      alt="프로필 이미지"
+                      style={{
+                        width: "30px",
+                        height: "30px",
+                        borderRadius: "50%",
+                        marginRight: "5px",
+                        border: "1px solid #ccc",
+                      }}
+                    />
+                  ) : (
+                    <Avatar
+                      style={{
+                        width: "30px",
+                        height: "30px",
+                        borderRadius: "50%",
+                        marginRight: "5px",
+                        border: "1px solid #ccc",
+                      }}
+                    />
+                  )}
                   <b>{comment.author?.nick || "익명"}</b>: {comment.content}
-                  <ButtonWrapper>
-                    <EditButton
-                      scheme="primary"
-                      onClick={() =>
-                        handleCommentEdit(comment.id, comment.content)
-                      }
-                    >
-                      ✏️ 수정
-                    </EditButton>
+                  {comment.author?.id === currentUserId && (
+                    <ButtonWrapper>
+                      <CommetnEditButton
+                        onClick={() =>
+                          handleCommentEdit(comment.id, comment.content)
+                        }
+                      >
+                        ✏️
+                      </CommetnEditButton>
 
-                    <DeleteButton
-                      scheme="alert"
-                      onClick={() => handleCommentDelete(comment.id)}
-                    >
-                      🗑 삭제
-                    </DeleteButton>
-                  </ButtonWrapper>
+                      <CommetnDeleteButton
+                        onClick={() => handleCommentDelete(comment.id)}
+                      >
+                        🗑
+                      </CommetnDeleteButton>
+                    </ButtonWrapper>
+                  )}
                 </div>
               </CommentItem>
             ))
@@ -321,6 +364,47 @@ export default connect((state: RootState) => ({ posts: state.post.posts }), {
 
 })(Posts);
 
+// 수정 버튼 스타일
+const CommetnEditButton = styled.button`
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  padding: 5px;
+  font-size: 16px;  // 아이콘 크기 조정
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;  // 버튼 크기
+  height: 30px;
+  margin-right: 5px;  // 버튼 간 간격
+
+  &:hover {
+    background-color: #45a049;
+  }
+`;
+
+// 삭제 버튼 스타일
+const CommetnDeleteButton = styled.button`
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  padding: 5px;
+  font-size: 16px;  // 아이콘 크기 조정
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;  // 버튼 크기
+  height: 30px;
+
+  &:hover {
+    background-color: #e53935;
+  }
+`;
+
 const SelectedSchedule = styled.div`
   background-color: #f9f9f9;
   border-radius: 8px;
@@ -331,80 +415,6 @@ const SelectedSchedule = styled.div`
   max-width: 600px;
   margin-left: auto;
   margin-right: auto;
-`;
-
-const ModalOverlay = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-`;
-
-const ModalContent = styled.div`
-  position: relative;
-  max-width: 90vw;
-  max-height: 90vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-`;
-
-const ImageNavigator = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 20px;
-`;
-
-const ModalImage = styled.img`
-  max-width: 80vw;
-  max-height: 80vh;
-  object-fit: contain;
-`;
-
-const NavButton = styled.button`
-  background: rgba(255, 255, 255, 0.3);
-  border: none;
-  color: white;
-  font-size: 2rem;
-  padding: 1rem;
-  cursor: pointer;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s;
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.5);
-  }
-`;
-
-const CloseButton = styled.button`
-  position: absolute;
-  top: -40px;
-  right: -40px;
-  background: none;
-  border: none;
-  color: white;
-  font-size: 2rem;
-  cursor: pointer;
-  padding: 10px;
-
-  &:hover {
-    color: ${({ theme }) => theme.color.primary_red};
-  }
-`;
-
-const ImageCounter = styled.div`
-  color: white;
-  margin-top: 1rem;
-  font-size: 1.2rem;
 `;
 
 const Container = styled.div`
