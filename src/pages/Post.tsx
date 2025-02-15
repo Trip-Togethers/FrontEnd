@@ -52,8 +52,9 @@ function Posts() {
   const [data, setData] = useState<Schedule[]>([]); // 일정 데이터 상태
   const [error, setError] = useState<string | null>(null);
   const [likes, setLikes] = useState<Number>();
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [content, setContent] = useState<string>("");  // 댓글 입력값을 위한 상태 추가
+  const [comments, setComments] = useState<{ [key: number]: Comment[] }>({});
+
+  const [content, setContent] = useState<string>(""); // 댓글 입력값을 위한 상태 추가
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalImage, setModalImage] = useState("");
 
@@ -71,44 +72,28 @@ function Posts() {
       console.error("토큰 디코딩 실패:", error);
     }
   }
-    const fetchPosts = async () => {
-      try {
-        const response = await showDetailPosts(Number(postId));
-        console.log(response); // 반환된 데이터 확인
-        setPost(response.post.post); // 객체로 상태 저장
 
-        // 일정 데이터 가져오기
-        const scheduleResponse = await showPlan(); // 일정 데이터를 가져오는 API 호출
-        if (Array.isArray(scheduleResponse.schedules)) {
-          // tripId가 일치하는 하나의 일정만 찾기
-          const selectedSchedule = scheduleResponse.schedules.find(
-            (schedule: Schedule) => schedule.id === response.post.post.tripId
-          );
-
-          if (selectedSchedule) {
-            setData([selectedSchedule]); // 배열 형태로 저장
-          } else {
-            setError("일정이 존재하지 않습니다.");
-          }
-        } else {
-          setError("데이터 형식이 잘못되었습니다.");
-        }
-      } catch (error) {
-        console.error("게시글을 불러오는 중 오류가 발생했습니다", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchPosts = async () => {
+    try {
+      const response = await showDetailPosts(Number(postId));
+      console.log(response); // 반환된 데이터 확인
+      setPost(response.post.post); // 객체로 상태 저장
+    } catch (error) {
+      console.error("게시글을 불러오는 중 오류가 발생했습니다", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
     // 댓글 조회
     const fetchComments = async () => {
       try {
-        const data: CommentsResponse = await showComments(Number(postId));
-        console.log(data)
+        const data: CommentsResponse = await showComments(Number(postId));  // postId를 기준으로 댓글 조회
         if (Array.isArray(data.comment.posts)) {
-          setComments(data.comment.posts);  // 댓글 배열을 상태에 설정
-        } else {
-          console.error("댓글 데이터가 배열이 아닙니다.", data);
+          setComments((prevComments) => ({
+            ...prevComments,
+            [Number(postId)]: data.comment.posts,
+          }));
         }
       } catch (error) {
         console.error("댓글을 가져오는 중 오류가 발생했습니다.", error);
@@ -116,7 +101,7 @@ function Posts() {
         setLoading(false);
       }
     };
-
+    
     fetchComments();
     fetchPosts();
   }, [postId]);
@@ -153,12 +138,17 @@ function Posts() {
   const handleCommentSubmit = async () => {
     if (content.trim()) {
       try {
-        const data = await addComemnts(Number(postId), content);  // 댓글 작성 API 호출
+        const data = await addComemnts(Number(postId), content);  // 댓글 작성 시 postId를 정확하게 전달
         if (data && data.comment && Array.isArray(data.comment.posts)) {
-          setComments(data.comment.posts);  // 새로 작성된 댓글이 포함된 댓글 목록 업데이트
+          setComments((prevComments) => ({
+            ...prevComments,
+            [Number(postId)]: [
+              ...(prevComments[Number(postId)] || []),
+              ...data.comment.posts,
+            ],
+          }));
+          setContent(""); // 댓글 작성 후 입력란 초기화
         }
-        setContent("");  // 댓글 작성 후 입력란 초기화
-        window.location.reload();
       } catch (error) {
         console.error("댓글 작성 중 오류가 발생했습니다.", error);
       }
@@ -166,48 +156,56 @@ function Posts() {
       alert("댓글 내용을 입력해 주세요.");
     }
   };
+  
+  
 
   // 댓글 수정 핸들러
-const handleCommentEdit = async (commentId: number, currentContent: string) => {
-  const newContent = prompt("수정할 댓글 내용을 입력하세요:", currentContent);
-  if (newContent && newContent !== currentContent) {
-    try {
-      const response = await editComments(Number(postId), commentId, newContent);  // 수정된 댓글 내용 전달
-      if (response.comment.statusCode === 200) {
-        setComments((prevComments) =>
-          prevComments.map((comment) =>
-            comment.id === commentId ? { ...comment, content: newContent } : comment
-          )
-        );
-        alert("댓글이 수정되었습니다.");
-      } else {
-        alert("댓글 수정에 실패했습니다.");
+  const handleCommentEdit = async (commentId: number, currentContent: string) => {
+    const newContent = prompt("수정할 댓글 내용을 입력하세요:", currentContent);
+    if (newContent && newContent !== currentContent) {
+      try {
+        const response = await editComments(Number(postId), commentId, newContent);  // 수정된 댓글 내용 전달
+        if (response.comment.statusCode === 200) {
+          // 댓글 수정 후 해당 postId의 댓글 업데이트
+          setComments((prevComments) => ({
+            ...prevComments,
+            [Number(postId)]: prevComments[Number(postId)].map((comment) =>
+              comment.id === commentId ? { ...comment, content: newContent } : comment
+            ),
+          }));
+          alert("댓글이 수정되었습니다.");
+        } else {
+          alert("댓글 수정에 실패했습니다.");
+        }
+      } catch (error) {
+        alert("댓글 수정 중 오류가 발생했습니다.");
+        console.error(error);
       }
-    } catch (error) {
-      alert("댓글 수정 중 오류가 발생했습니다.");
-      console.error(error);
     }
-  }
-};
+  };
+  
 
-// 댓글 삭제 핸들러
-const handleCommentDelete = async (commentId: number) => {
-  if (window.confirm("정말로 이 댓글을 삭제하시겠습니까?")) {
-    try {
-      const response = await deleteComments(Number(postId), commentId);  // 댓글 삭제 요청
-      if (response.comment.statusCode === 200) {
-        // 댓글 목록에서 해당 댓글 삭제
-        setComments((prevComments) => prevComments.filter((comment) => comment.id !== commentId));
-        alert("댓글이 삭제되었습니다.");
-      } else {
-        alert("댓글 삭제에 실패했습니다.");
+  const handleCommentDelete = async (commentId: number) => {
+    if (window.confirm("정말로 이 댓글을 삭제하시겠습니까?")) {
+      try {
+        const response = await deleteComments(Number(postId), commentId);  // 댓글 삭제 요청
+        if (response.comment.statusCode === 200) {
+          // 댓글 삭제 후 해당 postId의 댓글 배열에서 삭제
+          setComments((prevComments) => ({
+            ...prevComments,
+            [Number(postId)]: prevComments[Number(postId)].filter((comment) => comment.id !== commentId),
+          }));
+          alert("댓글이 삭제되었습니다.");
+        } else {
+          alert("댓글 삭제에 실패했습니다.");
+        }
+      } catch (error) {
+        alert("댓글 삭제 중 오류가 발생했습니다.");
+        console.error(error);
       }
-    } catch (error) {
-      alert("댓글 삭제 중 오류가 발생했습니다.");
-      console.error(error);
     }
-  }
-};
+  };
+  
    // 이미지 클릭 시 모달 열기
   const openModal = (imageUrl: string) => {
     setModalImage(imageUrl);
@@ -257,7 +255,19 @@ const handleCommentDelete = async (commentId: number) => {
           <>
             <Title>{post.postTitle}</Title>
             <PostInfo>
-              <ProfileImg src={post.author.profile} alt="작성자 프로필" />
+              {post.postPhotoUrl ? (
+                <ProfileImg src={post.author.profile} alt="작성자 프로필" />
+              ) : (
+                <Avatar
+                      style={{
+                        width: "30px",
+                        height: "30px",
+                        borderRadius: "50%",
+                        marginRight: "5px",
+                        border: "1px solid #ccc",
+                      }}
+                    />
+              )}
               <Author>{post.author.nick}</Author>
               <CreatedAt>
                 {new Date(post.createdAt).toLocaleDateString()}
@@ -313,73 +323,74 @@ const handleCommentDelete = async (commentId: number) => {
       </PostWrapper>
 
       <CommentsWrapper>
-        <h3>댓글 ({comments.length})</h3>
-        <CommentsList>
-          {loading ? (
-            <div>로딩 중...</div>
-          ) : Array.isArray(comments) && comments.length > 0 ? (
-            comments.map((comment) => (
-              <CommentItem key={comment.id}>
-                <div>
-                  {comment.author.profile ? (
-                    <img
-                      src={comment.author.profile}
-                      alt="프로필 이미지"
-                      style={{
-                        width: "30px",
-                        height: "30px",
-                        borderRadius: "50%",
-                        marginRight: "5px",
-                        border: "1px solid #ccc",
-                      }}
-                    />
-                  ) : (
-                    <Avatar
-                      style={{
-                        width: "30px",
-                        height: "30px",
-                        borderRadius: "50%",
-                        marginRight: "5px",
-                        border: "1px solid #ccc",
-                      }}
-                    />
-                  )}
-                  <b>{comment.author?.nick || "익명"}</b>: {comment.content}
-                  {comment.author?.id === currentUserId && (
-                    <ButtonWrapper>
-                      <CommetnEditButton
-                        onClick={() =>
-                          handleCommentEdit(comment.id, comment.content)
-                        }
-                      >
-                        ✏️
-                      </CommetnEditButton>
+  <h3>댓글 ({comments[Number(postId)]?.length || 0})</h3>
+  <CommentsList>
+    {loading ? (
+      <div>로딩 중...</div>
+    ) : comments[Number(postId)] && comments[Number(postId)].length > 0 ? (
+      comments[Number(postId)].map((comment) => (
+        <CommentItem key={comment.id}>
+          <div>
+            {comment.author.profile ? (
+              <img
+                src={comment.author.profile}
+                alt="프로필 이미지"
+                style={{
+                  width: "30px",
+                  height: "30px",
+                  borderRadius: "50%",
+                  marginRight: "5px",
+                  border: "1px solid #ccc",
+                }}
+              />
+            ) : (
+              <Avatar
+                style={{
+                  width: "30px",
+                  height: "30px",
+                  borderRadius: "50%",
+                  marginRight: "5px",
+                  border: "1px solid #ccc",
+                }}
+              />
+            )}
+            <b>{comment.author?.nick || "익명"}</b>: {comment.content}
+            {comment.author?.id === currentUserId && (
+              <ButtonWrapper>
+                <CommetnEditButton
+                  onClick={() =>
+                    handleCommentEdit(comment.id, comment.content)
+                  }
+                >
+                  ✏️
+                </CommetnEditButton>
 
-                      <CommetnDeleteButton
-                        onClick={() => handleCommentDelete(comment.id)}
-                      >
-                        🗑
-                      </CommetnDeleteButton>
-                    </ButtonWrapper>
-                  )}
-                </div>
-              </CommentItem>
-            ))
-          ) : (
-            <div>댓글이 없습니다.</div>
-          )}
-        </CommentsList>
-        <CommentInputWrapper>
-          <CommentInput
-            value={content}
-            onChange={(e) => setContent(e.target.value)} // 댓글 내용 상태 업데이트
-            placeholder="댓글을 입력하세요..."
-          />
-          <CommentButton scheme="primary" onClick={handleCommentSubmit}>
-            댓글 작성
-          </CommentButton>
-        </CommentInputWrapper>
-      </CommentsWrapper>
+                <CommetnDeleteButton
+                  onClick={() => handleCommentDelete(comment.id)}
+                >
+                  🗑
+                </CommetnDeleteButton>
+              </ButtonWrapper>
+            )}
+          </div>
+        </CommentItem>
+      ))
+    ) : (
+      <div>댓글이 없습니다.</div>
+    )}
+  </CommentsList>
+  <CommentInputWrapper>
+    <CommentInput
+      value={content}
+      onChange={(e) => setContent(e.target.value)} // 댓글 내용 상태 업데이트
+      placeholder="댓글을 입력하세요..."
+    />
+    <CommentButton scheme="primary" onClick={handleCommentSubmit}>
+      댓글 작성
+    </CommentButton>
+  </CommentInputWrapper>
+</CommentsWrapper>
+
     </Container>
   );
 }

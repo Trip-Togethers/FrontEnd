@@ -66,9 +66,13 @@ const Home = () => {
         );
         setUsers(usersMap);
         console.log(usersMap);
-      } catch (err) {
-        setError("데이터를 가져오는 데 실패했습니다.");
-        console.log(err);
+      } catch (err: any) {
+        if (err.response?.status === 404) {
+          // 404 에러일 경우 일정이 없는 상태로 처리
+          setData([]); 
+        } else {
+          setError("데이터를 가져오는 데 실패했습니다.");
+        }
       } finally {
         setLoading(false);
       }
