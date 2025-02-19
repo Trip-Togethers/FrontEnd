@@ -1,7 +1,7 @@
 import axios, { AxiosRequestConfig, AxiosError } from 'axios';
 import { getToken, removeToken } from '../store/authStore';
 
-const BASE_URL = "http://3.39.232.234:80";
+const BASE_URL = "http://13.124.233.26:80";
 const DEFAULT_TIMEOUT = 30000;
 
 // Axios 인스턴스 생성

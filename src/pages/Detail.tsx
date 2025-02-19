@@ -8,6 +8,11 @@ import { getUserIdFromToken } from "@utils/get.token.utils";
 import { userPage } from "@api/user.api";
 import Ticket from "@components/detail/Ticket";
 import Modal from "@components/common/Modal";
+import { RadioButtonUnchecked } from "@assets/svg";
+import { ArrowUploadReady, 
+            PlaneIcon,
+            Line,
+            DottedLine } from "@assets/svg";
 
 interface Schedules {
   id: number;
@@ -18,6 +23,7 @@ interface Schedules {
   guests: { userId: number; nickname: string }[];
   photoUrl: string;
 }
+
 
 interface DaySchedule {
   scheduleDate: string;
@@ -125,12 +131,36 @@ function Detail() {
           planData={mainSchedule}
         />
       </TicketContainer>
-      <ScheduleContainer>
-        <Schedule>
+
+      <ScheduleContainer >
+        <Schedule onClick={() => setIsModalOpen(true)}>
+        <Modal
+          type="schedule"
+          isOpen={isModalOpen} // 모달 열고 닫는 상태를 isModalOpen으로 관리
+          onClose={() => setIsModalOpen(false)} // 모달 닫기
+          onSubmit={async (plan: any) => {
+            await editPlan({
+              ...plan,
+            }, Number(tripId));
+            setIsModalOpen(false);
+            window.location.reload();
+          }}
+          planData={mainSchedule}
+        />
           {Array.isArray(scheduleData) && scheduleData.length > 0 ? (
             paginatedSchedule(scheduleData).map((day, index) => (
               <Day key={index}>
-                <DateTitle>{day.scheduleDate}</DateTitle>
+                <DateTitle>
+                  {new Date(day.scheduleDate).toLocaleDateString("en-GB", {
+                      day: "2-digit",
+                      month: "short",
+                    })}{" "}
+                    {" "}
+                </DateTitle>
+                <IconStyle>
+                  <RadioButtonUnchecked className="day_load"/>
+                  <Line/>
+                </IconStyle>
                 <ScheduleList>
                   {day.currentDate !== "No detail available" ? (
                     <ScheduleItem>{day.currentDate}</ScheduleItem>
@@ -160,7 +190,6 @@ function Detail() {
 };
 
 const DetailContainer = styled.div`
-  font-family: Arial, sans-serif;
   padding: 20px;
 `;
 
@@ -173,14 +202,15 @@ const TicketContainer = styled.div`
 const ScheduleContainer = styled.div`
   display: flex;
   flex-direction: column;
+  text-align: center;
   align-items: center;
-  margin-top: 13%;
+  margin-top: 14rem;
 `;
 
 const Schedule = styled.div`
   display: flex;
   flex-direction: row;  /* 가로로 나열 */
-  gap: 20px;  /* 각 일정 항목 간의 간격 */
+  gap: 40px;  /* 각 일정 항목 간의 간격 */
   margin: 20px 0;
   justify-content: flex-start;  /* 왼쪽 정렬 */
   flex-wrap: wrap;  /* 화면 크기에 맞게 자동으로 줄바꿈 */
@@ -191,11 +221,23 @@ const Day = styled.div`
   padding: 15px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-family: ${({theme})=>theme.font.family.contents};
+  color: ${({theme})=>theme.color.primary_black};
+
+  .day_load{
+    fill: ${({theme})=>theme.color.primary_green};
+    height: 1.8rem;
+  }
+`;
+
+const IconStyle= styled.div`
+  display:flex;
+  position: 
 `;
 
 const DateTitle = styled.h3`
-  color: #00703c;
   margin-bottom: 10px;
+  font-size: 2.3rem;
 `;
 
 const ScheduleList = styled.ul`
