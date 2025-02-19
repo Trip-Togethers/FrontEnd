@@ -18,6 +18,8 @@ import Hospital from "@assets/svg/Hospital";
 import Search from "@assets/svg/Search";
 import { Plus } from "@assets/svg";
 import LocationPin from "@assets/svg/LocationPin";
+import DetailBookmark, { Place } from "./detail/DetailBookmark";
+import { deleteBookmark, loadBookmark, loadMaps } from "@api/map.api";
 
 const Category = [
   {
@@ -54,13 +56,19 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
   const [map, setMap] = useState<any>(null);
   const [center, setCenter] = useState({ lat: latitude, lng: longitude });
   const [searchResults, setSearchResults] = useState<any>(null);
-  const [selectedPlace, setSelectedPlace] = useState<any>(null);
+  
+  // 북마크와 검색을 독립적으로 관리하는 상태
+  const [selectedBookmark, setSelectedBookmark] = useState<any>(null);
+  const [selectedSearchPlace, setSelectedSearchPlace] = useState<any>(null);
+  
   const [autocomplete, setAutocomplete] =
     useState<google.maps.places.Autocomplete | null>(null);
-  
+
   const [destinations, setDestinations] = useState<any[]>([]);
   const [selectedMarker, setSelectedMarker] = useState<{ lat: number; lng: number } | null>(null);
+  const token = localStorage.getItem('token'); 
 
+  const [selectedPlace, setSelectedPlace] = useState<google.maps.places.PlaceResult | null>(null);
   useEffect(() => {
     if (currentTab === "bookmark") {
       fetchDestinations();
@@ -69,17 +77,9 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
 
   const fetchDestinations = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_SERVER_ADDRESS}/${import.meta.env.PORT}/maps/destinations`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: 'include',
-      });
-  
-      const data = await response.json();
-  
-      if (response.ok) {
+      const data = await loadMaps();
+
+      if (data) {
         setDestinations(data.destinations);
       } else {
         console.error("목적지 불러오기 실패:", data.message);
@@ -89,17 +89,38 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
     }
   };
 
-  const handleDestinationClick = (lat: number, lng: number) => {
-    if (!map) return;
+  const handleDestinationClick = (place: GoogleMapProps) => {
+    console.log(place)
+    setSelectedBookmark(place); // 북마크에서 선택된 장소를 설정
+    setSelectedSearchPlace(null); // 검색 상태 초기화
 
-    const newCenter = { lat, lng };
+    setIsSidebarOpen(true);
+
+    const newCenter = { lat: place.latitude, lng: place.longitude };
     setCenter(newCenter);
-    setSelectedMarker(newCenter);
     map.panTo(newCenter);
     map.setZoom(18);
   };
-  
-  
+
+  const handleUnbookmark = async (placeId: string) => {
+    try {
+      const response = await deleteBookmark(placeId);
+    
+      if (response) {
+        // 서버에서 삭제가 성공하면 UI 업데이트
+        const updatedPlacesData = await loadBookmark();
+        setDestinations(updatedPlacesData.destinations); // 새로 받은 데이터를 상태에 반영
+    
+        // 즐겨찾기 취소 후 선택된 북마크를 없애도록 설정
+        setSelectedBookmark(null);  // 선택된 북마크 초기화
+        alert("즐겨찾기가 취소되었습니다.");
+      } else {
+        console.error("즐겨찾기 취소 실패:", response.status);
+      }
+    } catch (error) {
+      console.error("즐겨찾기 취소 중 오류 발생:", error);
+    }
+  };
 
   // 사이드바 관련 코드
   const handleSidebarClick = useCallback(
@@ -128,7 +149,7 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
   useEffect(() => {
     if (!isSidebarOpen) {
       setSearchResults(null);
-      setSelectedPlace(null);
+      setSelectedSearchPlace(null); // 사이드바 닫힐 때 검색 상태 초기화
     }
   }, [isSidebarOpen]);
 
@@ -148,7 +169,7 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
         setCurrentTab(SIDEBAR_TAB_TEXT.search.id);
         setIsSidebarOpen(true);
       } else {
-        setSelectedPlace(null);
+        setSelectedSearchPlace(null);
         setIsSidebarOpen(false);
       }
     });
@@ -170,7 +191,7 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
 
     service.getDetails(request, (place, status) => {
       if (status === google.maps.places.PlacesServiceStatus.OK && place) {
-        setSelectedPlace(place);
+        setSelectedSearchPlace(place); // 검색에서 선택된 장소 설정
       }
     });
   };
@@ -188,7 +209,7 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
         const currentCenter = place.geometry.location;
 
         setSearchResults([place]);
-        setSelectedPlace(place);
+        setSelectedSearchPlace(place); // 검색에서 선택된 장소 설정
         setCurrentTab(SIDEBAR_TAB_TEXT.search.id);
         setCenter({ lat: currentCenter.lat(), lng: currentCenter.lng() });
         map?.panTo(currentCenter);
@@ -233,10 +254,6 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
   };
 
   return (
-    <LoadScript
-      googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
-      libraries={["places"]}
-    >
       <MapContainer>
         <SidebarContainer>
           <SidebarTab
@@ -267,7 +284,7 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
                       onClick={() =>
                         ((
                           document.getElementById(
-                            "place-input",
+                            "place-input"
                           ) as HTMLInputElement
                         ).value = "")
                       }
@@ -275,10 +292,16 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
                       <Plus />
                     </div>
                   </InputContainer>
-                  <DetailSearch selectedPlace={selectedPlace} />
+                  <DetailSearch selectedPlace={selectedSearchPlace} />
                 </>
               )}
-
+              {currentTab === "bookmark" && (
+                <DetailBookmark
+                  selectedPlace={selectedBookmark}
+                  handleUnbookmark={handleUnbookmark}
+                  setSelectedPlace={setSelectedPlace}
+                />
+              )}
               {currentTab === "bookmark" && (
                 <BookmarkContainer>
                   <ul>
@@ -286,7 +309,7 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
                       destinations.map((place) => (
                         <li
                           key={place.id}
-                          onClick={() => handleDestinationClick(place.latitude, place.longitude)}
+                          onClick={() => handleDestinationClick(place)}
                         >
                           <span>{place.name}</span>
                           <LocationPin width={20} height={20} color="black" />
@@ -298,7 +321,6 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
                   </ul>
                 </BookmarkContainer>
               )}
-
             </SidebarDetailContainer>
           )}
           <CategoryContainer isOpen={isSidebarOpen}>
@@ -318,7 +340,7 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
           center={center}
           zoom={10}
           onLoad={handleLoad}
-          onClick={() => setSelectedPlace(null)}
+          onClick={() => setSelectedSearchPlace(null)} // 지도 클릭 시 검색 결과 초기화
         >
           {searchResults &&
             searchResults.map((place: any) => (
@@ -330,33 +352,42 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
                 }}
                 title={place.name}
                 onClick={() => {
-                  setSelectedPlace(place);
+                  setSelectedSearchPlace(place);
                   setIsSidebarOpen(true);
                 }}
                 icon={{
                   url: "http://maps.google.com/mapfiles/ms/icons/red-dot.png", // 기본 아이콘
                   scaledSize:
-                    selectedPlace?.place_id === place.place_id
+                    selectedSearchPlace?.place_id === place.place_id
                       ? new google.maps.Size(50, 50) // 선택된 마커 크기
                       : new google.maps.Size(30, 30), // 기본 마커 크기
                 }}
               />
             ))}
-          
-          {selectedMarker && (
+            
+          {destinations.length > 0 &&
+            destinations.map((place) => (
               <Marker
-                position={selectedMarker}
+                key={place.id}
+                position={{
+                  lat: place.latitude,
+                  lng: place.longitude,
+                }}
                 icon={{
-                  url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png", // ✅ 파란색 마커 추가
+                  url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png", // ✅ 파란색 마커
                   scaledSize: new google.maps.Size(40, 40),
                 }}
+                onClick={() => {
+                  setSelectedBookmark(place); // 해당 장소 선택
+                  setIsSidebarOpen(true); // 사이드바 열기
+                }}
               />
-            )}
+            ))}
         </GoogleMap>
       </MapContainer>
-    </LoadScript>
   );
 }
+
 
 export default GoogleMapComponent;
 

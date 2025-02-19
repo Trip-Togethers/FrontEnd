@@ -25,12 +25,18 @@ function Board() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  const [currentPage, setCurrentPage] = useState(1); // 현재 페이지
+  const [hasMore, setHasMore] = useState(true); // 더 이상 데이터가 있는지 여부
+  const postsPerPage = 1; // 한 페이지에 표시할 게시글 수 (예: 10개)
+
   useEffect(() => {
     const fetchPosts = async () => {
+      setLoading(true);
+
       try {
         const data = await showPosts();
-        console.log(data);  // 반환된 데이터 확인
-        setPosts(data.posts.posts); // 응답에서 posts 데이터를 상태에 저장
+        console.log(data.posts.posts)
+          setPosts(data.posts.posts); // 새로운 게시글 추가
       } catch (error) {
         console.error("게시글을 불러오는 중 오류가 발생했습니다", error);
       } finally {
@@ -44,7 +50,12 @@ function Board() {
   if (loading) {
     return <div>로딩 중...</div>;
   }
-
+// 페이지 버튼 클릭 시 처리
+  const handlePageClick = () => {
+    if (hasMore) {
+      setCurrentPage(currentPage + 1); // 다음 페이지로 이동
+    }
+  };
 
   return (
     <BoardStyle>
