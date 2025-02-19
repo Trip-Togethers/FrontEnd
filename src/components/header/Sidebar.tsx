@@ -51,7 +51,11 @@ const Sidebar: React.FC<Props> = ({ isOpen }) => {
                 <Avatar />
               )}
             </div>
-            <span>{userData.nickname}</span>
+            {userData.nickname ? (
+              <span>{userData.nickname}</span>
+            ) : (
+              <span>노래하는 오소리</span>
+            )}
           </>
         ) : (
           <span>Loading...</span>

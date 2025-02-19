@@ -1,372 +1,273 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { styled } from "styled-components";
 import { useNavigate, useParams } from "react-router-dom";
 import { connect, useSelector } from "react-redux";
-import { addPost, editPost } from "@store/postReducer";
+import { addPost, showPost, updatePost, updatePostWithImage } from "@api/post.api";
 import Button from "@components/common/Button";
 import InputText from "@components/common/InputText";
-import { ImageInfo, Plan, Post, RootState } from "@store/store";
+import { ImageInfo, Plan, Post, RootState, Schedule } from "@store/store";
 import { showPlans } from "@api/post.api";
+import { getUserIdFromToken } from "@utils/get.token.utils";
+import { getUserInfo, userPage } from "@api/user.api";
+import { showPlan } from "@api/schedule.api";
 
-
-//  인터페이스 정의
-interface CommentType {
-  id: string;
-  postId: string;
-  author: string;
-  content: string;
-  createdAt: string;
-}
-
-interface PostData {
-  title: string;
-  content: string;
-  author: string;
-  createdAt: string;
-  likes: number;
-  comments: CommentType[];
-  images?: ImageInfo[];
-  planId?: string;
-  planInfo?: Plan;
-}
-
-interface AddPostProps {
-  addPost: typeof addPost;
-  editPost: typeof editPost;
-  posts: Post[];
-  isEdit?: boolean;
-}
-
-interface PlanModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  children: React.ReactNode;
-}
-
-
-  //  일정 선택 모달 컴포넌트 (PlanModal)
-  //  일정 선택을 위한 모달 컴포넌트
-const PlanModal: React.FC<PlanModalProps> = ({ isOpen, onClose, children }) => {
-  if (!isOpen) return null;
-  return (
-    <ModalOverlay onClick={onClose}>
-      <ModalContent onClick={(e) => e.stopPropagation()}>
-        {children}
-      </ModalContent>
-    </ModalOverlay>
-  );
-};
-
-  //  게시글 추가 및 수정 컴포넌트 (AddPost)
-  //  - 제목, 내용, 이미지 업로드, 일정 선택 등의 기능 제공
-  //  - 수정 모드일 경우 기존 데이터를 불러와서 편집 가능
-
-function AddPost({ addPost, posts, isEdit, editPost }: AddPostProps) {
+function AddPost() {
   const navigate = useNavigate();
-  const { postId } = useParams<{ postId: string }>();
-  const [plans, setPlans] = useState<Plan[]>([]);
-  // 일정 모달 노출 상태 관리
-  const [showPlanModal, setShowPlanModal] = useState(false);
-  // redux에서 일정 데이터를 가져옴
-  //const plans = useSelector((state: RootState) => state.plan.plans);
+  const { postId } = useParams(); // URL에서 postId 가져오기
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [data, setData] = useState<Schedule[]>([]); // 일정 데이터 상태
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedSchedule, setSelectedSchedule] = useState<Schedule | null>(null);
+  const [title, setTitle] = useState(""); // 제목 상태
+  const [content, setContent] = useState(""); // 내용 상태
+  const [post, setPost] = useState<any>(null); // 게시글 상태
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-  // 게시글 데이터 상태 초기화
-  const [postData, setPostData] = useState<PostData>({
-    title: "",
-    content: "",
-    author: "익명",
-    createdAt: new Date().toISOString(),
-    likes: 0,
-    comments: [],
-    images: [],
-  });
-
-  // 수정 모드일 때 기존 게시글 데이터 로드
+  // 데이터 가져오기 (게시글 수정 시 데이터 로드)
   useEffect(() => {
-    const fetchPlans = async () => {
+    const fetchData = async () => {
       try {
-        const data = await showPlans();
-        if (Array.isArray(data.calendar)) setPlans(data.calendar);
-        console.log(data.calendar)
-      } catch (error) {
-        console.error('일정을 불러오지 못했습니다.', error);
+        // 게시글 데이터를 가져오는 API 호출 (예: getPostById)
+        if (postId) {
+          const postResponse = await showPost(Number(postId)); // postId로 게시글 조회
+          console.log(postResponse.post.post.postPhotoUrl);
+          if (postResponse && postResponse.post) {
+            setPost(postResponse.post.post);
+            setTitle(postResponse.post.post.postTitle); // 제목 상태 설정
+            setContent(postResponse.post.post.postContent); // 내용 상태 설정
+            if (postResponse.post.post.postPhotoUrl) {
+              setImagePreview(postResponse.post.post.postPhotoUrl); // 이미지 미리보기 설정
+            }
+          }
+        }
+        // 일정 데이터 가져오기
+        const scheduleResponse = await showPlan(); // 일정 데이터를 가져오는 API 호출
+        if (Array.isArray(scheduleResponse.schedules)) {
+          setData(scheduleResponse.schedules);
+        } else {
+          setError("데이터 형식이 잘못되었습니다.");
+        }
+      } catch (err) {
+        setError("데이터를 가져오는 데 실패했습니다.");
+        console.log(err);
+      } finally {
+        setLoading(false);
       }
     };
-    if (isEdit && postId) {
-      const existingPost = posts.find((post) => post.id === postId);
-      if (existingPost) {
-        setPostData({
-          ...existingPost,
-          comments: existingPost.comments.map((comment) => ({
-            id: comment.id,
-            postId: comment.postId,
-            author: comment.author,
-            content: comment.content,
-            createdAt: "createdAt" in comment ? comment.createdAt : new Date().toISOString(),
-          })),
-          images:
-            existingPost.images?.map((image: ImageInfo) => ({
-              url: image.url,
-              originalName: image.originalName || image.url.split("/").pop(),
-              file: image.file,
-              toDelete: image.toDelete,
-            })) || [],
-        });
-      }
-    }
 
-    fetchPlans();
-  }, [isEdit, postId, posts]);
+    fetchData();
+  }, [postId]); // postId가 바뀔 때마다 데이터를 다시 불러옴
 
-   //  일정 선택 버튼 클릭 핸들러
-  const handleScheduleClick = () => {
-    setShowPlanModal(true);
+  // 일정 클릭 시 선택된 일정 저장
+  const handleScheduleClick = (schedule: Schedule) => {
+    setSelectedSchedule(schedule); // 선택된 일정 상태 업데이트
+    setIsModalOpen(false); // 모달 닫기
   };
 
-
-   //  일정 선택 시 해당 일정 정보를 게시글 데이터에 반영
-   const handleSelectPlan = (plan: Plan) => {
-    setPostData((prev: any) => ({
-      ...prev,
-      planId: plan.id,
-      planInfo: plan,
-      content: `${prev.content || ''}\n\n[여행 일정]\n${plan.title}\n기간: ${new Date(
-        plan.startDate
-      ).toLocaleDateString()} - ${new Date(plan.endDate).toLocaleDateString()}`,
-    }));
-    setShowPlanModal(false); 
-  };
-
-    // 이미지 파일 업로드 핸들러
-   //  - 선택한 파일들을 이미지 미리보기 URL과 함께 상태에 저장
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const newFiles = Array.from(e.target.files);
-      const newImages = await Promise.all(
-        newFiles.map(async (file) => ({
-          url: URL.createObjectURL(file),
-          originalName: file.name,
-          file,
-        }))
-      );
-      setPostData((prev) => ({
-        ...prev,
-        images: [...(prev.images || []), ...newImages],
-      }));
+  // 이미지 업로드 핸들러
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-    // 개별 이미지 삭제 핸들러
-  const handleImageDelete = (index: number) => {
-    setPostData((prev) => ({
-      ...prev,
-      images: prev.images?.filter((_, i) => i !== index) || [],
-    }));
+  // 이미지 삭제 핸들러
+  const handleImageDelete = () => {
+    setSelectedImage(null); // 이미지 파일 삭제
+    setImagePreview(null); // 미리보기 삭제
   };
 
-
-   //  선택된(체크된) 이미지 삭제 핸들러
-  const handleSelectedImagesDelete = () => {
-    setPostData((prev) => ({
-      ...prev,
-      images: prev.images?.filter((img) => !img.toDelete) || [],
-    }));
-  };
-
-    // 폼 제출 핸들러 (게시글 저장/수정)
-    //  - 제목과 내용 필수 체크
-    // - 수정모드이면 기존 게시글 수정, 아니면 새 게시글 추가
-
-  const handleSubmit = (e: React.FormEvent) => {
+  // 서버에 게시글 저장
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!postData.title.trim() || !postData.content.trim()) {
-      alert("제목과 내용을 모두 입력해주세요.");
-      return;
+
+    try {
+      const formData = new FormData();
+      let responseData;
+      if (title) formData.append("postTitle", title);
+      if (content) formData.append("postContent", content);
+      
+      if (selectedImage) {
+        formData.append("image", selectedImage); // 이미지 추가
+      } 
+
+      if (selectedSchedule) {
+        console.log(selectedSchedule.id.toString())
+        formData.append('tripId', selectedSchedule.id.toString())
+      }
+
+      if (postId) {
+        // 수정할 때
+        responseData = await updatePostWithImage(Number(postId), formData);
+        console.log("게시글 수정 성공:", responseData);
+        navigate(`/posts/${postId}`); // 수정 후 상세 페이지로 이동
+      } else {
+        // 새로운 게시글 추가
+        const postData = {
+          title: title,
+          content: content,
+          image: selectedImage,
+          author: "작성자",
+          likes: 0,
+          tripId: selectedSchedule ? selectedSchedule.id.toString() : "",
+        };
+        responseData = await addPost(postData);
+        console.log("게시글 생성 성공:", responseData);
+        navigate(`/posts`); // 생성 후 상세 페이지로 이동
+      }
+    } catch (error) {
+      console.error("게시글 처리 실패:", error);
     }
-
-    // 수정모드이면 기존 post_id 사용, 아니면 새 id 생성
-    const newPostId = isEdit && postId ? postId : (posts.length + 1).toString();
-
-    const updatedPost = {
-      ...postData,
-      id: newPostId,
-      // 이미지 데이터 재정의: file이 있을 경우 URL 재생성, 없으면 기존 url 사용
-      images:
-        postData.images?.map((img) => ({
-          url: img.file ? URL.createObjectURL(img.file) : img.url,
-          originalName: img.originalName || img.file?.name || "",
-        })) || [],
-      // 댓글 데이터에 생성일자가 없으면 현재 시간 적용
-      comments: postData.comments.map((comment) => ({
-        ...comment,
-        createdAt: comment.createdAt || new Date().toISOString(),
-      })),
-    };
-
-    if (isEdit) {
-      editPost(updatedPost);
-    } else {
-      addPost(updatedPost);
-    }
-    navigate("/posts");
   };
 
-    // JSX 렌더링
-    // 제목, 내용 입력창, 일정 추가 버튼, 이미지 업로드, 제출/취소 버튼, 일정 선택 모달
   return (
     <Container>
-      <Title>{isEdit ? "게시글 수정" : "글 작성하기"}</Title>
+      <Title>{postId ? "게시글 수정" : "글 작성하기"}</Title>
       <Form onSubmit={handleSubmit}>
         {/* 제목 입력 */}
         <AddPostTitleInput
           scheme="mypage"
           placeholder="제목을 입력하세요."
-          name="title"
-          value={postData.title}
-          onChange={(e) => setPostData({ ...postData, title: e.target.value })}
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
         />
 
-        {/* 일정 추가 버튼 및 선택된 일정 표시 */}
-        <ScheduleButton type="button" onClick={handleScheduleClick}>
+        {/* 일정 추가 버튼 */}
+        <ScheduleButton type="button" onClick={() => setIsModalOpen(true)}>
           + 일정 추가
         </ScheduleButton>
-        {postData.planInfo && (
-          <SelectedPlan>
-            <PlanTitle>{postData.planInfo.title}</PlanTitle>
-            <PlanDate>
-              {new Date(postData.planInfo.startDate).toLocaleDateString()} -{" "}
-              {new Date(postData.planInfo.endDate).toLocaleDateString()}
-            </PlanDate>
-            <RemovePlanButton
-              onClick={() =>
-                setPostData((prev) => ({
-                  ...prev,
-                  planId: undefined,
-                  planInfo: undefined,
-                }))
-              }
-            >
-              ×
-            </RemovePlanButton>
-          </SelectedPlan>
+
+        {isModalOpen && data && (
+          <PlanModals>
+            <PlanList>
+              {data.map((schedule) => (
+                <PlanItem
+                  key={schedule.id}
+                  onClick={() => handleScheduleClick(schedule)}
+                >
+                  {schedule.title}
+                  <hr />
+                  <PlanTitle>{schedule.destination}</PlanTitle>
+                  <PlanDate>
+                    {new Date(schedule.startDate).toLocaleDateString()} -{" "}
+                    {new Date(schedule.endDate).toLocaleDateString()}
+                  </PlanDate>
+                </PlanItem>
+              ))}
+            </PlanList>
+            <CloseButton onClick={() => setIsModalOpen(false)}>닫기</CloseButton>
+          </PlanModals>
+        )}
+
+        {/* 선택한 일정 정보 */}
+        {selectedSchedule && (
+          <SelectedSchedule>
+            <h3>{selectedSchedule.title}</h3>
+            <p>{selectedSchedule.destination}</p>
+            <p>
+              {new Date(selectedSchedule.startDate).toLocaleDateString()} -{" "}
+              {new Date(selectedSchedule.endDate).toLocaleDateString()}
+            </p>
+          </SelectedSchedule>
         )}
 
         {/* 내용 입력 */}
         <AddPostContentInput
           scheme="mypage"
-          name="content"
-          value={postData.content}
-          onChange={(e) => setPostData({ ...postData, content: e.target.value })}
+          placeholder="내용을 입력하세요."
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
         />
 
-        {/* 이미지 업로드 영역 */}
+        {/* 이미지 업로드 */}
         <ImageUploadWrapper>
           <ImageUploadButton>
             <input
               type="file"
               accept="image/*"
-              multiple
               style={{ display: "none" }}
               id="image-upload"
-              onChange={handleFileUpload}
+              onChange={handleImageUpload}
             />
             <label htmlFor="image-upload">🖼️ + 이미지 추가</label>
           </ImageUploadButton>
-          {postData.images && postData.images.length > 0 && (
-            <FileList>
-              {postData.images.map((image, index) => (
-                <FileItem key={index}>
-                  <FileCheckbox>
-                    <input
-                      type="checkbox"
-                      checked={image.toDelete || false}
-                      onChange={(e) => {
-                        const imagesCopy = [...(postData.images || [])];
-                        imagesCopy[index] = {
-                          ...imagesCopy[index],
-                          toDelete: e.target.checked,
-                        };
-                        setPostData((prev) => ({
-                          ...prev,
-                          images: imagesCopy,
-                        }));
-                      }}
-                    />
-                  </FileCheckbox>
-                  <FileInfo>
-                    {image.originalName || image.file?.name}
-                    {image.file && (
-                      <FileSize>
-                        ({(image.file.size / 1024 / 1024).toFixed(2)}MB)
-                      </FileSize>
-                    )}
-                  </FileInfo>
-                  <DeleteButton
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleImageDelete(index);
-                    }}
-                  >
-                    ×
-                  </DeleteButton>
-                </FileItem>
-              ))}
-              {postData.images.some((img) => img.toDelete) && (
-                <DeleteSelectedButton
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleSelectedImagesDelete();
-                  }}
-                >
-                  선택한 이미지 삭제
-                </DeleteSelectedButton>
-              )}
-            </FileList>
+
+          {/* 선택한 이미지 미리보기 및 삭제 */}
+          {imagePreview && (
+            <ImagePreviewWrapper>
+              <ImagePreviewItem>
+                <img src={imagePreview} alt="미리보기" width="100" />
+                <DeleteButton onClick={handleImageDelete}>×</DeleteButton>
+              </ImagePreviewItem>
+            </ImagePreviewWrapper>
           )}
         </ImageUploadWrapper>
 
         {/* 제출 및 취소 버튼 그룹 */}
         <ButtonGroup>
           <Button type="submit" scheme="primary">
-            {isEdit ? "수정 완료" : "완료"}
+            완료
           </Button>
-          <Button type="button" scheme="primary" onClick={() => navigate("/posts")}>
+          <Button
+            type="button"
+            scheme="primary"
+            onClick={() => navigate("/posts")}
+          >
             취소
           </Button>
         </ButtonGroup>
-
-        {/* 일정 선택 모달 */}
-      {showPlanModal && (
-        <PlanModals>
-          <h3>일정 선택</h3>
-          <PlanList>
-            {plans.map((plan) => (
-              <PlanItem key={plan.id} onClick={() => handleSelectPlan(plan)}>
-                <strong>{plan.title}</strong>
-                <p>
-                  {new Date(plan.startDate).toLocaleDateString()} ~{" "}
-                  {new Date(plan.endDate).toLocaleDateString()}
-                </p>
-              </PlanItem>
-            ))}
-          </PlanList>
-          <CloseButton onClick={() => setShowPlanModal(false)}>닫기</CloseButton>
-        </PlanModals>
-      )}
       </Form>
     </Container>
   );
 }
 
+export default AddPost;
 
-  // Redux connect 설정
-export default connect(
-  (state: RootState) => ({
-    posts: state.post.posts,
-    plans: state.plan.plans,
-  }),
-  { addPost, editPost }
-)(AddPost);
+const ImagePreviewWrapper = styled.div`
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap; /* 여러 줄로 표시 */
+`;
+
+const ImagePreviewItem = styled.div`
+  position: relative;
+  display: inline-block;
+`;
+
+const SelectedSchedule = styled.div`
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  font-family: ${({ theme }) => theme.font.family.default};
+
+  h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+  }
+
+  p {
+    margin: 5px 0;
+    font-size: 14px;
+    color: #666;
+  }
+
+  p:first-child {
+    margin-top: 10px;
+  }
+`;
 
 const PlanModals = styled.div`
   position: fixed;
@@ -388,6 +289,10 @@ const CloseButton = styled.button`
   padding: 8px 12px;
   margin-top: 10px;
   cursor: pointer;
+  font-family: ${({ theme }) => theme.font.family.default};
+  display: block;
+  margin: 10px auto 0;
+  text-align: center;
 
   &:hover {
     background: #ccc;

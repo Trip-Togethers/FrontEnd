@@ -1,6 +1,5 @@
 import { CreateData, EditData } from "models/schedule.model"
-import { createClient, createClientFormData, requestHandler } from "./https"
-import { getToken } from "@store/authStore"
+import { createClientFormData, requestHandler } from "./https"
 
 export const createPlan = async (createData: CreateData) => {
   const axiosInstance = createClientFormData(); // Axios 인스턴스 생성
@@ -37,7 +36,7 @@ export const editPlan = async (createData: EditData, tripId : number) => {
 
   // createData 객체의 속성들을 formData에 추가
   if (createData.title) formData.append('title', createData.title);
-  if (createData.destination) formData.append('destination', createData.destination);
+  if (createData.destination) formData.append('description', createData.destination);
   
   // Date를 문자열로 변환하여 추가
   if (createData.startDate) 
@@ -53,6 +52,7 @@ export const editPlan = async (createData: EditData, tripId : number) => {
   try {
     const response = await axiosInstance.put(`/trips/${tripId}`, formData); // 'trips' 엔드포인트로 POST 요청
     console.log('플랜 수정 성공:', response.data);
+
     return response.data;
   } catch (error) {
     console.error('플랜 수정 실패:', error);

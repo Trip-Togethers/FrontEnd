@@ -48,17 +48,33 @@ export interface Comment {
 }
 
 export interface Post {
-  id: string;
+  id?: string;
   title: string;
   content: string;
   author: string;
-  createdAt: string;
+  createdAt?: string;
   likes: number;
-  comments: Comment[];
+  comments?: Comment[];
   hasLiked?: boolean;
-  images?: ImageInfo[];
+  image: File | null | string;
   planId?: string;
   planInfo?: Plan;
+  tripId?: string | "";
+}
+
+export interface GetPost {
+  id: number;
+  postTitle: string; // 기존 'title'을 'postTitle'로 변경
+  postContent: string;
+  postPhotoUrl: string;
+  author: {
+    nick: string;
+    profile: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+  likes: number;
+  comments_count: number;
 }
 
 // State 인터페이스

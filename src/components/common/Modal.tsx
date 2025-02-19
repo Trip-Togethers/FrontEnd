@@ -191,7 +191,6 @@ const TimePicker: React.FC<{
 
 //  4) 모달(Modal) 컴포넌트
 const Modal: React.FC<ModalProps> = ({ type, isOpen, onClose, onSubmit, planData}) => {
-  console.log(planData)
   // 공통 상태값
   const today = new Date();
   const [title, setTitle] = useState(planData?.title || "");
