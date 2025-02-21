@@ -10,6 +10,7 @@ import Ticket from "@components/detail/Ticket";
 import Modal from "@components/common/Modal";
 import DetailModal from "@components/detail/DetailModal";
 import { RadioButtonUnchecked, ArrowUploadReady, PlaneIcon } from "@assets/svg";
+import { TodoItem } from "models/todo.model";
 
 interface Schedules {
   id: number;
@@ -26,7 +27,12 @@ interface DaySchedule {
   currentDate: string;
 }
 
-function Detail() {
+interface DetailProps {
+  scheduleList: TodoItem[];
+  selectedDate: Date; // 선택한 날짜
+}
+
+const Detail: React.FC<DetailProps> = ({ scheduleList, selectedDate }) => {
   const { tripId } = useParams<{ tripId: string }>();
   const [mainSchedule, setMainSchedule] = useState<Schedules | null>(null);
   const [scheduleData, setScheduleData] = useState<DaySchedule[]>([]);
@@ -38,7 +44,12 @@ function Detail() {
   const [currentPage, setCurrentPage] = useState(0);
   const itemsPerPage = 3;
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalType, setModalType] = useState<"plan" | "schedule">("plan");
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedSchedule, setSelectedSchedule] = useState<DaySchedule | null>(
+    null
+  );
+
+  const [detailScheduleList, setdetailScheduleList] = useState<TodoItem[]>([]); // 빈 배열로 초기화
 
   // 일정 데이터를 3개씩 분할
   const paginatedSchedule = (scheduleData: any[]) => {
@@ -57,6 +68,12 @@ function Detail() {
     } else if (direction === "prev" && currentPage > 0) {
       setCurrentPage(currentPage - 1);
     }
+  };
+
+  // Schedule 클릭 시 실행될 함수
+  const handleScheduleClick = (schedule: DaySchedule) => {
+    setSelectedSchedule(schedule);
+    setIsDetailModalOpen(true);
   };
 
   useEffect(() => {
@@ -116,10 +133,42 @@ function Detail() {
   }, [tripId]);
   if (!mainSchedule) return <p>일정 정보를 불러오는 중입니다...</p>;
 
+  // 선택된 날짜에 해당하는 일정만 필터링
+  const filteredSchedules = (detailScheduleList || [])
+    .filter((item) => {
+      const itemDate = new Date(item.date); // 일정의 날짜(Date 객체로 변환)
+      return (
+        itemDate.getFullYear() === selectedDate.getFullYear() &&
+        itemDate.getMonth() === selectedDate.getMonth() &&
+        itemDate.getDate() === selectedDate.getDate()
+      );
+    })
+    .sort((a, b) => {
+      // 시간 비교를 위해 24시간 형식으로 변환
+      const convertTo24Hour = (timeStr: string) => {
+        const [hourStr, minuteStr, period] = timeStr.split(/:|\s/);
+        let hour = parseInt(hourStr, 10);
+        const minute = parseInt(minuteStr, 10);
+        if (period === "PM" && hour !== 12) hour += 12;
+        if (period === "AM" && hour === 12) hour = 0;
+        return hour * 60 + minute; // 분 단위로 변환하여 비교
+      };
+
+      return convertTo24Hour(a.time) - convertTo24Hour(b.time);
+    });
+
   return (
     <DetailContainer>
       <TicketContainer>
         <Ticket onClick={() => setIsModalOpen(true)} />
+        {isDetailModalOpen && selectedSchedule && (
+          <DetailModal
+            isOpen={isDetailModalOpen}
+            onClose={() => setIsDetailModalOpen(false)}
+            scheduleData={selectedSchedule}
+            selectedDate={selectedDate} // 날짜 전달
+          />
+        )}
         <Modal
           type="plan"
           isOpen={isModalOpen} // 모달 열고 닫는 상태를 isModalOpen으로 관리
@@ -145,11 +194,10 @@ function Detail() {
         >
           {"<"}
         </ArrowButton>
-        <Schedule onClick={() => setIsModalOpen(true)}>
-          <DetailModal />
+        <Schedule>
           {Array.isArray(scheduleData) && scheduleData.length > 0 ? (
             paginatedSchedule(scheduleData).map((day, index) => (
-              <Day key={index}>
+              <Day key={index} onClick={() => handleScheduleClick(day)}>
                 <DateTitle>
                   {new Date(day.scheduleDate).toLocaleDateString("en-GB", {
                     day: "2-digit",
@@ -229,10 +277,16 @@ function Detail() {
                   })()}
                 </IconStyle>
                 <ScheduleList>
-                  {day.currentDate !== "No detail available" ? (
-                    <ScheduleItem>{day.currentDate}</ScheduleItem>
+                  {filteredSchedules.length > 0 ? (
+                    <ul>
+                      {filteredSchedules.map((item, index) => (
+                        <li key={index}>
+                          <span>{item.time}</span> - {item.content}
+                        </li>
+                      ))}
+                    </ul>
                   ) : (
-                    <ScheduleItem>상세 일정이 없습니다.</ScheduleItem>
+                    <p>상세 일정이 없습니다.</p>
                   )}
                 </ScheduleList>
               </Day>
@@ -250,7 +304,7 @@ function Detail() {
       </ScheduleContainer>
     </DetailContainer>
   );
-}
+};
 
 const DetailContainer = styled.div`
   padding: 20px;                                                                                           center;

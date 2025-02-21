@@ -24,12 +24,6 @@ interface ModalProps {
   planData?: EditData;
 }
 
-// 1-3 할 일(Todo) 아이템 인터페이스
-interface TodoItem {
-  content: string;
-  time: string;
-}
-
 // 2) 날짜 선택기(DatePicker) 컴포넌트
 const DatePicker: React.FC<DatePickerProps> = ({
   label,
@@ -123,69 +117,6 @@ const DatePicker: React.FC<DatePickerProps> = ({
       </SelectGroup>
       {error && <ErrorText>{error}</ErrorText>}
     </DatePickerContainer>
-  );
-};
-
-// 3) 시간 선택기(TimePicker) 컴포넌트
-const TimePicker: React.FC<{
-  value?: string;
-  onChange?: (time: string) => void;
-}> = ({ value = "09:00 AM", onChange }) => {
-  const hours = Array.from({ length: 12 }, (_, i) => i + 1);
-  const minutes = Array.from({ length: 12 }, (_, i) => i * 5);
-  const periods = ["AM", "PM"];
-
-  // 시간, 분, 기간 분리
-  const [selectedHour, selectedMinute, selectedPeriod] = value.split(/:|\s/);
-
-  const handleTimeChange = (
-    type: "hour" | "minute" | "period",
-    newValue: string
-  ) => {
-    const hour = type === "hour" ? newValue : selectedHour;
-    const minute = type === "minute" ? newValue : selectedMinute;
-    const period = type === "period" ? newValue : selectedPeriod;
-    const newTime = `${hour}:${minute} ${period}`;
-    onChange?.(newTime);
-  };
-
-  return (
-    <DateTimeSelect>
-      <div className="select-group">
-        <select
-          value={selectedHour}
-          onChange={(e) => handleTimeChange("hour", e.target.value)}
-        >
-          {hours.map((hour) => (
-            <option key={hour} value={hour.toString().padStart(2, "0")}>
-              {hour}
-            </option>
-          ))}
-        </select>
-
-        <select
-          value={selectedMinute}
-          onChange={(e) => handleTimeChange("minute", e.target.value)}
-        >
-          {minutes.map((minute) => (
-            <option key={minute} value={minute.toString().padStart(2, "0")}>
-              {minute.toString().padStart(2, "0")}
-            </option>
-          ))}
-        </select>
-
-        <select
-          value={selectedPeriod}
-          onChange={(e) => handleTimeChange("period", e.target.value)}
-        >
-          {periods.map((p) => (
-            <option key={p} value={p}>
-              {p}
-            </option>
-          ))}
-        </select>
-      </div>
-    </DateTimeSelect>
   );
 };
 
@@ -522,34 +453,6 @@ const DateTimeSelect = styled.div`
         color: ${({ theme }) => theme.color.primary_black};
         padding: 0.5rem;
       }
-    }
-  }
-`;
-
-//* 5-4) 투두 리스트 컨테이너
-const TodoSection = styled.div`
-  .list {
-    margin-top: 1rem;
-    max-height: 200px;
-    overflow-y: auto;
-    font-family: ${({ theme }) => theme.font.family.contents};
-  }
-
-  .item {
-    display: flex;
-    align-items: center;
-    padding: 0.5rem;
-    border-bottom: 1px solid ${({ theme }) => theme.color.name_gray};
-
-    .time {
-      min-width: 100px;
-      color: ${({ theme }) => theme.color.name_gray};
-      font-weight: ${({ theme }) => theme.font.weight.bold};
-    }
-
-    .content {
-      margin-left: 1rem;
-      color: ${theme.color.name_gray};
     }
   }
 `;

@@ -1,8 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import styled from "styled-components";
 import { theme } from "@styles/theme";
 import Button from "@components/common/Button";
-import InputText from "@components/common/InputText";
 import { EditData, Schedules } from "models/schedule.model";
 
 // 1-1) 날짜 선택기(DatePicker) Props
@@ -14,11 +13,12 @@ interface DatePickerProps {
   minDate?: Date;
 }
 
-// 1-2) 모달(Modal) Props
-interface ModalProps {
+interface DetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit?: (plan: any) => void;
+  scheduleData: any;
+  selectedDate?: Date; // 선택한 날짜를 받을 수 있도록 추가
   initialData?: Schedules | null; // initialData 속성 추가
   planData?: EditData;
 }
@@ -152,6 +152,17 @@ const TimePicker: React.FC<{
     <DateTimeSelect>
       <div className="select-group">
         <select
+          value={selectedPeriod}
+          onChange={(e) => handleTimeChange("period", e.target.value)}
+        >
+          {periods.map((p) => (
+            <option key={p} value={p}>
+              {p}
+            </option>
+          ))}
+        </select>
+
+        <select
           value={selectedHour}
           onChange={(e) => handleTimeChange("hour", e.target.value)}
         >
@@ -172,175 +183,104 @@ const TimePicker: React.FC<{
             </option>
           ))}
         </select>
-
-        <select
-          value={selectedPeriod}
-          onChange={(e) => handleTimeChange("period", e.target.value)}
-        >
-          {periods.map((p) => (
-            <option key={p} value={p}>
-              {p}
-            </option>
-          ))}
-        </select>
       </div>
     </DateTimeSelect>
   );
 };
 
-//  4) 모달(Modal) 컴포넌트
-const DetailModal: React.FC<ModalProps> = ({
-  type,
+const DetailModal: React.FC<DetailModalProps> = ({
   isOpen,
   onClose,
   onSubmit,
   planData,
+  selectedDate,
 }) => {
-  // 공통 상태값
   const today = new Date();
   const [title, setTitle] = useState(planData?.title || "");
   const [destination, setDestination] = useState(planData?.destination || "");
-  // planData에서 시작일과 종료일이 문자열이라면 Date 객체로 변환
-  const startDateFromPlan = planData?.startDate
-    ? new Date(planData.startDate)
-    : today;
-  const endDateFromPlan = planData?.endDate
-    ? new Date(planData.endDate)
-    : today;
-
-  const [startDate, setStartDate] = useState(startDateFromPlan);
-  const [endDate, setEndDate] = useState(endDateFromPlan);
-  //이미지 업로드 상태
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string>(
-    planData?.photoUrl || ""
+  const [startDate, setStartDate] = useState<Date>(
+    planData?.startDate ? new Date(planData.startDate) : today
   );
+  const [endDate, setEndDate] = useState<Date>(
+    planData?.endDate ? new Date(planData.endDate) : today
+  );
+  const [date, setDate] = useState<Date>(selectedDate || new Date());
+
+  // 일정 추가 기능을 위한 상태
+  const [scheduleList, setScheduleList] = useState<TodoItem[]>([]);
+  const [task, setTask] = useState(""); // 일정 내용 입력
+  const [time, setTime] = useState("09:00 AM"); // 시간 선택
+
+  useEffect(() => {
+    if (selectedDate) {
+      setDate(selectedDate);
+    }
+  }, [selectedDate]);
 
   if (!isOpen) return null;
 
-  //  4-1) 핸들러
+  const handleAddSchedule = () => {
+    if (!task.trim()) return;
 
-  // DatePicker 콜백
-  const handleStartDateChange = (date: Date) => {
-    setStartDate(date);
-    if (date > endDate) {
-      setEndDate(date);
-    }
-  };
-
-  const handleEndDateChange = (date: Date) => {
-    if (date >= startDate) {
-      setEndDate(date);
-    }
-  };
-
-  // 이미지 업로드 핸들러
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-
-    if (file) {
-      setSelectedImage(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  // 폼 제출 (플랜)
-  const handlePlanSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const plan = {
-      title,
-      destination,
-      startDate,
-      endDate,
-      image: selectedImage || null,
+    const newSchedule: TodoItem = {
+      content: task,
+      time: time,
     };
 
-    try {
-      await onSubmit?.(plan); // 부모 컴포넌트의 onSubmit 호출
-      console.log("새로운 플랜이 생성되었습니다:", plan);
-      onClose?.();
-    } catch (error) {
-      console.error("플랜 생성 중 오류 발생:", error);
-    }
+    setScheduleList((prev) => {
+      const updatedList = prev.filter((item) => item.time !== time); // 중복 시간 제거
+      return [...updatedList, newSchedule].sort((a, b) => {
+        // 시간 비교를 위해 24시간 형식으로 변환
+        const convertTo24Hour = (timeStr: string) => {
+          const [hourStr, minuteStr, period] = timeStr.split(/:|\s/);
+          let hour = parseInt(hourStr, 10);
+          const minute = parseInt(minuteStr, 10);
+          if (period === "PM" && hour !== 12) hour += 12;
+          if (period === "AM" && hour === 12) hour = 0;
+          return hour * 60 + minute; // 분 단위로 변환하여 비교
+        };
 
-    // 폼 상태 초기화
-    setTitle("");
-    setDestination("");
-    setStartDate(today);
-    setEndDate(today);
-    setSelectedImage(null);
-    setImagePreview("");
+        return convertTo24Hour(a.time) - convertTo24Hour(b.time);
+      });
+    });
+
+    setTask(""); // 입력 필드 초기화
   };
 
-  // 플랜 폼 유효성 검사
-  const isFormValid = () => {
-    if (type === "schedule") {
-      return (
-        title.trim() !== "" && destination.trim() !== "" && startDate <= endDate
-      );
-    }
-    return true;
-  };
-
-  // 4-2 랜더링
   return (
     <ModalWrapper>
       <div className="modal">
         <button className="close-btn" onClick={onClose}>
           &times;
         </button>
-        <form onSubmit={handlePlanSubmit}>
-          <ImageUpload>
-            <div className="upload-box">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-              />
-              {imagePreview ? (
-                <img src={imagePreview} alt="preview" />
-              ) : (
-                <span className="upload-text">
-                  이미지를 드래그하거나 클릭하여 업로드
-                </span>
-              )}
-            </div>
-          </ImageUpload>
+        <form onSubmit={(e) => e.preventDefault()}>
           <div className="field">
-            <label>제목</label>
-            <InputText
-              scheme="mypage"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
+            <label>날짜</label>
+            <DatePicker value={startDate} onChange={setStartDate} />
           </div>
-
           <div className="field">
-            <label>목적지</label>
-            <InputText
-              scheme="mypage"
-              value={destination}
-              onChange={(e) => setDestination(e.target.value)}
-            />
+            <label>시간 선택</label>
+            <TimePicker value={time} onChange={setTime} />
           </div>
-
           <div className="field">
-            <label>기간</label>
-            <DatePicker value={startDate} onChange={handleStartDateChange} />
-            <DatePicker
-              value={endDate}
-              onChange={handleEndDateChange}
-              minDate={startDate}
+            <input
+              placeholder="일정을 입력해주세요"
+              value={task}
+              onChange={(e) => setTask(e.target.value)}
             />
+            <button type="submit" onClick={handleAddSchedule}>
+              추가하기
+            </button>
           </div>
-
-          <Button scheme="primary" type="submit" disabled={!isFormValid()}>
-            {type === "plan" ? "수정하기" : "생성하기"}
+          <ul>
+            {scheduleList.map((schedule, index) => (
+              <li key={index}>
+                {schedule.time} - {schedule.content}
+              </li>
+            ))}
+          </ul>
+          <Button scheme="primary" type="submit">
+            생성하기
           </Button>
         </form>
       </div>
@@ -364,6 +304,10 @@ const ModalWrapper = styled.div`
   justify-content: center;
   align-items: center;
   z-index: 1000;
+
+  ul {
+    list-style-type: none;
+  }
 
   .modal {
     background: ${({ theme }) => theme.color.primary_white};
@@ -442,49 +386,6 @@ const ModalWrapper = styled.div`
         justify-content: center;
         width: 100%;
       }
-    }
-  }
-`;
-
-//* 5-2) 이미지 업로드 컨테이너
-const ImageUpload = styled.div`
-  width: 100%;
-  margin-bottom: 1rem;
-
-  .upload-box {
-    position: relative;
-    width: 100%;
-    height: 300px;
-    border: 1px dashed ${({ theme }) => theme.color.input_background};
-    border-radius: ${({ theme }) => theme.borderRadius.default};
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    background-color: ${({ theme }) => theme.color.input_background};
-
-    &:hover {
-      border-color: ${({ theme }) => theme.color.primary_green};
-    }
-
-    input {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      opacity: 0;
-      cursor: pointer;
-    }
-
-    .upload-text {
-      color: ${({ theme }) => theme.color.input_text};
-      font-size: 1.5rem;
-      text-align: center;
-    }
-
-    img {
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain;
     }
   }
 `;
