@@ -6,57 +6,74 @@ interface Props {
 }
 
 function DetailSearch({ selectedPlace }: Props) {
-    if (!selectedPlace) return null;
+  if (!selectedPlace) return null;
 
-    const handleBookmarkClick = async () => {
-        if (!selectedPlace || !selectedPlace.geometry?.location) return;
+  const token = localStorage.getItem("token");
+  
+  const handleBookmarkClick = async () => {
+    if (!selectedPlace || !selectedPlace.geometry?.location) return;
 
-        const placeData = {
-            name: selectedPlace.name, // 장소 이름
-            latitude: selectedPlace.geometry.location.lat(), // 위도
-            longitude: selectedPlace.geometry.location.lng(), // 경도
-        };
-
-        try {
-            const response = await fetch(`${import.meta.env.VITE_SERVER_ADDRESS}/maps/destinations`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(placeData),
-                credentials: 'include',
-            });
-
-            if (response.ok) {
-                console.log('북마크 저장 성공!', await response.json());
-            } else {
-                console.error('북마크 저장 실패:', response.status);
-            }
-        } catch (error) {
-            console.log(error);
-            console.error('북마크 저장 중 오류 발생:', error);
-        }
+    const placeData = {
+      place_id: selectedPlace.place_id,
+      name: selectedPlace.name, // 장소 이름
+      latitude: selectedPlace.geometry.location.lat(), // 위도
+      longitude: selectedPlace.geometry.location.lng(), // 경도
+      rating: selectedPlace.rating || null, // 평점 (없으면 null)
+      vicinity: selectedPlace.vicinity || null, // 지역 (없으면 null)
+      photos:
+        selectedPlace.photos?.map((photo) => photo.getUrl({ maxWidth: 300 })) ||
+        [], // 사진 URL (없으면 빈 배열)
     };
 
-    return (
-        <DetailSearchContainer>
-            {selectedPlace && (
-                <div>
-                    {selectedPlace.photos?.[0] && <img src={selectedPlace.photos[0].getUrl({ maxWidth: 300 })} alt={selectedPlace.name} />}
-                    <div className="place-contents">
-                        <div className="title">
-                            <h3>{selectedPlace.name}</h3>
-                            <div className="bookmark" onClick={handleBookmarkClick}>
-                                <Bookmark />
-                            </div>
-                        </div>
-                        <p className="rating">⭐ {selectedPlace.rating || '평점 없음'}</p>
-                        <p className="vicinity">{selectedPlace.vicinity}</p>
-                    </div>
-                </div>
-            )}
-        </DetailSearchContainer>
-    );
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SERVER_ADDRESS}/maps/destinations`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(placeData),
+          credentials: "include",
+        }
+      );
+
+      if (response.ok) {
+        alert("북마크 저장이 완료되었습니다.")
+      } else {
+        console.error("북마크 저장 실패:", response.status);
+      }
+    } catch (error) {
+      console.log(error);
+      console.error("북마크 저장 중 오류 발생:", error);
+    }
+  };
+
+  return (
+    <DetailSearchContainer>
+      {selectedPlace && (
+        <div>
+          {selectedPlace.photos?.[0] && (
+            <img
+              src={selectedPlace.photos[0].getUrl({ maxWidth: 300 })}
+              alt={selectedPlace.name}
+            />
+          )}
+          <div className="place-contents">
+            <div className="title">
+              <h3>{selectedPlace.name}</h3>
+              <div className="bookmark" onClick={handleBookmarkClick}>
+                <Bookmark />
+              </div>
+            </div>
+            <p className="rating">⭐ {selectedPlace.rating || "평점 없음"}</p>
+            <p className="vicinity">{selectedPlace.vicinity}</p>
+          </div>
+        </div>
+      )}
+    </DetailSearchContainer>
+  );
 }
 
 export default DetailSearch;
