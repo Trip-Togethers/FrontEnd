@@ -16,7 +16,6 @@ interface DatePickerProps {
 
 // 1-2) 모달(Modal) Props
 interface ModalProps {
-  type: "plan" | "schedule";
   isOpen: boolean;
   onClose: () => void;
   onSubmit?: (plan: any) => void;
@@ -190,7 +189,7 @@ const TimePicker: React.FC<{
 };
 
 //  4) 모달(Modal) 컴포넌트
-const Modal: React.FC<ModalProps> = ({
+const DetailModal: React.FC<ModalProps> = ({
   type,
   isOpen,
   onClose,
@@ -349,7 +348,7 @@ const Modal: React.FC<ModalProps> = ({
   );
 };
 
-export default Modal;
+export default DetailModal;
 
 // 5) 스타일드 컴포넌트
 

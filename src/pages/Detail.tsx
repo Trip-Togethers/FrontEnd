@@ -8,11 +8,8 @@ import { getUserIdFromToken } from "@utils/get.token.utils";
 import { userPage } from "@api/user.api";
 import Ticket from "@components/detail/Ticket";
 import Modal from "@components/common/Modal";
-import { RadioButtonUnchecked } from "@assets/svg";
-import { ArrowUploadReady, 
-            PlaneIcon,
-            Line,
-            DottedLine } from "@assets/svg";
+import DetailModal from "@components/detail/DetailModal";
+import { RadioButtonUnchecked, ArrowUploadReady, PlaneIcon } from "@assets/svg";
 
 interface Schedules {
   id: number;
@@ -24,7 +21,6 @@ interface Schedules {
   photoUrl: string;
 }
 
-
 interface DaySchedule {
   scheduleDate: string;
   currentDate: string;
@@ -35,11 +31,14 @@ function Detail() {
   const [mainSchedule, setMainSchedule] = useState<Schedules | null>(null);
   const [scheduleData, setScheduleData] = useState<DaySchedule[]>([]);
   const [userData, setUserData] = useState<any>(null); // 유저 정보를 저장할 상태
-  const [guests, setGuests] = useState<Array<{ userId: number; nickname: string }>>([]);
+  const [guests, setGuests] = useState<
+    Array<{ userId: number; nickname: string }>
+  >([]);
 
   const [currentPage, setCurrentPage] = useState(0);
   const itemsPerPage = 3;
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalType, setModalType] = useState<"plan" | "schedule">("plan");
 
   // 일정 데이터를 3개씩 분할
   const paginatedSchedule = (scheduleData: any[]) => {
@@ -50,7 +49,10 @@ function Detail() {
 
   // 페이지 이동 함수
   const handlePageChange = (direction: "next" | "prev") => {
-    if (direction === "next" && (currentPage + 1) * itemsPerPage < scheduleData.length) {
+    if (
+      direction === "next" &&
+      (currentPage + 1) * itemsPerPage < scheduleData.length
+    ) {
       setCurrentPage(currentPage + 1);
     } else if (direction === "prev" && currentPage > 0) {
       setCurrentPage(currentPage - 1);
@@ -92,7 +94,7 @@ function Detail() {
         }
 
         const mainData = await showPlan();
-        console.log("메인 일정 데이터:", mainData)
+        console.log("메인 일정 데이터:", mainData);
 
         const foundSchedule = mainData.schedules.find(
           (item: Schedules) => item.id === Number(tripId)
@@ -118,15 +120,17 @@ function Detail() {
     <DetailContainer>
       <TicketContainer>
         <Ticket onClick={() => setIsModalOpen(true)} />
-          
         <Modal
           type="plan"
           isOpen={isModalOpen} // 모달 열고 닫는 상태를 isModalOpen으로 관리
           onClose={() => setIsModalOpen(false)} // 모달 닫기
           onSubmit={async (plan: any) => {
-            await editPlan({
-              ...plan,
-            }, Number(tripId));
+            await editPlan(
+              {
+                ...plan,
+              },
+              Number(tripId)
+            );
             setIsModalOpen(false);
             window.location.reload();
           }}
@@ -134,34 +138,95 @@ function Detail() {
         />
       </TicketContainer>
 
-      <ScheduleContainer >
+      <ScheduleContainer>
+        <ArrowButton
+          onClick={() => handlePageChange("prev")}
+          disabled={currentPage === 0}
+        >
+          {"<"}
+        </ArrowButton>
         <Schedule onClick={() => setIsModalOpen(true)}>
-        <Modal
-          type="schedule"
-          isOpen={isModalOpen} // 모달 열고 닫는 상태를 isModalOpen으로 관리
-          onClose={() => setIsModalOpen(false)} // 모달 닫기
-          onSubmit={async (plan: any) => {
-            await editPlan({
-              ...plan,
-            }, Number(tripId));
-            setIsModalOpen(false);
-            window.location.reload();
-          }}
-          planData={mainSchedule}
-        />
+          <DetailModal />
           {Array.isArray(scheduleData) && scheduleData.length > 0 ? (
             paginatedSchedule(scheduleData).map((day, index) => (
               <Day key={index}>
                 <DateTitle>
                   {new Date(day.scheduleDate).toLocaleDateString("en-GB", {
-                      day: "2-digit",
-                      month: "short",
-                    })}{" "}
-                    {" "}
+                    day: "2-digit",
+                    month: "short",
+                  })}{" "}
                 </DateTitle>
                 <IconStyle>
-                  <RadioButtonUnchecked className="day_load"/>
-                  <Line/>
+                  {(() => {
+                    const today = new Date().setHours(0, 0, 0, 0); // 현재 날짜 (시간 제거)
+                    const scheduleDate = new Date(day.scheduleDate).setHours(
+                      0,
+                      0,
+                      0,
+                      0
+                    ); // 일정 날짜 (시간 제거)
+                    const startDate = new Date(mainSchedule.startDate).setHours(
+                      0,
+                      0,
+                      0,
+                      0
+                    ); // 일정 시작 날짜
+                    const endDate = new Date(mainSchedule.endDate).setHours(
+                      0,
+                      0,
+                      0,
+                      0
+                    ); // 일정 종료 날짜
+                    if (startDate === scheduleDate) {
+                      if (startDate > today) {
+                        return [
+                          <div />,
+                          <ArrowUploadReady className="status_icon" />,
+                          <hr className="dotted_line" />,
+                        ];
+                      } else {
+                        return [
+                          <div />,
+                          <RadioButtonUnchecked className="status_icon" />,
+                          <hr className="solid_line" />,
+                        ];
+                      }
+                    } else if (endDate === scheduleDate) {
+                      if (endDate > today) {
+                        return [
+                          <hr className="dotted_line" />,
+                          <ArrowUploadReady className="status_icon" />,
+                          <div />,
+                        ];
+                      } else {
+                        return [
+                          <hr className="solid_line" />,
+                          <RadioButtonUnchecked className="status_icon" />,
+                          <div />,
+                        ];
+                      }
+                    } else {
+                      if (scheduleDate === today) {
+                        return [
+                          <hr className="solid_line" />,
+                          <PlaneIcon className="status_icon" />,
+                          <hr className="dotted_line" />,
+                        ];
+                      } else if (scheduleDate < today) {
+                        return [
+                          <hr className="solid_line" />,
+                          <RadioButtonUnchecked className="status_icon" />,
+                          <hr className="solid_line" />,
+                        ];
+                      } else {
+                        return [
+                          <hr className="dotted_line" />,
+                          <ArrowUploadReady className="status_icon" />,
+                          <hr className="dotted_line" />,
+                        ];
+                      }
+                    }
+                  })()}
                 </IconStyle>
                 <ScheduleList>
                   {day.currentDate !== "No detail available" ? (
@@ -176,23 +241,19 @@ function Detail() {
             <p>일정이 없습니다.</p>
           )}
         </Schedule>
-        {scheduleData.length > itemsPerPage && (
-          <Pagination>
-            <ArrowButton onClick={() => handlePageChange("prev")} disabled={currentPage === 0}>
-              {"<"}
-            </ArrowButton>
-            <ArrowButton onClick={() => handlePageChange("next")} disabled={(currentPage + 1) * itemsPerPage >= scheduleData.length}>
-              {">"}
-            </ArrowButton>
-          </Pagination>
-        )}
+        <ArrowButton
+          onClick={() => handlePageChange("next")}
+          disabled={(currentPage + 1) * itemsPerPage >= scheduleData.length}
+        >
+          {">"}
+        </ArrowButton>
       </ScheduleContainer>
     </DetailContainer>
   );
-};
+}
 
 const DetailContainer = styled.div`
-  padding: 20px;
+  padding: 20px;                                                                                           center;
 `;
 
 const TicketContainer = styled.div`
@@ -202,39 +263,58 @@ const TicketContainer = styled.div`
 `;
 
 const ScheduleContainer = styled.div`
+  position: fixed;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   text-align: center;
-  align-items: center;
   margin-top: 14rem;
+  left: 50%;
+  transform: translate(-50%, 0);
+  width: 80rem;
+  height: 35rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  justify-content: space-between;
 `;
 
 const Schedule = styled.div`
   display: flex;
-  flex-direction: row;  /* 가로로 나열 */
-  gap: 40px;  /* 각 일정 항목 간의 간격 */
-  margin: 20px 0;
-  justify-content: flex-start;  /* 왼쪽 정렬 */
-  flex-wrap: wrap;  /* 화면 크기에 맞게 자동으로 줄바꿈 */
+  flex-direction: row;
 `;
 
 const Day = styled.div`
   background: white;
-  padding: 15px;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  font-family: ${({theme})=>theme.font.family.contents};
-  color: ${({theme})=>theme.color.primary_black};
-
-  .day_load{
-    fill: ${({theme})=>theme.color.primary_green};
-    height: 1.8rem;
-  }
+  text-align: center;
+  font-family: ${({ theme }) => theme.font.family.contents};
+  color: ${({ theme }) => theme.color.primary_black};
 `;
 
-const IconStyle= styled.div`
-  display:flex;
-  position: 
+const IconStyle = styled.div`
+  display: flex;
+  justify-content: center;
+  text-align: center;
+  div {
+    width: 130px;
+  }
+  .status_icon {
+    width: 40px;
+    margin: 10px;
+    fill: ${({ theme }) => theme.color.primary_green};
+  }
+  .solid_line {
+    margin-top: 25px;
+    width: 150px;
+    border: 0px;
+    border-top: 5px solid ${({ theme }) => theme.color.primary_green};
+  }
+  .dotted_line {
+    margin-top: 25px;
+    margin-right: 5px;
+    width: 150px;
+    border: 0px;
+    border-top: 5px dotted ${({ theme }) => theme.color.primary_green};
+  }
 `;
 
 const DateTitle = styled.h3`
@@ -243,39 +323,42 @@ const DateTitle = styled.h3`
 `;
 
 const ScheduleList = styled.ul`
-  display: flex;  /* 가로로 나열 */
+  display: flex;
   list-style: none;
+  text-align: center;
   padding: 0;
   margin: 0;
-  flex-wrap: wrap;  /* 가로로 넘칠 경우 자동으로 줄바꿈 */
+  flex-wrap: wrap; /* 가로로 넘칠 경우 자동으로 줄바꿈 */
 `;
 
 const ScheduleItem = styled.li`
   padding: 5px 10px;
-  margin-right: 15px;  /* 각 아이템 간의 간격 */
+  margin-right: 15px; /* 각 아이템 간의 간격 */
   background-color: #f4f4f4;
   border-radius: 5px;
 `;
 
-const Pagination = styled.div`
-  display: flex;
-  justify-content: center;
-  margin-top: 20px;
-`;
-
 const ArrowButton = styled.button`
   padding: 10px;
-  background-color: #00703c;
-  color: white;
+  color: #a0a09f;
   border: none;
   border-radius: 5px;
   cursor: pointer;
   margin: 0 10px;
-  font-size: 16px;
+  font-size: 4rem;
+  background-color: transparent;
 
   &:disabled {
-    background-color: #d1d1d1;
     cursor: not-allowed;
+    color: transparent;
+    &:hover {
+      color: transparent;
+    }
+  }
+
+  &:hover {
+    color: ${({ theme }) => theme.color.input_text};
+    transform: scale(1.1);
   }
 `;
 
