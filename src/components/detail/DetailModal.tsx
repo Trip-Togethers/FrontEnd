@@ -21,6 +21,8 @@ interface DetailModalProps {
   selectedDate?: Date; // 선택한 날짜를 받을 수 있도록 추가
   initialData?: Schedules | null; // initialData 속성 추가
   planData?: EditData;
+  isEditMode: boolean;
+  selectedScheduleIndex?: number;
 }
 
 // 1-3 할 일(Todo) 아이템 인터페이스
@@ -192,60 +194,56 @@ const DetailModal: React.FC<DetailModalProps> = ({
   isOpen,
   onClose,
   onSubmit,
-  planData,
-  selectedDate,
+  scheduleData,
+  isEditMode,
+  selectedScheduleIndex
 }) => {
-  const today = new Date();
-  const [title, setTitle] = useState(planData?.title || "");
-  const [destination, setDestination] = useState(planData?.destination || "");
-  const [startDate, setStartDate] = useState<Date>(
-    planData?.startDate ? new Date(planData.startDate) : today
+  let selectedSchedule;
+  
+  // 수정 모드에서만 selectedSchedule을 설정
+  if (isEditMode && selectedScheduleIndex) {
+    selectedSchedule = scheduleData?.currentDate.find(
+      (schedule: { id: number }) => schedule.id === selectedScheduleIndex
+    );
+  }
+
+  // selectedSchedule이 없으면 기본값 설정
+  const [date, setDate] = useState(
+    selectedSchedule ? new Date(selectedSchedule.scheduleDate) : new Date()
   );
-  const [endDate, setEndDate] = useState<Date>(
-    planData?.endDate ? new Date(planData.endDate) : today
-  );
-  const [date, setDate] = useState<Date>(selectedDate || new Date());
+  const [task, setTask] = useState(selectedSchedule?.scheduleContent || "");
+  const [time, setTime] = useState(selectedSchedule?.scheduleTime || "09:00 AM");
 
-  // 일정 추가 기능을 위한 상태
-  const [scheduleList, setScheduleList] = useState<TodoItem[]>([]);
-  const [task, setTask] = useState(""); // 일정 내용 입력
-  const [time, setTime] = useState("09:00 AM"); // 시간 선택
+  // 폼 제출
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  useEffect(() => {
-    if (selectedDate) {
-      setDate(selectedDate);
-    }
-  }, [selectedDate]);
+    // 날짜 형식 확인
+    const formattedDate = date instanceof Date ? date : new Date(date);
+    const formattedDateString = formattedDate.toISOString().split("T")[0]; // 'YYYY-MM-DD' 형식으로 변환
 
-  if (!isOpen) return null;
+    // 시간 포맷 변환 (AM/PM을 제외하고 24시간 형식으로 변환)
+    const formattedTime = time ? time.slice(0, 5) : ""; // "HH:mm" 형식으로 변환
 
-  const handleAddSchedule = () => {
-    if (!task.trim()) return;
-
-    const newSchedule: TodoItem = {
-      content: task,
-      time: time,
+    // 전송할 데이터 객체 생성
+    const newSchedule = {
+      scheduleDate: formattedDateString, // '2025-01-01' 형식
+      scheduleTime: formattedTime, // '09:00' 형식
+      scheduleContent: task, // '잠자기' 내용
     };
 
-    setScheduleList((prev) => {
-      const updatedList = prev.filter((item) => item.time !== time); // 중복 시간 제거
-      return [...updatedList, newSchedule].sort((a, b) => {
-        // 시간 비교를 위해 24시간 형식으로 변환
-        const convertTo24Hour = (timeStr: string) => {
-          const [hourStr, minuteStr, period] = timeStr.split(/:|\s/);
-          let hour = parseInt(hourStr, 10);
-          const minute = parseInt(minuteStr, 10);
-          if (period === "PM" && hour !== 12) hour += 12;
-          if (period === "AM" && hour === 12) hour = 0;
-          return hour * 60 + minute; // 분 단위로 변환하여 비교
-        };
+    console.log("날짜 확인:", newSchedule); // 로그 추가: 날짜 확인
 
-        return convertTo24Hour(a.time) - convertTo24Hour(b.time);
-      });
-    });
-
-    setTask(""); // 입력 필드 초기화
+    try {
+      await onSubmit?.(newSchedule); // 부모 컴포넌트의 onSubmit 호출
+      console.log("새로운 세부 일정이 생성되었습니다:", newSchedule);
+      onClose?.();
+    } catch (error) {
+      console.error("플랜 생성 중 오류 발생:", error);
+    }
   };
+
+  if (!isOpen) return null;
 
   return (
     <ModalWrapper>
@@ -253,10 +251,12 @@ const DetailModal: React.FC<DetailModalProps> = ({
         <button className="close-btn" onClick={onClose}>
           &times;
         </button>
-        <form onSubmit={(e) => e.preventDefault()}>
+        <form
+          onSubmit={handleSubmit}
+        >
           <div className="field">
             <label>날짜</label>
-            <DatePicker value={startDate} onChange={setStartDate} />
+            <DatePicker value={date} onChange={setDate} />
           </div>
           <div className="field">
             <label>시간 선택</label>
@@ -268,19 +268,9 @@ const DetailModal: React.FC<DetailModalProps> = ({
               value={task}
               onChange={(e) => setTask(e.target.value)}
             />
-            <button type="submit" onClick={handleAddSchedule}>
-              추가하기
-            </button>
           </div>
-          <ul>
-            {scheduleList.map((schedule, index) => (
-              <li key={index}>
-                {schedule.time} - {schedule.content}
-              </li>
-            ))}
-          </ul>
           <Button scheme="primary" type="submit">
-            생성하기
+            {isEditMode ? "수정하기" : "생성하기"}
           </Button>
         </form>
       </div>
@@ -291,6 +281,24 @@ const DetailModal: React.FC<DetailModalProps> = ({
 export default DetailModal;
 
 // 5) 스타일드 컴포넌트
+
+const ScheduleList = styled.ul`
+  display: flex;
+  flex-direction: column; /* 항목들을 세로로 나열 */
+  align-items: center; /* 수평 가운데 정렬 */
+  padding: 0;
+  margin: 0;
+  list-style: none;
+`;
+
+const ScheduleItem = styled.li`
+  margin: 5px 0; /* 항목 간 간격 */
+  background-color: #f4f4f4;
+  padding: 10px;
+  border-radius: 5px;
+  width: 200px; /* 고정 크기 설정 */
+  text-align: center; /* 항목 내용 가운데 정렬 */
+`;
 
 // 5-1) 모달 래퍼
 const ModalWrapper = styled.div`

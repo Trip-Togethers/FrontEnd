@@ -3,7 +3,7 @@ export interface CreateData {
     destination: string,
     startDate: Date,
     endDate: Date,
-    image: File | null
+    image: File | null,
 }
 
 export interface Schedules {
@@ -28,4 +28,11 @@ export interface PostData {
   title: string;
   content: string;
   photoUrl: string;  // 이미지 객체 배열로 변경 (파일과 URL 포함)
+}
+
+export interface CreateSubData {
+  id?: number;
+  scheduleDate: string;  // 날짜
+  scheduleTime: string;  // 시간
+  scheduleContent: string;  // 내용
 }

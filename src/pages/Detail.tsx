@@ -1,9 +1,8 @@
 import { styled } from "styled-components";
 import React, { useEffect, useState } from "react";
-import { showDetailPlan } from "@api/detail.api";
+import { createSubPlan, editSubPlan, removeSubPlan, showDetailPlan } from "@api/detail.api";
 import { useParams } from "react-router-dom";
-import { createPlan, editPlan, showPlan } from "@api/schedule.api";
-import { formatDate } from "@utils/date.format";
+import { editPlan, showPlan } from "@api/schedule.api";
 import { getUserIdFromToken } from "@utils/get.token.utils";
 import { userPage } from "@api/user.api";
 import Ticket from "@components/detail/Ticket";
@@ -11,6 +10,8 @@ import Modal from "@components/common/Modal";
 import DetailModal from "@components/detail/DetailModal";
 import { RadioButtonUnchecked, ArrowUploadReady, PlaneIcon } from "@assets/svg";
 import { TodoItem } from "models/todo.model";
+import { CreateSubData } from "models/schedule.model";
+import Button from "@components/common/Button";
 
 interface Schedules {
   id: number;
@@ -49,7 +50,11 @@ const Detail: React.FC<DetailProps> = ({ scheduleList, selectedDate }) => {
     null
   );
 
-  const [detailScheduleList, setdetailScheduleList] = useState<TodoItem[]>([]); // 빈 배열로 초기화
+  const [selectedItem, setSelectedItem] = useState<CreateSubData | null>(null); // 선택된 항목 상태
+  const [showMenu, setShowMenu] = useState(false); // 메뉴의 표시 여부
+
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [subPlanId, setSubPlanId] = useState<number>(); 
 
   // 일정 데이터를 3개씩 분할
   const paginatedSchedule = (scheduleData: any[]) => {
@@ -70,11 +75,39 @@ const Detail: React.FC<DetailProps> = ({ scheduleList, selectedDate }) => {
     }
   };
 
-  // Schedule 클릭 시 실행될 함수
+  const handleMoreClick = (item: CreateSubData) => {
+    setIsDetailModalOpen(false); // '...' 클릭 시 DetailModal을 닫기
+    setSelectedItem(item); // 클릭한 항목을 선택
+    setShowMenu((prev) => !prev); // 메뉴 토글
+  };
+
   const handleScheduleClick = (schedule: DaySchedule) => {
     setSelectedSchedule(schedule);
-    setIsDetailModalOpen(true);
+    setIsDetailModalOpen(true); // 일정 클릭 시 DetailModal 열기
+    setIsEditMode(false); // "추가 모드"로 설정
   };
+
+  const handleEdit = async (item: CreateSubData, day: DaySchedule) => {
+    setSubPlanId(item.id)
+    setSelectedSchedule(day);
+    setIsDetailModalOpen(true); // 모달 열기
+    setIsEditMode(true); // "수정 모드"로 설정
+  };
+
+  const handleDelete = async(item: CreateSubData) => {
+    const subId = item.id;
+    try {
+      if (subId) { 
+        const data = await removeSubPlan(Number(tripId), subId);
+        console.log("일정 삭제 성공:", data);        
+        window.location.reload();
+      } else {
+        console.warn("유효한 일정 아이디가 없습니다.");
+      }
+    } catch (error) {
+      console.error("일정 데이터를 삭제하는 중 오류 발생:", error);
+    }
+  }
 
   useEffect(() => {
     if (!tripId) {
@@ -99,6 +132,7 @@ const Detail: React.FC<DetailProps> = ({ scheduleList, selectedDate }) => {
         console.error("유저 정보를 가져오는 데 실패했습니다.");
       }
     };
+
     const fetchData = async () => {
       try {
         const data = await showDetailPlan(Number(tripId));
@@ -126,36 +160,12 @@ const Detail: React.FC<DetailProps> = ({ scheduleList, selectedDate }) => {
         console.error("일정 데이터를 불러오는 중 오류 발생:", error);
       }
     };
-    console.log("부모에서 받은 mainSchedule:", mainSchedule);
 
     fetchData();
     fetchUserData();
   }, [tripId]);
+
   if (!mainSchedule) return <p>일정 정보를 불러오는 중입니다...</p>;
-
-  // 선택된 날짜에 해당하는 일정만 필터링
-  const filteredSchedules = (detailScheduleList || [])
-    .filter((item) => {
-      const itemDate = new Date(item.date); // 일정의 날짜(Date 객체로 변환)
-      return (
-        itemDate.getFullYear() === selectedDate.getFullYear() &&
-        itemDate.getMonth() === selectedDate.getMonth() &&
-        itemDate.getDate() === selectedDate.getDate()
-      );
-    })
-    .sort((a, b) => {
-      // 시간 비교를 위해 24시간 형식으로 변환
-      const convertTo24Hour = (timeStr: string) => {
-        const [hourStr, minuteStr, period] = timeStr.split(/:|\s/);
-        let hour = parseInt(hourStr, 10);
-        const minute = parseInt(minuteStr, 10);
-        if (period === "PM" && hour !== 12) hour += 12;
-        if (period === "AM" && hour === 12) hour = 0;
-        return hour * 60 + minute; // 분 단위로 변환하여 비교
-      };
-
-      return convertTo24Hour(a.time) - convertTo24Hour(b.time);
-    });
 
   return (
     <DetailContainer>
@@ -164,9 +174,26 @@ const Detail: React.FC<DetailProps> = ({ scheduleList, selectedDate }) => {
         {isDetailModalOpen && selectedSchedule && (
           <DetailModal
             isOpen={isDetailModalOpen}
-            onClose={() => setIsDetailModalOpen(false)}
+            onClose={() => setIsDetailModalOpen(false)} // 모달 닫기
             scheduleData={selectedSchedule}
-            selectedDate={selectedDate} // 날짜 전달
+            isEditMode={isEditMode} // 추가 or 수정 모드 구분
+            selectedScheduleIndex={subPlanId}
+            onSubmit={async (newSchedule: CreateSubData) => {
+              if (isEditMode) {
+                if (subPlanId) {
+                  // 기존 일정 수정
+                  await editSubPlan(Number(tripId), subPlanId, newSchedule);
+                } else {
+                  console.log("세부일정 아이디가 존재하지 않습니다.");
+                }
+              }
+              else {
+                // 새로운 일정 추가
+                await createSubPlan(Number(tripId), newSchedule);
+              }
+              window.location.reload();
+              setIsModalOpen(false);
+            }}
           />
         )}
         <Modal
@@ -197,7 +224,7 @@ const Detail: React.FC<DetailProps> = ({ scheduleList, selectedDate }) => {
         <Schedule>
           {Array.isArray(scheduleData) && scheduleData.length > 0 ? (
             paginatedSchedule(scheduleData).map((day, index) => (
-              <Day key={index} onClick={() => handleScheduleClick(day)}>
+              <Day key={index}>
                 <DateTitle>
                   {new Date(day.scheduleDate).toLocaleDateString("en-GB", {
                     day: "2-digit",
@@ -277,17 +304,49 @@ const Detail: React.FC<DetailProps> = ({ scheduleList, selectedDate }) => {
                   })()}
                 </IconStyle>
                 <ScheduleList>
-                  {filteredSchedules.length > 0 ? (
-                    <ul>
-                      {filteredSchedules.map((item, index) => (
-                        <li key={index}>
-                          <span>{item.time}</span> - {item.content}
+                  {Array.isArray(day.currentDate) &&
+                  day.currentDate.length > 0 ? (
+                    [...day.currentDate] // 원본 배열을 복사하여 정렬
+                      .sort((a, b) =>
+                        a.scheduleTime.localeCompare(b.scheduleTime)
+                      ) // 시간순 정렬
+                      .map((item: CreateSubData, idx: number) => (
+                        <li key={idx} className="schedule-item">
+                          {item.scheduleTime.slice(0, 5)} -{" "}
+                          {item.scheduleContent}
+                          <span
+                            className="more-icon"
+                            onClick={() => handleMoreClick(item)} // 클릭 시 메뉴 토글
+                          >
+                            ...
+                          </span>
+                          {showMenu && selectedItem === item && (
+                            <div className="menu">
+                              <button
+                                onClick={() => handleEdit(selectedItem, day)}
+                                className="menu-button edit"
+                              >
+                                수정
+                              </button>
+                              <button
+                                onClick={() => handleDelete(selectedItem)}
+                                className="menu-button delete"
+                              >
+                                삭제
+                              </button>
+                            </div>
+                          )}
                         </li>
-                      ))}
-                    </ul>
+                      ))
                   ) : (
-                    <p>상세 일정이 없습니다.</p>
+                    <li>세부 일정이 없습니다.</li>
                   )}
+                  <Button
+                    scheme="primary"
+                    onClick={() => handleScheduleClick(day)}
+                  >
+                    추가하기
+                  </Button>
                 </ScheduleList>
               </Day>
             ))
@@ -307,7 +366,8 @@ const Detail: React.FC<DetailProps> = ({ scheduleList, selectedDate }) => {
 };
 
 const DetailContainer = styled.div`
-  padding: 20px;                                                                                           center;
+  padding: 20px;
+  center;
 `;
 
 const TicketContainer = styled.div`
@@ -378,18 +438,94 @@ const DateTitle = styled.h3`
 
 const ScheduleList = styled.ul`
   display: flex;
+  flex-direction: column; /* 세로 정렬 */
   list-style: none;
   text-align: center;
   padding: 0;
-  margin: 0;
-  flex-wrap: wrap; /* 가로로 넘칠 경우 자동으로 줄바꿈 */
-`;
+  width: 100%; /* 부모 요소 기준 전체 너비 */
+  gap: 8px; /* 항목 간 간격 */
+  justify-content: center; /* 가로 중앙 정렬 */
+  align-items: center; /* 세로 중앙 정렬 */
 
-const ScheduleItem = styled.li`
-  padding: 5px 10px;
-  margin-right: 15px; /* 각 아이템 간의 간격 */
-  background-color: #f4f4f4;
+  .schedule-item {
+  margin-left: 30px;
+    display: flex;
+    justify-content: center; /* 가로 중앙 정렬 */
+    align-items: center; /* 세로 중앙 정렬 */
+    position: relative; /* 아이콘 위치를 절대 좌표로 지정할 수 있게 해줌 */
+    padding-right: 30px; /* 아이콘을 위해 여백을 추가 */
+  }
+
+  .schedule-item:hover .more-icon {
+    display: block; /* 마우스를 올리면 아이콘 보이기 */
+  }
+
+  .more-icon {
+    display: none; /* 기본적으로 아이콘 숨김 */
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%) rotate(90deg); /* 세로로 회전 */
+    cursor: pointer;
+  }
+
+  .menu {
+  position: absolute;
+  left: 100%; /* 오른쪽에 띄우기 위해 left를 100%로 설정 */
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: #ffffff; /* 화이트 배경으로 깔끔한 느낌 */
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 부드러운 그림자 효과 */
+  padding: 10px 15px;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.schedule-item:hover .menu {
+  opacity: 1;
+  visibility: visible;
+}
+
+.menu-button {
+  padding: 8px 15px;
+  font-size: 14px;
+  border: none;
   border-radius: 5px;
+  color: #333333; /* 글자 색을 다크 그레이로 설정 */
+  background-color: #f4f4f4; /* 부드러운 회색 배경 */
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.menu-button.edit {
+  background-color: ${({ theme }) => theme.color.primary_green};
+  font-family: ${({ theme }) => theme.font.family.contents};
+  color: white;
+}
+
+.menu-button.delete {
+  background-color: #ef5350; /* 삭제 버튼 색상: 붉은색 */
+  font-family: ${({ theme }) => theme.font.family.contents};
+  color: white;
+}
+
+.menu-button:hover {
+  background-color: #d1d1d1; /* 버튼 호버 시 배경을 살짝 어두운 회색으로 변경 */
+  transform: translateX(5px); /* 버튼에 호버 시 살짝 이동 */
+}
+
+.menu-button:focus {
+  outline: none; /* 버튼 포커스 시 외곽선 제거 */
+}
+
+.schedule-item:hover .more-icon {
+  display: block; /* 마우스를 올리면 아이콘 보이기 */
+}
 `;
 
 const ArrowButton = styled.button`

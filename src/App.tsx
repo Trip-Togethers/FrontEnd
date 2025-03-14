@@ -18,6 +18,7 @@ import Calendars from "@pages/Calendar";
 import { Provider } from "react-redux";
 import store from "@store/store";
 import InvitePage from "@pages/InvitePage";
+import Verify from "@pages/Verify";
 
 const router = createBrowserRouter([
    // 기본 경로 접근 시 로그인 페이지로 리디렉션
@@ -35,6 +36,12 @@ const router = createBrowserRouter([
     //회원가입
     path: "/users/register",
     element: <Join />,
+    errorElement: <Error />,
+  },
+  {
+    //인증번호
+    path: "/users/verify-email",
+    element: <Verify />,
     errorElement: <Error />,
   },
   {

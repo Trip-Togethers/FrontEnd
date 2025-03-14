@@ -52,6 +52,7 @@ interface LoginResponse {
   token: string;
 }
 
-export const verifyEmail = async (code: string) => {
-  return await httpClient.post("/auth/verify-email", { code });
+export const verifyEmail = async (email:string, code: number) => {
+  const response = await httpClient.post("/users/verify-email", { email, code });
+ return response.data;
 };

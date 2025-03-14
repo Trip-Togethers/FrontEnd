@@ -40,6 +40,8 @@ const ButtonStyle = styled.button<Omit<Props, "children">>`
   display: inline-block;
   align-items: center;
   white-space: nowrap;
+  
+  margin-top: 20px;
 
   &:hover {
     opacity: 0.8;

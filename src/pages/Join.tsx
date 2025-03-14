@@ -34,8 +34,8 @@ function Join() {
   const onSubmit = async (data: RegisterProps) => {
     try {
       await signup(data); // BE Register 요청
-      showAlert("회원가입이 완료되었습니다.");
-      navigate("/users/login");
+      showAlert("이메일 인증 번호는 1234 입니다.");
+      navigate("/users/verify-email");
     } catch (error) {
       showAlert("회원가입에 실패했습니다.");
     }

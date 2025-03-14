@@ -335,6 +335,9 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
           </CategoryContainer>
         </SidebarContainer>
 
+        <LoadScript 
+          googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
+          libraries={["places"]}>
         <GoogleMap
           mapContainerStyle={mapContainerStyle}
           center={center}
@@ -374,7 +377,7 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
                   lng: place.longitude,
                 }}
                 icon={{
-                  url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png", // ✅ 파란색 마커
+                  url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png", // 파란색 마커
                   scaledSize: new google.maps.Size(40, 40),
                 }}
                 onClick={() => {
@@ -384,6 +387,7 @@ function GoogleMapComponent({ latitude, longitude }: GoogleMapProps) {
               />
             ))}
         </GoogleMap>
+        </LoadScript>
       </MapContainer>
   );
 }

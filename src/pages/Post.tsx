@@ -65,7 +65,7 @@ function Posts() {
   
   if (token) {
     try {
-      const decodedToken: any = jwtDecode(token); // 🔹 토큰 디코딩
+      const decodedToken: any = jwtDecode(token); // 토큰 디코딩
       const userId = decodedToken?.userId || null
       setCurrentUserId(userId)
     } catch (error) {
