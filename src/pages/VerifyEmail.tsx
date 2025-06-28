@@ -12,7 +12,7 @@ import { useEmail } from "@store/authStore";
 import { verifyEmail } from "@api/auth.api";
 
 export interface VerifyProps {
-  code: string;
+  code: number;
 }
 
 function VerifyEmail() {
@@ -30,9 +30,15 @@ function VerifyEmail() {
 
   const onSubmit = async (data: VerifyProps) => {
     try {
-      const res = await verifyEmail(data.code); // API 요청
-      showAlert("회원가입이 완료되었습니다.");
-      navigate("/users/login"); // 로그인 페이지로 이동
+      if(email) {
+        const res = await verifyEmail(email, data.code); // API 요청
+        showAlert("회원가입이 완료되었습니다.");
+        navigate("/users/login"); // 로그인 페이지로 이동
+      }
+      else {
+        showAlert("이메일을 입력해주세요.");
+      }
+      
     } catch (error) {
       showAlert("인증 코드가 올바르지 않습니다.");
       navigate("/users/register");

@@ -33,7 +33,7 @@ interface DetailProps {
   selectedDate: Date; // 선택한 날짜
 }
 
-const Detail: React.FC<DetailProps> = ({ scheduleList, selectedDate }) => {
+const Detail = () => {
   const { tripId } = useParams<{ tripId: string }>();
   const [mainSchedule, setMainSchedule] = useState<Schedules | null>(null);
   const [scheduleData, setScheduleData] = useState<DaySchedule[]>([]);
